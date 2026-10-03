@@ -1,6 +1,6 @@
 # Spécification — Établi : mode serveur facultatif, utilisateurs, mobile
 
-Statut : **brouillon à valider par Bryan** (règle d'`AGENTS.md` : pas de gros développement sans spécification validée).
+Statut : **réponses de Bryan intégrées (3 oct. 2026), en attente de validation finale** (règle d'`AGENTS.md` : pas de gros développement sans spécification validée).
 Cible : le dépôt `Bryan-Cordonnier/etabli` (moteur). Cette spécification est écrite ici faute d'accès en écriture à ce dépôt ;
 elle sera déplacée dans `docs/` d'Établi à la validation.
 
@@ -51,8 +51,7 @@ elle sera déplacée dans `docs/` d'Établi à la validation.
 
 - Connexion par identifiant et mot de passe (Argon2id). Session par jeton à durée limitée, renouvelé, révocable.
 - Premier lancement du serveur : création de l'admin (mot de passe choisi par la personne, jamais généré en clair dans un journal).
-- Un utilisateur ne voit jamais les données d'un autre. Le **partage** (espaces communs : projets d'atelier, foyer) est
-  une étape ultérieure (§9, question 4).
+- Un utilisateur ne voit jamais les données d'un autre, sauf dans un **espace partagé** (§3.6).
 
 ### 3.2 Plugins
 
@@ -67,9 +66,19 @@ elle sera déplacée dans `docs/` d'Établi à la validation.
 - Écriture : `PUT` avec la version attendue ; si elle a changé, réponse **409** et l'interface propose de recharger ou
   d'écraser. Pas de fusion automatique.
 - Réglages de plugin et services publiés (`provide`) : même schéma, par utilisateur.
-- **Hors ligne** (obligatoire pour le mobile et les alarmes) : le client garde une copie locale en lecture et une file
-  d'écritures à rejouer à la reconnexion. C'est du cache, pas un second mode de stockage : la source de vérité reste le
-  serveur.
+- **Hors ligne, sur PC comme sur mobile** (décidé) : le client garde une copie locale en lecture et une file d'écritures
+  à rejouer à la reconnexion. C'est du cache, pas un second mode de stockage : la source de vérité reste le serveur.
+  L'interface indique l'état (connecté, hors ligne, N modifications en attente) et le résultat de la reconnexion.
+
+### 3.6 Espaces partagés (décidé : dans cette série d'étapes)
+
+- Un **espace** est un groupe nommé (un foyer, un atelier, un projet) avec des membres. Créé par l'admin.
+- Rôle dans un espace : **lecteur** ou **éditeur**. Chaque calcul, réglage ou donnée appartient soit à un utilisateur
+  (privé), soit à un espace.
+- Un plugin déclare, dans son manifeste, quelles données peuvent être partagées (ex. dépenses communes : oui ; revenus :
+  jamais). Le moteur n'expose à un espace que ce que le plugin autorise.
+- Un utilisateur n'a accès à un espace que s'il en est membre ; la liste est vérifiée côté serveur à chaque requête.
+- Le « Projets » prévu dans la feuille de route d'Établi s'appuie sur ce mécanisme.
 
 ### 3.4 API (esquisse)
 
@@ -81,7 +90,9 @@ GET  /api/plugins            liste (manifestes) ; GET /plugins/<id>/<chemin> : f
 GET/PUT/DELETE /api/documents/<plugin>/<id>
 GET  /api/documents?plugin=…&depuis=…       liste (métadonnées), incrémentale
 GET/PUT /api/donnees/<nom>   réglages de plugin et services
+GET/PUT/DELETE /api/espaces/<id>/documents/<plugin>/<id>   (si membre)
 -- admin --
+GET/POST/PATCH /api/admin/espaces            création, membres, rôles
 GET/POST/PATCH /api/admin/utilisateurs
 POST/PATCH/DELETE /api/admin/plugins
 GET /api/admin/export        archive de la base
@@ -115,11 +126,14 @@ de compte.
 
 ## 6. Mobile
 
-- **Android** : build web de l'hôte emballé par **Capacitor**, `FondServeur` obligatoire en v1 ; plugins servis par le
-  serveur. Le mode local sur Android (plugins embarqués, IndexedDB) est une étape ultérieure.
-- **iPhone** : **PWA** (« Sur l'écran d'accueil »), même hôte, `FondServeur`. Pas de compte Apple Developer requis.
+- **Mode local sur mobile en v1 (décidé)** : l'application contient des plugins embarqués et stocke dans IndexedDB ; aucun
+  serveur requis. **Le mode serveur mobile suit immédiatement** (c'est l'usage principal de Bryan) et ne doit pas être repoussé.
+- **Android** : build web de l'hôte emballé par **Capacitor**. **iPhone** : **PWA** (« Sur l'écran d'accueil »), sans compte
+  Apple Developer.
 - L'hôte devient adaptatif (barre de navigation basse sous 760 px, cibles tactiles) ; l'aperçu rapide, la zone de
   notification et le raccourci global restent propres au bureau.
+- **Plugins sur mobile local** : ceux fournis avec le build. Pas d'installation depuis le catalogue sur mobile en local
+  (politique des magasins et simplicité) ; en mode serveur, l'admin les distribue.
 - **Test préalable** (maquette jetable, avant d'investir) : une alarme locale exacte Android 17 sonne-t-elle application
   fermée avec Capacitor ? Si non, repli sur Tauri mobile.
 
@@ -140,26 +154,26 @@ Utilité générique : rappels d'échéance, imports de données, mises à jour 
 | Étape | Contenu | Test |
 | --- | --- | --- |
 | E1 | Interface `Fond` + `FondTauri` : refonte de `api.ts` sans changement de comportement. `etabli-noyau` extraite. | tests existants, CI Windows |
-| E2 | Build web de l'hôte (`FondWeb`, IndexedDB), plugins servis en statique. | Playwright, PWA installable |
+| E2 | Build web de l'hôte (`FondWeb`, IndexedDB), plugins servis en statique, hôte adaptatif ; cache hors ligne commun à tous les fonds. | Playwright, PWA installable |
 | E3 | `etabli-serveur` : utilisateurs, sessions, documents, réglages, services, plugins, export. | `cargo test`, tests d'API, revue de sécurité |
-| E4 | `FondServeur`, écran de connexion, choix du mode, pages d'administration (utilisateurs, plugins), import local → serveur. | parcours Playwright + essai par Bryan |
-| E5 | Mobile : hôte adaptatif, Capacitor Android, installation iPhone, cache hors ligne et file d'écritures. | essai sur le téléphone de Bryan |
-| E6 | Permissions `notifications` et `reseau`. | essai sur appareil |
-| E7 | Habillage (nom, icône, plugins par défaut) paramétrable → base du fork. | build des deux produits |
+| E4 | `FondServeur` (cache + file d'écritures), écran de connexion, choix du mode, pages d'administration (utilisateurs, plugins), import local → serveur. | parcours Playwright + essai par Bryan |
+| E5 | **Mobile** : Capacitor Android (local, puis serveur) et PWA iPhone. Test d'alarme Android en premier. | essai sur le téléphone de Bryan |
+| E6 | Espaces partagés (§3.6) et pages d'administration associées. | tests d'API (droits), Playwright |
+| E7 | Permissions `notifications` et `reseau`. | essai sur appareil |
+| E8 | Habillage (nom, icône, plugins par défaut) paramétrable → base du fork. | build des deux produits |
 
 Tenu à jour à chaque étape : `CHANGELOG.md`, documentation `docs/`, tests. Aucune étape ne casse la lecture des
 `.etabli` existants.
 
-## 9. Questions ouvertes (à trancher)
+## 9. Décisions et points restants
 
-1. **« Réglable sur le serveur »** : je l'ai compris comme « un mode par installation ». Veux-tu en plus, plus tard, un
-   choix **par plugin** fixé par l'admin (stockage serveur ou local au poste) ? Recommandation : non en v1.
-2. **Hors ligne** : cache lecture + file d'écritures (§3.3) acceptable, vu qu'un mobile sans réseau doit rester utilisable ?
-3. **Serveur** : binaire Rust unique + SQLite, HTTP derrière proxy ou VPN pour le TLS. Acceptable ?
-4. **Partage** entre utilisateurs (espace commun, foyer ou projet d'atelier) : dans cette série d'étapes ou après ?
-5. **Mobile sans serveur** : exiger un serveur pour le mobile en v1 (recommandé), ou embarquer les plugins pour un mode local ?
-6. **Accès au dépôt** : l'application GitHub Claude doit être installée sur `Bryan-Cordonnier/etabli` pour que je puisse y
-   pousser (aujourd'hui : lecture seule). Branche proposée : `moteur-serveur`, sans demande de fusion tant que tu ne la demandes pas.
+Décidés : hors ligne PC et mobile (cache + file d'écritures) ; serveur Rust + SQLite, TLS par proxy ou VPN ; partage
+d'espaces dans cette série ; mode local possible sur mobile en v1, mode serveur mobile juste après.
+
+Restants :
+1. **Choix par plugin** (stockage serveur ou local au poste, fixé par l'admin) : proposé **non en v1** ; à reprendre plus tard si besoin.
+2. **Accès au dépôt** : l'application GitHub Claude doit être installée sur `Bryan-Cordonnier/etabli` pour que j'y pousse
+   (aujourd'hui : lecture seule). Branche proposée : `moteur-serveur`, sans demande de fusion tant que Bryan ne la demande pas.
 
 ## 10. Fork (après E7)
 
