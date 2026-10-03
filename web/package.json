@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "wasm": "bash ../scripts/build-wasm.sh",
+    "wasm": "node ../scripts/build-wasm.mjs",
     "dev": "vite",
     "build": "npm run wasm && vite build",
     "check": "svelte-check --tsconfig ./tsconfig.json",

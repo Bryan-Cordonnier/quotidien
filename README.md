@@ -8,17 +8,20 @@ calcul du net, chronologie de départ/coucher, rappels. Voir [CAHIER_DES_CHARGES
 - `crates/core` — cœur métier Rust (paie, horaires, repos légal). Montants en centimes, durées en minutes.
 - `crates/wasm` — pont WebAssembly (JSON in/out) vers l'interface.
 - `web/` — interface Svelte 5 + Vite + TypeScript.
-- `scripts/build-wasm.sh` — compile le cœur en WASM pour l'interface.
+- `scripts/build-wasm.mjs` — compile le cœur en WASM pour l'interface.
 
 ## Commandes
 
 ```bash
 cargo test --workspace                                       # tests du cœur
 cargo install wasm-bindgen-cli --version 0.2.129 --locked    # une seule fois
-cd web && npm ci && npm run wasm                             # génère web/src/lib/wasm
-npm run dev                                                  # http://localhost:5173
-npm run check && npm test                                    # svelte-check + Vitest
-npx vite build && npm run e2e                                # build + tests navigateur (Playwright)
+cd web
+npm ci
+npm run wasm      # génère web/src/lib/wasm
+npm run dev       # http://localhost:5173
+npm run check     # svelte-check
+npm test          # Vitest
+npm run e2e       # tests navigateur (après `npx vite build`)
 ```
 
 ## État (étape 1)
