@@ -34,7 +34,8 @@ Calendrier détaillé, missions d'intérim et jours de réserve avec calcul de n
 
 ## 3. Utilisateurs et sécurité
 
-- Comptes individuels (2 prévus). Données **privées par défaut** ; seules les dépenses du foyer sont partagées.
+- Comptes individuels (2 prévus : Bryan sur Android, colocataire sur iPhone). **Chaque utilisateur a l'application complète** (calendrier, paie, budget perso, runway). Données **privées par défaut** ; seules les dépenses du foyer sont partagées.
+- Limite assumée : Bryan administre le serveur et pourrait techniquement lire la base. Chiffrement par utilisateur (clé dérivée d'un mot de passe) à envisager en v2 pour une vraie confidentialité.
 - Hébergement sur le serveur personnel (Proxmox VE) : conteneur ou VM dédié.
 - Accès uniquement via VPN (WireGuard ou Tailscale). Aucune exposition directe sur Internet.
 - Chiffrement des documents (contrats, bulletins). Sauvegardes automatiques quotidiennes avec test de restauration.
@@ -120,6 +121,8 @@ Créneaux de reconditionnement et réparations placés entre les shifts, jamais 
 
 ## 5. Module Paie (calcul du net)
 
+Les règles ci-dessous sont des **types de source de revenu** configurables par utilisateur : intérim, réserve, CDD/CDI (salaire mensuel), micro-entreprise, autre. Le colocataire (CDD puis CDI, ~1 200 €/mois) utilise le type salarié mensuel.
+
 Statuts de chaque montant : **prévu → confirmé → reçu**. Un montant a aussi une **date de paiement estimée** (intérim ~1 à 2 semaines, réserve ~1 à 2 mois).
 
 ### 5.1 Intérim
@@ -170,7 +173,7 @@ Seuls les jours **hors base** ouvrent droit à l'indemnité non imposable. Les m
 - Soldes « qui doit quoi à qui » (type Tricount) et remboursements.
 - Confidentialité : par défaut, le colocataire ne voit ni revenus, ni épargne, ni calendrier perso.
 
-Dans la base de données dès la v1 ; interface livrée en v2.
+Chaque membre garde son budget personnel complet en parallèle. Dans la base de données dès la v1 ; interface foyer livrée en v2.
 
 ---
 
@@ -247,13 +250,18 @@ Ordre justifié par l'urgence : l'étape 1 sert dès le début de l'intérim et 
 |---|---|---|---|
 | Android | Bryan | **Capacitor** + interface Svelte | Alarmes locales exactes fiables (`@capacitor/local-notifications`), écosystème mobile plus mûr que Tauri mobile |
 | Windows | Bryan | **PWA installée** (Edge) en v1 ; coque **Tauri 2** possible ensuite (même interface) | Les rappels de départ servent sur le téléphone ; le PC sert à la saisie et à l'analyse |
-| iPhone | Colocataire | **PWA installée** (« Sur l'écran d'accueil »), en ligne, via VPN | Pas de Mac, pas de compte Apple Developer (99 €/an) ; suffisant pour le foyer |
+| iPhone | Colocataire | **PWA installée** (« Sur l'écran d'accueil »), via VPN, même interface complète | Pas de Mac, pas de compte Apple Developer (99 €/an) ; alarmes par flux calendrier Apple |
+
+**Principe d'unification** : un seul code d'interface (Svelte) pour tous les appareils, mêmes écrans, mêmes calculs (cœur Rust/WASM), mêmes données. La **seule** différence de comportement concerne les alarmes :
+- Android : alarmes locales exactes via Capacitor.
+- iPhone : rappels via un **flux calendrier (ICS/webcal) par utilisateur** contenant les alarmes calculées (départ, coucher) et lu par l'app Calendrier d'Apple, qui sonne de façon fiable ; notifications web push en complément.
+- Tous les appareils : mêmes écrans de configuration des rappels.
 
 **Briques communes**
 - **Interface** : Svelte 5 (runes, sans SvelteKit), Vite, TypeScript + `svelte-check`, `@lucide/svelte`, Inter et JetBrains Mono embarquées, thème sombre.
 - **Cœur métier en Rust** (crate pur, sans UI) : paie, heures de départ et de coucher, runway, allocation. Testé par `cargo test`. Compilé en **WebAssembly** pour l'interface (mêmes résultats sur Android, PC et iPhone) et utilisé nativement par le serveur pour valider.
 - **Serveur Rust (axum) sur le Proxmox** derrière VPN (Tailscale) : synchronisation, comptes, foyer, service de l'interface web en HTTPS.
-- **Stockage** : SQLite sur le serveur (source de vérité) ; copie locale SQLite/IndexedDB sur ton Android et ton PC pour le hors ligne. Le colocataire est en ligne seulement et ne voit que le foyer.
+- **Stockage** : SQLite sur le serveur (source de vérité) ; copie locale SQLite/IndexedDB sur ton Android et ton PC pour le hors ligne. Android et iPhone suivent le même schéma : l'interface fonctionne d'abord sur copie locale puis synchronise. Le colocataire ne voit du compte de Bryan que le foyer.
 - **Trajets** : OSRM ou OpenRouteService sur le Proxmox ; cache local des trajets habituels.
 - **Qualité** : Vitest, `cargo test`, `clippy`, `cargo fmt`, GitHub Actions, Dependabot.
 - **Non retenu** : système de plugins et d'iframes, 3D, application iOS native.
@@ -261,7 +269,7 @@ Ordre justifié par l'urgence : l'étape 1 sert dès le début de l'intérim et 
 | Risque | Impact | Parade |
 |---|---|---|
 | **R1** Les alarmes planifiées Android peuvent être bloquées par l'économie d'énergie ou la permission d'alarmes exactes | Le rappel « pars maintenant » ne sonne pas | Capacitor + alarmes locales exactes calculées sur le téléphone, permission demandée au premier lancement, test sur ton téléphone dès l'étape 1 ; export ICS/CalDAV en filet de sécurité |
-| **R8** PWA iPhone limitée (notifications, stockage purgé si non installée) | Le colocataire perd l'accès ou des données | Usage en ligne uniquement, PWA installée sur l'écran d'accueil, aucune donnée critique stockée sur l'iPhone |
+| **R8** PWA iPhone limitée (notifications, stockage purgé si non installée) | Le colocataire perd l'accès ou des données | PWA installée sur l'écran d'accueil (stockage non purgé), synchronisation fréquente, serveur = source de vérité, rappels via flux calendrier Apple |
 | R2 Trajet sans trafic temps réel | Retard réel | Majoration heures de pointe + marge d'arrivée |
 | R3 Net estimé faux | Mauvaises décisions | Calibrage sur bulletins, taux visibles et modifiables |
 | R4 Délais de paie ignorés | Découvert | Statuts prévu/confirmé/reçu, épargne acquise vs réelle |
