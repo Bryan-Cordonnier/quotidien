@@ -241,11 +241,20 @@ Ordre justifié par l'urgence : l'étape 1 sert dès le début de l'intérim et 
 
 ## 13. Choix techniques et risques
 
-**Proposition de stack (à valider)** : application web React installable (PWA) + empaquetage Android (Capacitor) ; API et base de données sur le serveur Proxmox (Laravel ou Node, PostgreSQL ou SQLite) ; OSRM/OpenRouteService en local ; accès par VPN.
+**Stack retenue (calquée sur ton application de bureau Tauri existante)**
+
+- **Coque** : Tauri 2 (Windows via WebView2, Android via Tauri mobile), Rust édition 2021. Plugins : notification (alarmes locales), single-instance, autostart, opener, dialog, updater, log.
+- **Interface** : Svelte 5 (runes, sans SvelteKit), Vite, TypeScript vérifié par `svelte-check`, icônes `@lucide/svelte`, polices Inter et JetBrains Mono embarquées, thème sombre.
+- **Cœur métier en Rust** (crate pur, sans UI) : calcul de paie, heures de départ et de coucher, runway, allocation. Testé par `cargo test`, partagé entre le poste, le téléphone et le serveur de synchronisation.
+- **Stockage local-first** : SQLite (`rusqlite`) sur chaque appareil. Écart assumé par rapport à ton app (fichiers) : les requêtes sur historiques, statuts et filtres rendent SQLite nécessaire.
+- **Synchronisation** : petit serveur Rust (axum) sur le Proxmox, derrière VPN, journal d'événements chiffré. Il synchronise PC ↔ téléphone, et le foyer (données communes uniquement).
+- **Trajets** : OSRM ou OpenRouteService sur le Proxmox ; cache local pour que les trajets habituels marchent hors ligne.
+- **Qualité** : Vitest (UI), `cargo test`, `clippy`, `cargo fmt`, GitHub Actions, Dependabot.
+- **Volontairement non repris** : système de plugins et mini-apps en iframe, catalogue signé, 3D. Inutiles pour une app personnelle à deux utilisateurs ; des modules Svelte suffisent.
 
 | Risque | Impact | Parade |
 |---|---|---|
-| **R1** Les notifications web d'une PWA ne sont pas fiables sur Android (économie d'énergie, app fermée) | Le rappel « pars maintenant » ne sonne pas | App Android native-wrapper (Capacitor) avec **alarmes locales** planifiées sur le téléphone, calculées par l'app puis re-synchronisées ; export ICS/CalDAV en filet de sécurité |
+| **R1** Tauri mobile est moins mature que Tauri desktop ; les notifications planifiées Android dépendent de l'économie d'énergie et de la permission d'alarmes exactes | Le rappel « pars maintenant » ne sonne pas | **Alarmes locales planifiées sur le téléphone** (plugin notification + éventuel petit plugin Kotlin pour `AlarmManager` exact), test sur ton téléphone dès l'étape 1 ; export ICS/CalDAV en filet de sécurité ; si Tauri mobile bloque, repli sur Capacitor pour la seule coque Android |
 | R2 Trajet sans trafic temps réel | Retard réel | Majoration heures de pointe + marge d'arrivée |
 | R3 Net estimé faux | Mauvaises décisions | Calibrage sur bulletins, taux visibles et modifiables |
 | R4 Délais de paie ignorés | Découvert | Statuts prévu/confirmé/reçu, épargne acquise vs réelle |
