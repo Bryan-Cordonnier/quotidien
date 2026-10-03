@@ -241,20 +241,27 @@ Ordre justifié par l'urgence : l'étape 1 sert dès le début de l'intérim et 
 
 ## 13. Choix techniques et risques
 
-**Stack retenue (calquée sur ton application de bureau Tauri existante)**
+**Stack retenue (v0.3) — une seule interface, trois façons de l'ouvrir**
 
-- **Coque** : Tauri 2 (Windows via WebView2, Android via Tauri mobile), Rust édition 2021. Plugins : notification (alarmes locales), single-instance, autostart, opener, dialog, updater, log.
-- **Interface** : Svelte 5 (runes, sans SvelteKit), Vite, TypeScript vérifié par `svelte-check`, icônes `@lucide/svelte`, polices Inter et JetBrains Mono embarquées, thème sombre.
-- **Cœur métier en Rust** (crate pur, sans UI) : calcul de paie, heures de départ et de coucher, runway, allocation. Testé par `cargo test`, partagé entre le poste, le téléphone et le serveur de synchronisation.
-- **Stockage local-first** : SQLite (`rusqlite`) sur chaque appareil. Écart assumé par rapport à ton app (fichiers) : les requêtes sur historiques, statuts et filtres rendent SQLite nécessaire.
-- **Synchronisation** : petit serveur Rust (axum) sur le Proxmox, derrière VPN, journal d'événements chiffré. Il synchronise PC ↔ téléphone, et le foyer (données communes uniquement).
-- **Trajets** : OSRM ou OpenRouteService sur le Proxmox ; cache local pour que les trajets habituels marchent hors ligne.
-- **Qualité** : Vitest (UI), `cargo test`, `clippy`, `cargo fmt`, GitHub Actions, Dependabot.
-- **Volontairement non repris** : système de plugins et mini-apps en iframe, catalogue signé, 3D. Inutiles pour une app personnelle à deux utilisateurs ; des modules Svelte suffisent.
+| Cible | Utilisateur | Technologie | Pourquoi |
+|---|---|---|---|
+| Android | Bryan | **Capacitor** + interface Svelte | Alarmes locales exactes fiables (`@capacitor/local-notifications`), écosystème mobile plus mûr que Tauri mobile |
+| Windows | Bryan | **PWA installée** (Edge) en v1 ; coque **Tauri 2** possible ensuite (même interface) | Les rappels de départ servent sur le téléphone ; le PC sert à la saisie et à l'analyse |
+| iPhone | Colocataire | **PWA installée** (« Sur l'écran d'accueil »), en ligne, via VPN | Pas de Mac, pas de compte Apple Developer (99 €/an) ; suffisant pour le foyer |
+
+**Briques communes**
+- **Interface** : Svelte 5 (runes, sans SvelteKit), Vite, TypeScript + `svelte-check`, `@lucide/svelte`, Inter et JetBrains Mono embarquées, thème sombre.
+- **Cœur métier en Rust** (crate pur, sans UI) : paie, heures de départ et de coucher, runway, allocation. Testé par `cargo test`. Compilé en **WebAssembly** pour l'interface (mêmes résultats sur Android, PC et iPhone) et utilisé nativement par le serveur pour valider.
+- **Serveur Rust (axum) sur le Proxmox** derrière VPN (Tailscale) : synchronisation, comptes, foyer, service de l'interface web en HTTPS.
+- **Stockage** : SQLite sur le serveur (source de vérité) ; copie locale SQLite/IndexedDB sur ton Android et ton PC pour le hors ligne. Le colocataire est en ligne seulement et ne voit que le foyer.
+- **Trajets** : OSRM ou OpenRouteService sur le Proxmox ; cache local des trajets habituels.
+- **Qualité** : Vitest, `cargo test`, `clippy`, `cargo fmt`, GitHub Actions, Dependabot.
+- **Non retenu** : système de plugins et d'iframes, 3D, application iOS native.
 
 | Risque | Impact | Parade |
 |---|---|---|
-| **R1** Tauri mobile est moins mature que Tauri desktop ; les notifications planifiées Android dépendent de l'économie d'énergie et de la permission d'alarmes exactes | Le rappel « pars maintenant » ne sonne pas | **Alarmes locales planifiées sur le téléphone** (plugin notification + éventuel petit plugin Kotlin pour `AlarmManager` exact), test sur ton téléphone dès l'étape 1 ; export ICS/CalDAV en filet de sécurité ; si Tauri mobile bloque, repli sur Capacitor pour la seule coque Android |
+| **R1** Les alarmes planifiées Android peuvent être bloquées par l'économie d'énergie ou la permission d'alarmes exactes | Le rappel « pars maintenant » ne sonne pas | Capacitor + alarmes locales exactes calculées sur le téléphone, permission demandée au premier lancement, test sur ton téléphone dès l'étape 1 ; export ICS/CalDAV en filet de sécurité |
+| **R8** PWA iPhone limitée (notifications, stockage purgé si non installée) | Le colocataire perd l'accès ou des données | Usage en ligne uniquement, PWA installée sur l'écran d'accueil, aucune donnée critique stockée sur l'iPhone |
 | R2 Trajet sans trafic temps réel | Retard réel | Majoration heures de pointe + marge d'arrivée |
 | R3 Net estimé faux | Mauvaises décisions | Calibrage sur bulletins, taux visibles et modifiables |
 | R4 Délais de paie ignorés | Découvert | Statuts prévu/confirmé/reçu, épargne acquise vs réelle |
