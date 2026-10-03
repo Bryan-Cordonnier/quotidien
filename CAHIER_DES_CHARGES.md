@@ -55,6 +55,11 @@ Champs : agence, entreprise utilisatrice, **lieu** (adresse géocodée), périod
 Champs : lieu (base ou hors base), jours sélectionnés sur le calendrier, heure d'arrivée, heure de départ, tarif journalier imposable (défaut 60 €), indemnité journalière non imposable hors base (défaut 38 €), statut (probable / confirmé).
 → Affiche le net exact estimé et décrémente le compteur annuel de jours (objectif ~50 j/an).
 
+### 4.3 bis Planning annuel de réserve et week-ends
+- Saisie possible d'un **planning annuel** (jours connus à l'avance), jour par jour ou en lot, avec statut probable / confirmé.
+- Jours de réserve sur **week-end** autorisés ; ils comptent dans le compteur annuel et dans les alertes de repos (§4.9).
+- Détection des conflits intérim / réserve (dont week-ends) et affichage du net perdu en intérim face au net gagné en réserve.
+
 ### 4.4 Ajustement ponctuel d'une journée
 Exemple : « ce soir +1 h, comptée en heures supplémentaires ». Modifie l'horaire réel du jour et recalcule la paie.
 
