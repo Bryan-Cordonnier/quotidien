@@ -1,0 +1,12 @@
+[workspace]
+resolver = "2"
+members = ["crates/core", "crates/wasm"]
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.90"
+version = "0.1.0"
+
+[profile.release]
+opt-level = "s"
+lto = true
