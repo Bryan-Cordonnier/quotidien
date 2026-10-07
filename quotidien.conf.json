@@ -35,6 +35,11 @@
       }
     ]
   },
+  "plugins": {
+    "updater": {
+      "endpoints": []
+    }
+  },
   "bundle": {
     "createUpdaterArtifacts": false,
     "publisher": "Bryan Cordonnier",
