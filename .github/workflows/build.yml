@@ -1,0 +1,63 @@
+# Construit Quotidien : installateur Windows et APK Android, avec le moteur Etable (sous-module) et les plugins de ce dépôt.
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: Windows (MSI)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npm run build -- --bundles msi
+      - uses: actions/upload-artifact@v7
+        with:
+          name: quotidien-windows-msi
+          path: etable/apps/desktop/src-tauri/target/release/bundle/msi/*.msi
+          if-no-files-found: error
+
+  android:
+    name: Android (APK)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: rustup target add aarch64-linux-android
+      - name: NDK Android (préinstallé sur l'image)
+        run: |
+          echo "NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+      - run: npm ci
+      - run: npm run android:init
+      - run: npm run android:build -- --debug --target aarch64
+      - uses: actions/upload-artifact@v7
+        with:
+          name: quotidien-android-apk
+          path: etable/apps/desktop/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error

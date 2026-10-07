@@ -1,0 +1,49 @@
+{
+  "productName": "Quotidien",
+  "version": "0.1.0",
+  "identifier": "fr.cordonnier.quotidien",
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "create": false,
+        "title": "Quotidien",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 1024,
+        "minHeight": 640,
+        "center": true,
+        "resizable": true,
+        "decorations": false,
+        "shadow": true,
+        "visible": false
+      },
+      {
+        "label": "apercu",
+        "create": false,
+        "title": "Aperçu rapide — Quotidien",
+        "url": "apercu.html",
+        "width": 1280,
+        "height": 800,
+        "visible": false,
+        "transparent": true,
+        "decorations": false,
+        "shadow": false,
+        "resizable": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true
+      }
+    ]
+  },
+  "bundle": {
+    "createUpdaterArtifacts": false,
+    "publisher": "Bryan Cordonnier",
+    "copyright": "© 2026 Bryan Cordonnier",
+    "shortDescription": "Finances, agenda, budget et paie personnels",
+    "windows": {
+      "wix": {
+        "upgradeCode": "5D0D8E9B-8B4A-4D6C-9C47-6A0B1E1D7F32"
+      }
+    }
+  }
+}
