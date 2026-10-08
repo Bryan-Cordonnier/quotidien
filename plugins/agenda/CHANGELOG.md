@@ -5,6 +5,10 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ## [Non publié]
 
+### Modifié
+
+- **Rappels** : la page n'apparaît plus dans le menu de Quotidien (les rappels continuent de fonctionner).
+
 ## [0.2.0] — 2026-10-08
 
 ### Modifié

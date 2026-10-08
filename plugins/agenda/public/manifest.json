@@ -68,16 +68,6 @@
         "type": "app",
         "app": "calendrier"
       }
-    },
-    {
-      "id": "rappels",
-      "title": "Rappels",
-      "icon": "clock",
-      "category": "Temps",
-      "layout": {
-        "type": "app",
-        "app": "rappels"
-      }
     }
   ],
   "parameters": [

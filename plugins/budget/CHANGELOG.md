@@ -5,6 +5,10 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ## [Non publié]
 
+### Modifié
+
+- **Pages retirées du menu de Quotidien** : ses écrans sont remplacés par Mes finances (le service reste disponible pour les autres plugins).
+
 ## [0.1.0] — 2026-10-05
 
 Première version (version préliminaire, pas encore publiée dans le catalogue). Nécessite le plugin Finances.

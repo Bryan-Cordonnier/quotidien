@@ -51,26 +51,5 @@
       "accepts": []
     }
   ],
-  "pages": [
-    {
-      "id": "courbe",
-      "title": "Courbe du mois",
-      "icon": "gauge",
-      "category": "Argent",
-      "layout": {
-        "type": "app",
-        "app": "courbe"
-      }
-    },
-    {
-      "id": "previsions",
-      "title": "Prévisions",
-      "icon": "wallet",
-      "category": "Argent",
-      "layout": {
-        "type": "app",
-        "app": "previsions"
-      }
-    }
-  ]
+  "pages": []
 }

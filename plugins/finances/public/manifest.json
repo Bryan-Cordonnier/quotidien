@@ -54,16 +54,5 @@
       "accepts": []
     }
   ],
-  "pages": [
-    {
-      "id": "tableau",
-      "title": "Tableau de bord",
-      "icon": "wallet",
-      "category": "Argent",
-      "layout": {
-        "type": "app",
-        "app": "tableau"
-      }
-    }
-  ]
+  "pages": []
 }
