@@ -4,7 +4,7 @@ Mon application personnelle : **finances** (l'argent réel), **agenda** (le temp
 et **paie** (celle d'un particulier). Elle tourne sur Windows et sur Android, construite sur le moteur libre
 [Etable](https://github.com/etable-project/etable), qui est inclus ici en sous-module (`etable/`).
 
-Dépôt privé, à usage personnel.
+Dépôt public pour que l'application installée puisse télécharger ses mises à jour ; usage personnel (aucune donnée n'est dans le dépôt).
 
 ## Organisation
 
@@ -41,3 +41,14 @@ git add etable && git commit -m "chore: update Etable"
 ## Historique
 
 Le premier prototype (Rust + Svelte, sans moteur) est conservé sous l'étiquette `legacy/prototype-budget`.
+
+## Publier une version
+
+Chaque version a sa section dans [CHANGELOG.md](CHANGELOG.md) : elle devient la Release GitHub et le message de mise à jour.
+
+1. Dans CHANGELOG.md, renommer « Non publié » en `## [X.Y.Z] — AAAA-MM-JJ` et rouvrir une section « Non publié » vide au-dessus.
+2. Changer ersion dans quotidien.conf.json.
+3. `git commit`, puis `git tag -a vX.Y.Z -m \"Quotidien X.Y.Z\"` et `git push origin main vX.Y.Z`.
+4. Suivre l'onglet Actions (« Publication ») : l'installateur MSI, son fichier `.sig` et `latest.json` arrivent dans la Release. Un Quotidien installé propose la mise à jour au démarrage ; rien ne s'installe sans clic.
+
+La version doit **augmenter**. La clé de signature des mises à jour est dans `H:\outils\cles\quotidien-mises-a-jour.key` (mot de passe à côté) et dans les secrets du dépôt : **à sauvegarder**, sans elle plus aucune mise à jour n'est possible. Pas de signature Windows (Authenticode) : Windows peut afficher un avertissement à la première installation.

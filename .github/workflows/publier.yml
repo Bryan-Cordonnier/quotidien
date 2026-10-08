@@ -1,0 +1,78 @@
+# Publication d'une version : à chaque étiquette « v1.2.3 » envoyée sur GitHub (le CHANGELOG.md doit avoir sa section),
+# l'installateur MSI est compilé avec le moteur Etable (sous-module) et les plugins de ce dépôt, signé pour la mise à jour
+# automatique, puis publié dans les Releases avec latest.json, le fichier que Quotidien installé consulte.
+# Marche à suivre : README.md, section « Publier une version ».
+name: Publication
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    name: Installateur Windows
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Étiquette et version de l'application identiques
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          app=$(node -p "require('./quotidien.conf.json').version")
+          if [ "$tag" != "$app" ]; then
+            echo "::error::Étiquette v$tag mais quotidien.conf.json en $app : changez la version avant de publier."
+            exit 1
+          fi
+
+      # Les notes viennent du CHANGELOG.md : sans section pour cette version, la publication s'arrête tout de suite.
+      - name: Notes de version (CHANGELOG.md)
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          node etable/scripts/notes-version.mjs CHANGELOG.md "$version" --texte > "$RUNNER_TEMP/notes.txt"
+          node etable/scripts/notes-version.mjs CHANGELOG.md "$version" --release > "$RUNNER_TEMP/notes-release.md"
+          cat "$RUNNER_TEMP/notes-release.md"
+
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+
+      - name: Installateur MSI signé pour la mise à jour
+        env:
+          QUOTIDIEN_RELEASE: "1"
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: npm run build -- --bundles msi
+
+      - name: Emplacement du MSI
+        id: msi
+        run: |
+          path=$(ls etable/apps/desktop/src-tauri/target/release/bundle/msi/*.msi)
+          test -f "$path.sig" || { echo "::error::Pas de fichier .sig : la signature de mise à jour a échoué."; exit 1; }
+          echo "path=$path" >> "$GITHUB_OUTPUT"
+
+      - name: latest.json
+        run: node scripts/latest-json.mjs "$GITHUB_REF_NAME" "${{ steps.msi.outputs.path }}" "$RUNNER_TEMP/notes.txt" > "$RUNNER_TEMP/latest.json"
+
+      - name: Publication de la version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "${{ steps.msi.outputs.path }}" \
+            "${{ steps.msi.outputs.path }}.sig" \
+            "$RUNNER_TEMP/latest.json" \
+            --title "Quotidien $GITHUB_REF_NAME" \
+            --notes-file "$RUNNER_TEMP/notes-release.md"
