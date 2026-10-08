@@ -1,0 +1,82 @@
+{
+  "id": "mes-finances",
+  "name": "Mes finances",
+  "version": "0.1.0",
+  "apiVersion": "^3",
+  "author": "Bryan Cordonnier",
+  "description": "Ce que j'ai estimé sur mes comptes, jusqu'à quand je tiens, les prochains paiements, un ajustement rapide et un recalage sur le solde réel. S'appuie sur Finances et Budget, sans les remplacer.",
+  "color": "#0f766e",
+  "icon": "wallet",
+  "permissions": [
+    "appelle:finances:lecture",
+    "appelle:finances:ecriture",
+    "appelle:budget:lecture",
+    "reglages"
+  ],
+  "services": {
+    "finances": "^1",
+    "budget": "^1"
+  },
+  "optionalDependencies": {
+    "finances": "^1",
+    "budget": "^1"
+  },
+  "apps": [
+    {
+      "id": "situation",
+      "name": "Mes finances",
+      "entry": "apps/situation/index.html",
+      "accepts": []
+    }
+  ],
+  "pages": [
+    {
+      "id": "situation",
+      "title": "Mes finances",
+      "icon": "wallet",
+      "layout": {
+        "type": "app",
+        "app": "situation"
+      }
+    }
+  ],
+  "parameters": [
+    {
+      "id": "seuil",
+      "label": "Seuil à ne pas franchir",
+      "type": "number",
+      "default": 0,
+      "unit": "€",
+      "min": -10000,
+      "max": 1000000,
+      "step": 50,
+      "group": "Prévision",
+      "hint": "« Jusqu'à quand je tiens » compte les jours tant que l'estimé reste au-dessus de ce montant."
+    },
+    {
+      "id": "horizon",
+      "label": "Horizon de la courbe",
+      "type": "select",
+      "default": "60",
+      "group": "Prévision",
+      "hint": "Nombre de jours calculés à partir d'aujourd'hui.",
+      "options": [
+        { "value": "30", "label": "30 jours" },
+        { "value": "60", "label": "60 jours" },
+        { "value": "90", "label": "90 jours" }
+      ]
+    },
+    {
+      "id": "precisionRecalages",
+      "label": "Recalages pris en compte",
+      "type": "number",
+      "default": 6,
+      "unit": "",
+      "min": 1,
+      "max": 24,
+      "step": 1,
+      "group": "Précision",
+      "hint": "La précision est la moyenne des derniers écarts entre l'estimé et le solde réel."
+    }
+  ]
+}
