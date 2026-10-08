@@ -16,6 +16,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         situation: page("apps/situation"),
+        resume: page("apps/resume"),
       },
     },
   },
