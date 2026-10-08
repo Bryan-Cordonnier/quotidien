@@ -1,130 +1,128 @@
 {
-    "id":  "courses",
-    "name":  "Courses",
-    "version":  "0.1.0",
-    "apiVersion":  "^3",
-    "author":  "Bryan Cordonnier",
-    "description":  "Un budget par semaine pour les courses : les tickets, ce qu\u0027il reste à dépenser, la moyenne par semaine et par mois, et vos listes de courses à régler.",
-    "color":  "#c9661a",
-    "icon":  "store",
-    "permissions":  [
-                        "appelle:budget:ecriture",
-                        "reglages"
-                    ],
-    "services":  {
-                     "budget":  "^1"
-                 },
-    "optionalDependencies":  {
-                                 "budget":  "^1"
-                             },
-    "apps":  [
-                 {
-                     "id":  "courses",
-                     "name":  "Courses",
-                     "entry":  "apps/courses/index.html",
-                     "accepts":  [
-
-                                 ]
-                 },
-                 {
-                     "id":  "liste",
-                     "name":  "Liste de courses",
-                     "entry":  "apps/liste/index.html",
-                     "accepts":  [
-
-                                 ]
-                 }
-             ],
-    "pages":  [
-                  {
-                      "id":  "courses",
-                      "title":  "Courses",
-                      "icon":  "store",
-                      "layout":  {
-                                     "type":  "app",
-                                     "app":  "courses"
-                                 }
-                  },
-                  {
-                      "id":  "liste",
-                      "title":  "Liste de courses",
-                      "icon":  "file",
-                      "layout":  {
-                                     "type":  "app",
-                                     "app":  "liste"
-                                 }
-                  }
-              ],
-    "parameters":  [
-                       {
-                           "id":  "budget",
-                           "label":  "Budget par semaine",
-                           "type":  "number",
-                           "default":  70,
-                           "unit":  "€",
-                           "min":  0,
-                           "max":  5000,
-                           "step":  5,
-                           "group":  "Budget",
-                           "hint":  "Le montant que vous vous autorisez pour les courses."
-                       },
-                       {
-                           "id":  "jour",
-                           "label":  "Jour des courses",
-                           "type":  "select",
-                           "default":  "6",
-                           "group":  "Budget",
-                           "hint":  "Budget annoncé à Budget ce jour-là, chaque semaine.",
-                           "options":  [
-                                           {
-                                               "value":  "1",
-                                               "label":  "lundi"
-                                           },
-                                           {
-                                               "value":  "2",
-                                               "label":  "mardi"
-                                           },
-                                           {
-                                               "value":  "3",
-                                               "label":  "mercredi"
-                                           },
-                                           {
-                                               "value":  "4",
-                                               "label":  "jeudi"
-                                           },
-                                           {
-                                               "value":  "5",
-                                               "label":  "vendredi"
-                                           },
-                                           {
-                                               "value":  "6",
-                                               "label":  "samedi"
-                                           },
-                                           {
-                                               "value":  "0",
-                                               "label":  "dimanche"
-                                           }
-                                       ]
-                       },
-                       {
-                           "id":  "alerte",
-                           "label":  "Alerte à (% du budget)",
-                           "type":  "number",
-                           "default":  80,
-                           "unit":  "%",
-                           "min":  1,
-                           "max":  100,
-                           "step":  5,
-                           "group":  "Budget",
-                           "hint":  "La jauge passe à l\u0027orange."
-                       },
-                       {
-                           "id":  "report",
-                           "label":  "Reporter ce qui n\u0027est pas dépensé",
-                           "type":  "boolean",
-                           "default":  false,
-                           "group":  "Budget",
-                           "hint":  "Le reste d\u0027une semaine s\u0027ajoute au budget de la suivante."
-                       }
-                   ]
+  "id": "courses",
+  "name": "Courses",
+  "version": "0.1.0",
+  "apiVersion": "^3",
+  "author": "Bryan Cordonnier",
+  "description": "Un budget par semaine pour les courses : les tickets, ce qu'il reste à dépenser, la moyenne par semaine et par mois, et vos listes de courses à régler.",
+  "color": "#c9661a",
+  "icon": "store",
+  "permissions": [
+    "appelle:budget:ecriture",
+    "reglages"
+  ],
+  "services": {
+    "budget": "^1"
+  },
+  "optionalDependencies": {
+    "budget": "^1"
+  },
+  "apps": [
+    {
+      "id": "courses",
+      "name": "Courses",
+      "entry": "apps/courses/index.html",
+      "accepts": []
+    },
+    {
+      "id": "liste",
+      "name": "Liste de courses",
+      "entry": "apps/liste/index.html",
+      "accepts": []
+    }
+  ],
+  "pages": [
+    {
+      "id": "courses",
+      "title": "Courses",
+      "icon": "store",
+      "category": "Argent",
+      "layout": {
+        "type": "app",
+        "app": "courses"
+      }
+    },
+    {
+      "id": "liste",
+      "title": "Liste de courses",
+      "icon": "file",
+      "category": "Argent",
+      "layout": {
+        "type": "app",
+        "app": "liste"
+      }
+    }
+  ],
+  "parameters": [
+    {
+      "id": "budget",
+      "label": "Budget par semaine",
+      "type": "number",
+      "default": 70,
+      "unit": "€",
+      "min": 0,
+      "max": 5000,
+      "step": 5,
+      "group": "Budget",
+      "hint": "Le montant que vous vous autorisez pour les courses."
+    },
+    {
+      "id": "jour",
+      "label": "Jour des courses",
+      "type": "select",
+      "default": "6",
+      "group": "Budget",
+      "hint": "Budget annoncé à Budget ce jour-là, chaque semaine.",
+      "options": [
+        {
+          "value": "1",
+          "label": "lundi"
+        },
+        {
+          "value": "2",
+          "label": "mardi"
+        },
+        {
+          "value": "3",
+          "label": "mercredi"
+        },
+        {
+          "value": "4",
+          "label": "jeudi"
+        },
+        {
+          "value": "5",
+          "label": "vendredi"
+        },
+        {
+          "value": "6",
+          "label": "samedi"
+        },
+        {
+          "value": "0",
+          "label": "dimanche"
+        }
+      ]
+    },
+    {
+      "id": "alerte",
+      "label": "Alerte à (% du budget)",
+      "type": "number",
+      "default": 80,
+      "unit": "%",
+      "min": 1,
+      "max": 100,
+      "step": 5,
+      "group": "Budget",
+      "hint": "La jauge passe à l'orange."
+    },
+    {
+      "id": "report",
+      "label": "Reporter ce qui n'est pas dépensé",
+      "type": "boolean",
+      "default": false,
+      "group": "Budget",
+      "hint": "Le reste d'une semaine s'ajoute au budget de la suivante."
+    }
+  ]
 }
