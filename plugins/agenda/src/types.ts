@@ -7,6 +7,10 @@ export const TYPES_EVENEMENT: readonly TypeEvenement[] = ["travail", "retux", "r
 /** Types qui comptent pour le repos légal (11 h, 10 h par jour, 48 h par semaine). */
 export const TYPES_TRAVAIL: readonly TypeEvenement[] = ["travail", "retux"];
 
+/** Le contrat d'un événement de travail (posé par Travail) : une couleur par type de contrat dans le calendrier. */
+export type Contrat = "interim" | "reserve" | "cdd" | "cdi";
+export const CONTRATS: readonly Contrat[] = ["interim", "reserve", "cdd", "cdi"];
+
 export type Frequence = "jour" | "semaine" | "mois";
 export const FREQUENCES: readonly Frequence[] = ["jour", "semaine", "mois"];
 
@@ -34,6 +38,10 @@ export interface Evenement {
   /** Trajet de base en minutes (sans majoration), ou `null` s'il n'y a pas de déplacement. */
   trajetMin: number | null;
   repetition: Repetition | null;
+  /** Type de contrat d'un événement de travail, ou `null`. */
+  contrat: Contrat | null;
+  /** Temps de travail du contrat pour ce jour (la pause n'y est pas comptée), ou `null` : sert à l'affichage, jamais calculé d'après les heures. */
+  tempsContratMin: number | null;
   source: Source;
 }
 
@@ -47,6 +55,8 @@ export interface Occurrence {
   debutMin: number;
   finMin: number;
   trajetMin: number | null;
+  contrat: Contrat | null;
+  tempsContratMin: number | null;
   /** Plugin d'origine. */
   source: string;
 }
@@ -111,6 +121,16 @@ export interface Carnet {
   rappels: RappelsParAppelant;
   /** Programmer aussi les rappels de l'Agenda lui-même : « pars dans X min », « pars maintenant », « coucher » pour les événements avec trajet. */
   rappelsHoraires: boolean;
+  /** Le coucher noté (« je vais dormir maintenant »), par jour du soir : minutes depuis minuit de ce jour (au-delà de 1 440 : après minuit). */
+  sommeil: Record<Jour, number>;
+  /** Les trajets du jour notés (« je suis parti », « je suis arrivé »), par jour puis par numéro de trajet dans la journée. */
+  trajets: Record<Jour, Record<string, TrajetNote>>;
+}
+
+/** Heures réelles d'un trajet, en minutes depuis minuit : le départ en voiture et l'arrivée (absente tant qu'on est en route). */
+export interface TrajetNote {
+  depart: number;
+  arrivee: number | null;
 }
 
 /** Source des événements saisis dans l'écran de l'Agenda (le « @ » est interdit dans un identifiant de plugin : aucun plugin ne peut s'en réclamer). */

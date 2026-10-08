@@ -1,51 +1,207 @@
 {
-  "id": "agenda",
-  "name": "Agenda",
-  "version": "0.1.0",
-  "apiVersion": "^2",
-  "author": "Bryan Cordonnier",
-  "description": "Votre temps : calendrier, événements qui se répètent, heures de départ, réveil et coucher calculées à rebours, alertes de repos légal, rappels sur le téléphone, export .ics.",
-  "color": "#7c3aed",
-  "icon": "clock",
-  "permissions": ["fichiers", "notifications"],
-  "provides": {
-    "agenda": "1",
-    "rappels": "1"
-  },
-  "serviceEntry": "service/index.html",
-  "functions": {
-    "agenda": {
-      "evenements.liste": { "acces": "lecture" },
-      "plages.occupees": { "acces": "lecture" },
-      "evenements.remplacer": { "acces": "ecriture" },
-      "evenements.supprimer": { "acces": "ecriture" }
-    },
-    "rappels": {
-      "rappels.remplacer": { "acces": "ecriture" },
-      "rappels.annuler": { "acces": "ecriture" },
-      "rappels.etat": { "acces": "lecture" }
-    }
-  },
-  "miniApps": [
-    {
-      "id": "calendrier",
-      "name": "Calendrier",
-      "description": "Mois, événements, chronologie du jour à rebours, alertes de repos, export .ics",
-      "icon": "clock",
-      "dataVersion": 1,
-      "plannedFor": "v1",
-      "entry": "apps/calendrier/index.html",
-      "accepts": []
-    },
-    {
-      "id": "rappels",
-      "name": "Rappels",
-      "description": "Notifications du téléphone : état, rappels des autres plugins, pars maintenant et coucher, essai",
-      "icon": "clock",
-      "dataVersion": 1,
-      "plannedFor": "v1",
-      "entry": "apps/rappels/index.html",
-      "accepts": []
-    }
-  ]
+    "id":  "agenda",
+    "name":  "Agenda",
+    "version":  "0.2.0",
+    "apiVersion":  "^3",
+    "author":  "Bryan Cordonnier",
+    "description":  "Votre temps : calendrier, événements qui se répètent, heures de départ, réveil et coucher calculées à rebours, alertes de repos légal, rappels sur le téléphone, export .ics.",
+    "color":  "#7c3aed",
+    "icon":  "clock",
+    "permissions":  [
+                        "fichiers",
+                        "notifications",
+                        "reglages"
+                    ],
+    "provides":  {
+                     "agenda":  "1",
+                     "rappels":  "1"
+                 },
+    "serviceEntry":  "service/index.html",
+    "functions":  {
+                      "agenda":  {
+                                     "evenements.liste":  {
+                                                              "acces":  "lecture"
+                                                          },
+                                     "plages.occupees":  {
+                                                             "acces":  "lecture"
+                                                         },
+                                     "evenements.remplacer":  {
+                                                                  "acces":  "ecriture"
+                                                              },
+                                     "evenements.supprimer":  {
+                                                                  "acces":  "ecriture"
+                                                              }
+                                 },
+                      "rappels":  {
+                                      "rappels.remplacer":  {
+                                                                "acces":  "ecriture"
+                                                            },
+                                      "rappels.annuler":  {
+                                                              "acces":  "ecriture"
+                                                          },
+                                      "rappels.etat":  {
+                                                           "acces":  "lecture"
+                                                       }
+                                  }
+                  },
+    "apps":  [
+                 {
+                     "id":  "calendrier",
+                     "name":  "Calendrier",
+                     "entry":  "apps/calendrier/index.html",
+                     "accepts":  [
+
+                                 ]
+                 },
+                 {
+                     "id":  "rappels",
+                     "name":  "Rappels",
+                     "entry":  "apps/rappels/index.html",
+                     "accepts":  [
+
+                                 ]
+                 }
+             ],
+    "pages":  [
+                  {
+                      "id":  "calendrier",
+                      "title":  "Calendrier",
+                      "icon":  "clock",
+                      "layout":  {
+                                     "type":  "app",
+                                     "app":  "calendrier"
+                                 }
+                  },
+                  {
+                      "id":  "rappels",
+                      "title":  "Rappels",
+                      "icon":  "clock",
+                      "layout":  {
+                                     "type":  "app",
+                                     "app":  "rappels"
+                                 }
+                  }
+              ],
+    "parameters":  [
+                       {
+                           "id":  "leverDefaut",
+                           "label":  "Heure de lever par défaut",
+                           "type":  "time",
+                           "default":  "08:00",
+                           "group":  "Journée",
+                           "hint":  "Les jours sans événement tôt le matin."
+                       },
+                       {
+                           "id":  "preparation",
+                           "label":  "Préparation",
+                           "type":  "number",
+                           "default":  45,
+                           "group":  "Journée",
+                           "step":  5,
+                           "min":  0,
+                           "hint":  "douche, petit-déjeuner",
+                           "unit":  "min",
+                           "max":  480
+                       },
+                       {
+                           "id":  "miseEnRoute",
+                           "label":  "Mise en route",
+                           "type":  "number",
+                           "default":  10,
+                           "group":  "Journée",
+                           "step":  5,
+                           "min":  0,
+                           "hint":  "chaussures, clés, porte",
+                           "unit":  "min",
+                           "max":  240
+                       },
+                       {
+                           "id":  "marge",
+                           "label":  "Marge d\u0027arrivée",
+                           "type":  "number",
+                           "default":  10,
+                           "group":  "Journée",
+                           "step":  1,
+                           "min":  0,
+                           "hint":  "Arriver en avance.",
+                           "unit":  "min",
+                           "max":  240
+                       },
+                       {
+                           "id":  "majoration",
+                           "label":  "Majoration du trajet",
+                           "type":  "number",
+                           "default":  0,
+                           "group":  "Journée",
+                           "step":  1,
+                           "min":  0,
+                           "hint":  "Pour les aléas de route.",
+                           "unit":  "%",
+                           "max":  200
+                       },
+                       {
+                           "id":  "enchainer",
+                           "label":  "Enchaîner deux événements si l\u0027écart est inférieur à",
+                           "type":  "number",
+                           "default":  90,
+                           "group":  "Journée",
+                           "step":  5,
+                           "min":  0,
+                           "hint":  "Un seul trajet direct, pas de retour à la maison entre les deux.",
+                           "unit":  "min",
+                           "max":  600
+                       },
+                       {
+                           "id":  "sommeil",
+                           "label":  "Cible de sommeil",
+                           "type":  "number",
+                           "default":  8,
+                           "group":  "Sommeil",
+                           "step":  0.5,
+                           "min":  0,
+                           "unit":  "h",
+                           "max":  16
+                       },
+                       {
+                           "id":  "endormissement",
+                           "label":  "Temps pour s\u0027endormir",
+                           "type":  "number",
+                           "default":  15,
+                           "group":  "Sommeil",
+                           "step":  5,
+                           "min":  0,
+                           "unit":  "min",
+                           "max":  240
+                       },
+                       {
+                           "id":  "preAlerte",
+                           "label":  "« Pars dans X min » avant le départ",
+                           "type":  "number",
+                           "default":  5,
+                           "group":  "Rappels",
+                           "step":  1,
+                           "min":  0,
+                           "unit":  "min",
+                           "max":  120
+                       },
+                       {
+                           "id":  "rappelCoucher",
+                           "label":  "Rappel du coucher, avant l\u0027heure",
+                           "type":  "number",
+                           "default":  30,
+                           "group":  "Rappels",
+                           "step":  5,
+                           "min":  0,
+                           "unit":  "min",
+                           "max":  240
+                       },
+                       {
+                           "id":  "rappelsHoraires",
+                           "label":  "Programmer les rappels de l\u0027agenda",
+                           "type":  "boolean",
+                           "default":  true,
+                           "group":  "Rappels",
+                           "hint":  "« Pars dans X min », « Pars maintenant », « Coucher » (téléphone)."
+                       }
+                   ]
 }
