@@ -41,6 +41,8 @@ export function occurrencesDe(e: Evenement, du: Jour, au: Jour): Occurrence[] {
     debutMin: e.debutMin,
     finMin: e.finMin,
     trajetMin: e.trajetMin,
+    contrat: e.contrat,
+    tempsContratMin: e.tempsContratMin,
     source: e.source.plugin,
   }));
 }

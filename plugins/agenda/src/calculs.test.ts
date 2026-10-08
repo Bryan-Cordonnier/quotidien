@@ -7,7 +7,7 @@ const H = 60;
 const J = 24 * 60;
 
 function evt(partiel: Partial<Evenement> & Pick<Evenement, "jour">): Evenement {
-  return { id: "e1", type: "travail", titre: "Mission", lieu: null, debutMin: 8 * H, finMin: 16 * H, trajetMin: null, repetition: null, source: { plugin: "utilisateur", ref: "ui" }, ...partiel };
+  return { id: "e1", type: "travail", titre: "Mission", lieu: null, debutMin: 8 * H, finMin: 16 * H, trajetMin: null, repetition: null, contrat: null, tempsContratMin: null, source: { plugin: "utilisateur", ref: "ui" }, ...partiel };
 }
 
 describe("chronologie à rebours (horaires.rs)", () => {

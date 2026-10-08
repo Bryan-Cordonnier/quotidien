@@ -3,6 +3,7 @@
 import { ajouterAns, comparerJours, type Jour } from "@etabli/ui/civil";
 import { choix, entier, jourValide, objet, texte, texteFacultatif } from "./validation";
 import {
+  CONTRATS,
   ErreurAgenda,
   FREQUENCES,
   REGLAGES_DEFAUT,
@@ -22,7 +23,7 @@ export const AVERTISSEMENT_OCTETS = 2_800_000;
 export const EVENEMENTS_MAX_PAR_PLUGIN = 2000;
 export const CLES_GARDEES = 50;
 
-export const carnetVide = (): Carnet => ({ schema: 1, evenements: [], reglages: { ...REGLAGES_DEFAUT }, dernierNumero: 0, cles: {}, rappels: {}, rappelsHoraires: true });
+export const carnetVide = (): Carnet => ({ schema: 1, evenements: [], reglages: { ...REGLAGES_DEFAUT }, dernierNumero: 0, cles: {}, rappels: {}, rappelsHoraires: true, sommeil: {}, trajets: {} });
 
 export const octetsDe = (c: Carnet): number => JSON.stringify(c).length;
 
@@ -90,11 +91,13 @@ export interface Brouillon {
   finMin: number;
   trajetMin: number | null;
   repetition: Repetition | null;
+  contrat: Evenement["contrat"];
+  tempsContratMin: number | null;
 }
 
 /** Un événement tel que le demandent l'écran ou un autre plugin (sans identifiant ni source). */
 export function lireBrouillon(brut: unknown, nom = "evenement"): Brouillon {
-  const o = objet(brut, ["type", "titre", "jour", "debutMin", "finMin"], ["lieu", "trajetMin", "repetition"]);
+  const o = objet(brut, ["type", "titre", "jour", "debutMin", "finMin"], ["lieu", "trajetMin", "repetition", "contrat", "tempsContratMin"]);
   const jour = jourValide(o.jour, `${nom}.jour`);
   const debutMin = entier(o.debutMin, `${nom}.debutMin`, 0, 1439);
   const finMin = entier(o.finMin, `${nom}.finMin`, 0, 1439);
@@ -108,11 +111,13 @@ export function lireBrouillon(brut: unknown, nom = "evenement"): Brouillon {
     finMin,
     trajetMin: o.trajetMin === undefined || o.trajetMin === null ? null : entier(o.trajetMin, `${nom}.trajetMin`, 0, 600),
     repetition: o.repetition === undefined || o.repetition === null ? null : lireRepetition(o.repetition, jour),
+    contrat: o.contrat === undefined || o.contrat === null ? null : choix(o.contrat, `${nom}.contrat`, CONTRATS),
+    tempsContratMin: o.tempsContratMin === undefined || o.tempsContratMin === null ? null : entier(o.tempsContratMin, `${nom}.tempsContratMin`, 0, 1440),
   };
 }
 
 function lireEvenement(brut: unknown): Evenement {
-  const o = objet(brut, ["id", "type", "titre", "lieu", "jour", "debutMin", "finMin", "trajetMin", "repetition", "source"]);
+  const o = objet(brut, ["id", "type", "titre", "lieu", "jour", "debutMin", "finMin", "trajetMin", "repetition", "source"], ["contrat", "tempsContratMin"]);
   const id = typeof o.id === "string" && /^e[1-9]\d{0,9}$/.test(o.id) ? o.id : null;
   if (!id) throw new ErreurAgenda("illisible", "Identifiant d'événement illisible.");
   const s = objet(o.source, ["plugin", "ref"]);
@@ -134,11 +139,36 @@ function lireCles(brut: unknown): Record<string, ReponseMemorisee[]> {
   return sortie;
 }
 
+/** Les couchers notés : jour → minutes depuis minuit du jour du soir (entre 0 et 2 880). */
+function lireSommeil(brut: unknown): Carnet["sommeil"] {
+  if (brut === undefined) return {};
+  if (brut === null || typeof brut !== "object" || Array.isArray(brut)) throw new ErreurAgenda("illisible", "Sommeil illisible.");
+  return Object.fromEntries(Object.entries(brut).map(([j, m]) => [jourValide(j, "sommeil.jour"), entier(m, "sommeil.coucher", 0, 2880)]));
+}
+
+/** Les trajets notés : jour → numéro de trajet → heures de départ et d'arrivée. */
+function lireTrajets(brut: unknown): Carnet["trajets"] {
+  if (brut === undefined) return {};
+  if (brut === null || typeof brut !== "object" || Array.isArray(brut)) throw new ErreurAgenda("illisible", "Trajets illisibles.");
+  const sortie: Carnet["trajets"] = {};
+  for (const [j, notes] of Object.entries(brut)) {
+    if (notes === null || typeof notes !== "object" || Array.isArray(notes)) throw new ErreurAgenda("illisible", "Trajets illisibles.");
+    sortie[jourValide(j, "trajets.jour")] = Object.fromEntries(
+      Object.entries(notes).map(([i, n]) => {
+        if (!/^\d{1,2}$/.test(i)) throw new ErreurAgenda("illisible", "Trajets illisibles.");
+        const o = objet(n, ["depart", "arrivee"]);
+        return [i, { depart: entier(o.depart, "trajet.depart", 0, 2880), arrivee: o.arrivee === null ? null : entier(o.arrivee, "trajet.arrivee", 0, 2880) }];
+      }),
+    );
+  }
+  return sortie;
+}
+
 /** Carnet enregistré → carnet validé. `null`/`undefined` (rien d'enregistré) → carnet vide ; tout autre écart → `ErreurAgenda("illisible")`. */
 export function lireCarnet(enregistre: unknown): Carnet {
   if (enregistre === null || enregistre === undefined) return carnetVide();
   try {
-    const o = objet(enregistre, ["schema", "evenements", "reglages", "dernierNumero", "cles"], ["rappels", "rappelsHoraires"]);
+    const o = objet(enregistre, ["schema", "evenements", "reglages", "dernierNumero", "cles"], ["rappels", "rappelsHoraires", "sommeil", "trajets"]);
     if (o.schema !== 1) throw new ErreurAgenda("illisible", `Version de carnet inconnue : ${String(o.schema)} (cet agenda lit la version 1).`);
     if (!Array.isArray(o.evenements)) throw new ErreurAgenda("illisible", "Liste d'événements illisible.");
     const evenements = o.evenements.map(lireEvenement);
@@ -153,6 +183,8 @@ export function lireCarnet(enregistre: unknown): Carnet {
       cles: lireCles(o.cles),
       rappels: o.rappels === undefined ? {} : lireRappelsStockes(o.rappels),
       rappelsHoraires: o.rappelsHoraires ?? true,
+      sommeil: lireSommeil(o.sommeil),
+      trajets: lireTrajets(o.trajets),
     };
   } catch (e) {
     if (e instanceof ErreurAgenda && e.code === "illisible") throw e;

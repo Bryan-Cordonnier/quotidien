@@ -1,0 +1,14 @@
+/* Une couleur par type de contrat : les ronds du mois, la légende et les blocs de travail de la journée. */
+:root {
+  --k-interim: #3b82f6;
+  --k-reserve: #65a30d;
+  --k-cdd: #ea7a1a;
+  --k-cdi: #8b5cf6;
+  --k-rdv: #0d9488;
+  --k-autre: #8b96a3;
+  --z4: #1f9d63;
+  --z3: #6bbf7a;
+  --z2: #e3c64a;
+  --z1: #e8893a;
+  --z0: #d64545;
+}
