@@ -27,6 +27,22 @@
       "name": "Mes finances",
       "entry": "apps/situation/index.html",
       "accepts": []
+    },
+    {
+      "id": "resume",
+      "name": "Résumé",
+      "entry": "apps/resume/index.html",
+      "accepts": []
+    }
+  ],
+  "widgets": [
+    {
+      "id": "resume",
+      "title": "Estimé et autonomie",
+      "icon": "wallet",
+      "app": "resume",
+      "sizes": ["2x1", "1x1", "2x2"],
+      "default": "2x1"
     }
   ],
   "pages": [
