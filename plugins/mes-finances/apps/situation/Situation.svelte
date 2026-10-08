@@ -89,10 +89,10 @@
         <p class="etiquette">Jusqu'à quand je tiens</p>
         {#if s.tient && jours !== null}
           <div class="grand num negatif">{jours === 0 ? "Aujourd'hui" : `${jours} jour${jours > 1 ? "s" : ""}`}</div>
-          <p class="petit">Sous {euros(s.reglages.seuilCents)} le {court(s.tient)}.</p>
+          <p class="petit">Sous le seuil de {euros(s.reglages.seuilCents)} dès le {court(s.tient)}</p>
         {:else}
           <div class="grand num">Tout l'horizon</div>
-          <p class="petit">Au-dessus de {euros(s.reglages.seuilCents)} jusqu'au {court(s.courbe.at(-1)?.jour ?? s.aujourdhui)}.</p>
+          <p class="petit">Au-dessus de {euros(s.reglages.seuilCents)} jusqu'au {court(s.courbe.at(-1)?.jour ?? s.aujourdhui)}</p>
         {/if}
         {#if s.sansBudget}
           <p class="petit">Budget n'est pas là : la courbe ne montre que l'état actuel, sans les paiements prévus.</p>
