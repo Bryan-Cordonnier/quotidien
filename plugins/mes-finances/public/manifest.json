@@ -39,7 +39,7 @@
     {
       "id": "resume",
       "title": "Estimé et autonomie",
-      "icon": "wallet",
+      "icon": "finances",
       "app": "resume",
       "sizes": [
         "2x1",
@@ -53,7 +53,7 @@
     {
       "id": "situation",
       "title": "Mes finances",
-      "icon": "wallet",
+      "icon": "finances",
       "category": "Argent",
       "layout": {
         "type": "app",

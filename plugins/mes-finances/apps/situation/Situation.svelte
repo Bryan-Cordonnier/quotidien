@@ -120,9 +120,11 @@
       </section>
     </div>
 
-    <div class="grille-2">
-      <section class="bloc centre">
-        <p class="etiquette">Ajouter{s.compteParDefaut ? ` · ${s.compteParDefaut.nom}` : ""}</p>
+    <!-- Trois blocs de même forme : un titre, une ligne d'explication, puis le contenu. -->
+    <div class="trois">
+      <section class="bloc">
+        <p class="etiquette">Ajout</p>
+        <p class="petit">{s.compteParDefaut ? `Sur ${s.compteParDefaut.nom}` : "Une dépense ou une rentrée oubliée"}</p>
         <div class="ajout">
           <input class="saisie num" bind:value={ajustement} placeholder="0,00 €" aria-label="Montant" inputmode="decimal" autocomplete="off" />
           <button class="carre plus" onclick={() => ajuster(1)} aria-label="Ajouter une rentrée" title="Rentrée">+</button>
@@ -131,17 +133,18 @@
         </div>
       </section>
 
-      <section class="bloc centre">
-        <p class="etiquette">Recaler sur le solde réel</p>
+      <section class="bloc">
+        <p class="etiquette">Recalage</p>
+        <p class="petit">Le solde réel de la vie courante</p>
         <div class="recaler">
           <input class="saisie num" bind:value={reel} placeholder="0,00 €" aria-label="Solde réel" inputmode="decimal" autocomplete="off" onkeydown={(e) => e.key === "Enter" && recaler()} />
           <button class="btn primary" onclick={recaler}>Recaler</button>
         </div>
       </section>
-    </div>
 
-    <div class="seul">      <section class="bloc">
+      <section class="bloc">
         <p class="etiquette">Mes comptes</p>
+        <p class="petit">Le rôle de chaque compte</p>
         {#if s.comptes.length === 0}
           <p class="petit">Aucun compte. Créez-les dans Finances.</p>
         {:else}
@@ -158,7 +161,6 @@
         {/if}
       </section>
     </div>
-
     {#if s.message}<p class="negatif" role="alert">{s.message}</p>{/if}
   {/if}
 </div>
@@ -184,27 +186,33 @@
     align-items: center;
     gap: 12px;
   }
-  .centre {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+  .trois {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    align-items: stretch;
+  }
+  @media (max-width: 1000px) {
+    .trois {
+      grid-template-columns: 1fr;
+    }
   }
   /* Prix en haut, libellé en bas, et à droite deux gros boutons carrés alignés sur ces deux lignes : + (vert) et − (rouge). */
   .ajout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: 58px 58px;
+    grid-template-rows: 46px 46px;
     gap: 10px 14px;
     align-items: center;
     margin-top: 10px;
   }
   .carre {
-    width: 58px;
-    height: 58px;
+    width: 46px;
+    height: 46px;
     border: 0;
-    border-radius: 14px;
+    border-radius: 12px;
     color: #fff;
-    font-size: 30px;
+    font-size: 26px;
     font-weight: 700;
     line-height: 1;
     cursor: pointer;

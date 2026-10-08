@@ -35,7 +35,7 @@
     {
       "id": "courses",
       "title": "Courses",
-      "icon": "store",
+      "icon": "courses",
       "category": "Argent",
       "layout": {
         "type": "app",
@@ -45,7 +45,7 @@
     {
       "id": "liste",
       "title": "Liste de courses",
-      "icon": "file",
+      "icon": "liste",
       "category": "Argent",
       "layout": {
         "type": "app",

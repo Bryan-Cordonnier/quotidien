@@ -6,6 +6,10 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ### Modifié
 
+- **Mes finances** : « Ajout », « Recalage » et « Mes comptes » sur une même rangée de trois blocs ; boutons + et − plus petits ; icône « finances » de Quotidien.
+
+### Modifié
+
 - **Mes finances** : les prochains paiements passent à droite de la courbe ; « Ajustement rapide » devient « Ajouter » (prix, libellé, boutons + vert et − rouge) ; « Recaler » se réduit à un prix et un bouton.
 
 ### Ajouté
