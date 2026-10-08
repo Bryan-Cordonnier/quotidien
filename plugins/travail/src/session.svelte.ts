@@ -1,11 +1,13 @@
-// État de l'écran Paie : les données (réglages du plugin), l'état de la transmission vers Budget et l'Agenda, et la liste des comptes de Finances.
+// État de l'écran Travail : les données (enregistrées par le moteur avec le plugin), les paramètres réglés dans Paramètres, l'état de la
+// transmission vers Budget et l'Agenda, et la liste des comptes de Finances.
 // Règle de sécurité : des données illisibles ne sont JAMAIS remplacées par des données vides ; l'écran le dit et n'écrit rien.
 import { connect } from "@etabli/sdk";
 import { jourDeInstant, type Jour } from "@etabli/ui/civil";
 import { lireDonnees } from "./donnees";
 import { projections } from "./projection";
+import { reglagesDepuis, type Parametres } from "./reglages";
 import { saisirNetRecu, transmettre, type Appeler, type Rapport, type SaisieNetRecu } from "./transmission";
-import { ErreurPaie, type Donnees } from "./types";
+import { ErreurTravail, type Donnees, type Reglages } from "./types";
 
 type Hote = Awaited<ReturnType<typeof connect<unknown>>>;
 
@@ -22,6 +24,10 @@ export class Session {
   rapport = $state<Rapport | null>(null);
   comptes = $state<CompteFinances[]>([]);
   aujourdhui = $state<Jour>(jourDeInstant(Date.now()));
+  /** Valeurs des paramètres, réglées dans Paramètres → Travail. */
+  parametres = $state<Parametres>({});
+  /** Réglages des calculs (taux, seuils, délais), tirés des paramètres. */
+  reglages = $derived<Reglages>(reglagesDepuis(this.parametres));
   #hote: Hote | undefined;
   #file: Promise<void> = Promise.resolve();
 
@@ -35,6 +41,11 @@ export class Session {
     this.#hote = hote;
     this.#recevoir(hote.settings.data);
     hote.settings.onChange((d) => this.#recevoir(d));
+    this.parametres = { ...hote.parameters.values };
+    hote.parameters.onChange((v) => {
+      this.parametres = { ...v };
+      void this.transmettre();
+    });
     await this.#chargerComptes();
     await this.transmettre();
   }
@@ -46,13 +57,18 @@ export class Session {
       this.illisible = "";
     } catch (e) {
       this.donnees = null;
-      this.illisible = e instanceof ErreurPaie ? e.message : "Données illisibles.";
+      this.illisible = e instanceof ErreurTravail ? e.message : "Données illisibles.";
     }
   }
 
   async #chargerComptes(): Promise<void> {
     const r = await this.appeler("finances", "comptes.liste", undefined);
     this.comptes = r.ok ? (r.valeur as CompteFinances[]).filter((c) => !c.archive) : [];
+  }
+
+  /** Ouvre l'onglet Travail des Paramètres du moteur (taux, seuils, délais). */
+  ouvrirParametres(): void {
+    this.#hote?.openSettings("travail");
   }
 
   /** Une modification : enregistrée en entier dans les réglages du plugin, puis transmise. Rend vrai si elle a eu lieu. */
@@ -64,7 +80,7 @@ export class Session {
       this.#hote.settings.update(suivant);
       this.donnees = suivant;
     } catch (e) {
-      this.message = e instanceof ErreurPaie ? e.message : "Une erreur est survenue : rien n'a été enregistré.";
+      this.message = e instanceof ErreurTravail ? e.message : "Une erreur est survenue : rien n'a été enregistré.";
       return false;
     }
     void this.transmettre();
@@ -76,7 +92,7 @@ export class Session {
     this.#file = this.#file.then(async () => {
       const d = this.donnees;
       if (!d || !this.#hote) return;
-      const { donnees, rapport } = await transmettre(d, this.aujourdhui, this.appeler);
+      const { donnees, rapport } = await transmettre(d, this.reglages, this.aujourdhui, this.appeler);
       this.rapport = rapport;
       if (JSON.stringify(donnees.transmis) !== JSON.stringify(d.transmis) && this.donnees === d) {
         this.#hote.settings.update(donnees);
@@ -86,7 +102,7 @@ export class Session {
     return this.#file;
   }
 
-  /** Le net est arrivé : Finances, Budget, puis le bulletin dans Paie. */
+  /** Le net est arrivé : Finances, Budget, puis le bulletin dans Travail. */
   async netRecu(saisie: SaisieNetRecu): Promise<void> {
     this.message = "";
     const d = this.donnees;
@@ -98,7 +114,7 @@ export class Session {
       this.message = r.avertissements.join(" ");
       void this.transmettre();
     } catch (e) {
-      this.message = e instanceof ErreurPaie ? e.message : "Une erreur est survenue : rien n'a été enregistré.";
+      this.message = e instanceof ErreurTravail ? e.message : "Une erreur est survenue : rien n'a été enregistré.";
     }
   }
 
@@ -106,7 +122,7 @@ export class Session {
   get transmises(): { a: number; sur: number } {
     const d = this.donnees;
     if (!d) return { a: 0, sur: 0 };
-    const voulues = projections(d, this.aujourdhui);
+    const voulues = projections(d, this.reglages, this.aujourdhui);
     return { a: this.rapport ? this.rapport.aJour + this.rapport.envoyees : 0, sur: voulues.length };
   }
 }

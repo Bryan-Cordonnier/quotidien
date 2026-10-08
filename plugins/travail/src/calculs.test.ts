@@ -1,13 +1,18 @@
 // Vecteurs d'or de la paie. Les chiffres viennent de paie.rs (gestion-budget-perso) ou ont été recalculés à la main ; les taux sont ceux des
 // réglages par défaut (hypothèses à confirmer sur un bulletin, voir types.ts).
 import { describe, expect, it } from "vitest";
-import { datePaiement, detailMission, detailReserve, joursDeMission, minutesDuJour, paiesContrat } from "./calculs";
-import { REGLAGES_DEFAUT, type Contrat, type Mission, type PeriodeReserve } from "./types";
+import { avancement, datePaiement, detailMission, detailReserve, joursDeLaSemaine, joursDeMission, minutesDeLaSemaine, minutesDuJour, paiesContrat, paiesMission, reglagesDeMission, statutContrat, titreContrat } from "./calculs";
+import { REGLAGES_DEFAUT, type Agence, type Contrat, type Mission, type PeriodeReserve } from "./types";
 
 const R = REGLAGES_DEFAUT;
 const mission = (extra: Partial<Mission> = {}): Mission => ({
   id: "m1",
   libelle: "Mission",
+  entreprise: "",
+  agenceId: null,
+  trajetMin: null,
+  panierCents: 0,
+  deplacementCents: 0,
   debut: "2026-10-05", // lundi
   fin: "2026-10-09",
   joursSemaine: [1, 2, 3, 4, 5],
@@ -16,7 +21,6 @@ const mission = (extra: Partial<Mission> = {}): Mission => ({
   finMin: 15 * 60,
   pauseMin: 0,
   tauxHoraireCents: 1300,
-  statut: "prevu",
   supplementaires: [],
   ...extra,
 });
@@ -93,7 +97,7 @@ describe("réserve", () => {
 });
 
 describe("CDI et CDD", () => {
-  const cdi: Contrat = { id: "c1", libelle: "CDI", type: "cdi", brutMensuelCents: 300_000, debut: "2026-10-15", fin: null, jourDePaie: 28 };
+  const cdi: Contrat = { id: "c1", libelle: "CDI", entreprise: "", type: "cdi", brutMensuelCents: 300_000, debut: "2026-10-15", fin: null, jourDePaie: 28 };
 
   it("CDI qui commence le 15 octobre : prorata en jours ouvrés (12 sur 22), puis le mois complet reporté au lundi", () => {
     const p = paiesContrat(cdi, R, "2026-10-01", "2026-11-30");
@@ -107,7 +111,7 @@ describe("CDI et CDD", () => {
   });
 
   it("CDD du 1er octobre au 30 novembre à 2 000 € : deux paies de 1 560 € et une ligne de fin de contrat de 624 €", () => {
-    const cdd: Contrat = { id: "c2", libelle: "CDD", type: "cdd", brutMensuelCents: 200_000, debut: "2026-10-01", fin: "2026-11-30", jourDePaie: 28 };
+    const cdd: Contrat = { id: "c2", libelle: "CDD", entreprise: "", type: "cdd", brutMensuelCents: 200_000, debut: "2026-10-01", fin: "2026-11-30", jourDePaie: 28 };
     const p = paiesContrat(cdd, R, "2026-10-01", "2027-01-31");
     // brut total 4 000 € : précarité 400 € + congés 400 € = 800 € brut → 624 € net
     expect(p.map((x) => [x.datePaiement, x.netCents, x.libelle])).toEqual([
@@ -115,5 +119,78 @@ describe("CDI et CDD", () => {
       ["2026-11-30", 156_000, "CDD"],
       ["2026-11-30", 62_400, "CDD (fin de contrat)"],
     ]);
+  });
+});
+
+describe("indemnités, agences et paies", () => {
+  it("panier et déplacement s'ajoutent au net par jour travaillé, sans cotisations : +11,60 € × 5 jours = 58 €", () => {
+    const d = detailMission(mission({ panierCents: 710, deplacementCents: 450 }), R);
+    expect(d.indemnitesCents).toBe(5_800);
+    expect(d.netCents).toBe(42_943 + 5_800);
+  });
+
+  it("les cotisations de l'agence remplacent celles des paramètres ; sans agence ou sans taux propre, les paramètres s'appliquent", () => {
+    const agences: Agence[] = [
+      { id: "a1", nom: "Interim Plus", cotisationsBp: 2000, rythme: "fin" },
+      { id: "a2", nom: "Atelier", cotisationsBp: null, rythme: "fin" },
+    ];
+    expect(reglagesDeMission({ agenceId: "a1" }, agences, R).cotisationsBp).toBe(2000);
+    expect(reglagesDeMission({ agenceId: "a2" }, agences, R).cotisationsBp).toBe(2200);
+    expect(reglagesDeMission({ agenceId: null }, agences, R).cotisationsBp).toBe(2200);
+    expect(reglagesDeMission({ agenceId: "inconnue" }, agences, R).cotisationsBp).toBe(2200);
+    expect(detailMission(mission(), reglagesDeMission({ agenceId: "a1" }, agences, R)).netCents).toBe(44_044);
+  });
+
+  it("paie à la fin : une seule paie, 7 jours après le dernier jour", () => {
+    expect(paiesMission(mission(), R, "fin")).toEqual([{ date: "2026-10-16", netCents: 42_943 }]);
+  });
+
+  it("paie à la semaine : une paie par semaine, la somme est exacte au centime", () => {
+    const m = mission({ debut: "2026-10-05", fin: "2026-10-16" }); // deux semaines de 5 jours
+    const paies = paiesMission(m, R, "semaine");
+    expect(paies.map((p) => p.date)).toEqual(["2026-10-16", "2026-10-23"]);
+    expect(paies.reduce((s, p) => s + p.netCents, 0)).toBe(detailMission(m, R).netCents);
+    expect(paies[0]!.netCents).toBe(paies[1]!.netCents);
+  });
+
+  it("paie au mois : une mission à cheval sur deux mois a deux paies, chacune au prorata de ses heures", () => {
+    const m = mission({ debut: "2026-10-26", fin: "2026-11-06" }); // lun. 26 → ven. 6 : 5 jours en octobre (26 → 30), 5 en novembre (2 → 6)
+    const paies = paiesMission(m, R, "mois");
+    expect(paies).toHaveLength(2);
+    expect(paies[0]?.date).toBe("2026-11-06"); // 30 octobre + 7 jours = 6 novembre
+    expect(paies.reduce((s, p) => s + p.netCents, 0)).toBe(detailMission(m, R).netCents);
+  });
+
+  it("une mission sans journée ne donne aucune paie", () => {
+    expect(paiesMission(mission({ joursSemaine: [7] }), R, "mois")).toEqual([]);
+  });
+});
+
+describe("avancement et semaine", () => {
+  it("12 jours sur 40 : on compte les jours travaillés déjà passés, aujourd'hui compris", () => {
+    expect(avancement(mission(), "2026-10-04")).toEqual({ faits: 0, total: 5 });
+    expect(avancement(mission(), "2026-10-07")).toEqual({ faits: 3, total: 5 });
+    expect(avancement(mission(), "2026-12-01")).toEqual({ faits: 5, total: 5 });
+  });
+
+  it("la semaine : lundi → dimanche, le temps prévu et le temps ajouté à la main", () => {
+    expect(joursDeLaSemaine("2026-10-08")[0]).toBe("2026-10-05");
+    expect(joursDeLaSemaine("2026-10-08")[6]).toBe("2026-10-11");
+    const m = mission({ supplementaires: [{ jour: "2026-10-08", minutes: 95 }, { jour: "2026-10-08", minutes: 0 }] });
+    expect(minutesDeLaSemaine(m, "2026-10-08")).toEqual({ planifieMin: 2100, ajouteesMin: 95, totalMin: 2195 });
+    expect(minutesDeLaSemaine(m, "2026-10-14")).toEqual({ planifieMin: 0, ajouteesMin: 0, totalMin: 0 });
+  });
+
+  it("le statut d'un contrat signé suit les dates : prévu, en cours, terminé", () => {
+    expect(statutContrat("2026-10-05", "2026-10-09", "2026-10-04")).toBe("prevu");
+    expect(statutContrat("2026-10-05", "2026-10-09", "2026-10-05")).toBe("encours");
+    expect(statutContrat("2026-10-05", "2026-10-09", "2026-10-09")).toBe("encours");
+    expect(statutContrat("2026-10-05", "2026-10-09", "2026-10-10")).toBe("termine");
+    expect(statutContrat("2026-10-05", null, "2030-01-01")).toBe("encours");
+  });
+
+  it("« Poste — Entreprise » ; le poste seul sans entreprise", () => {
+    expect(titreContrat({ libelle: "Cariste", entreprise: "Dupont Logistique" })).toBe("Cariste — Dupont Logistique");
+    expect(titreContrat({ libelle: "Cariste", entreprise: "" })).toBe("Cariste");
   });
 });

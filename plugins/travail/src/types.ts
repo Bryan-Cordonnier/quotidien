@@ -1,13 +1,15 @@
-// Modèle de données de Paie (docs/24, sections 6 et 8) : pour un PARTICULIER, programmer ses paies (missions d'intérim, jours de réserve, CDI et
+// Modèle de données de Travail (ex-Paie ; docs/24 et docs/29) : pour un PARTICULIER, programmer ses paies (missions d'intérim, jours de réserve, CDI et
 // CDD). Montants en centimes entiers, taux en points de base (2200 = 22 %), durées en minutes, jours civils AAAA-MM-JJ.
 // Aucun taux n'est en dur dans le code : tout est un réglage. Les valeurs par défaut sont des HYPOTHÈSES à confirmer sur un vrai bulletin.
+// Les réglages sont les PARAMÈTRES déclarés au moteur (voir reglages.ts) ; ils ne sont plus enregistrés avec les données.
 import type { Jour } from "@etabli/ui/civil";
 import type { Centimes, PointsDeBase } from "@etabli/ui/money";
 
-export const SCHEMA = 1;
+export const SCHEMA = 2;
 
+/** Ce que les paramètres du plugin donnent aux calculs. */
 export interface Reglages {
-  /** Cotisations salariales (hypothèse : 22 %, à confirmer sur un bulletin). */
+  /** Cotisations salariales par défaut (hypothèse : 22 %, à confirmer sur un bulletin) : celles d'une agence ou d'un contrat sans taux propre. */
   cotisationsBp: PointsDeBase;
   /** Indemnité de fin de mission (IFM) sur le brut de base (intérim). */
   ifmBp: PointsDeBase;
@@ -31,6 +33,10 @@ export interface Reglages {
   precariteBp: PointsDeBase;
   /** CDD : indemnité de congés payés non pris sur le brut total (légal : 10 %). */
   cpCddBp: PointsDeBase;
+  /** Horaires d'un jour de réserve dans l'agenda (début, fin en minutes depuis minuit) et temps de travail du contrat pour ce jour. */
+  reserveDebutMin: number;
+  reserveFinMin: number;
+  reserveTravailMin: number;
 }
 
 export const REGLAGES_DEFAUT: Reglages = {
@@ -46,13 +52,33 @@ export const REGLAGES_DEFAUT: Reglages = {
   indemniteHorsBaseCents: 3800,
   precariteBp: 1000,
   cpCddBp: 1000,
+  reserveDebutMin: 8 * 60,
+  reserveFinMin: 17 * 60,
+  reserveTravailMin: 8 * 60,
 };
 
-export type StatutMission = "prevu" | "confirme";
+/** Quand une agence paie : une fois à la fin de la mission, chaque mois ou chaque semaine. */
+export type RythmePaie = "fin" | "mois" | "semaine";
+
+/** Une agence d'intérim : un nom et ses cotisations ; le taux horaire, le panier et le déplacement changent à chaque mission. */
+export interface Agence {
+  id: string;
+  nom: string;
+  /** Cotisations salariales de l'agence ; `null` : celles des paramètres. */
+  cotisationsBp: PointsDeBase | null;
+  rythme: RythmePaie;
+}
+
+/** Un contrat signé n'a que trois états, qui suivent les dates. */
+export type StatutContrat = "prevu" | "encours" | "termine";
 
 export interface Mission {
   id: string;
+  /** Le poste (« Opérateur de production »). */
   libelle: string;
+  /** L'entreprise cliente (« Logis-Verre »), éventuellement vide. */
+  entreprise: string;
+  agenceId: string | null;
   debut: Jour;
   fin: Jour;
   /** Jours travaillés dans la semaine : 1 = lundi … 7 = dimanche. */
@@ -65,7 +91,12 @@ export interface Mission {
   pauseMin: number;
   /** Taux horaire brut. */
   tauxHoraireCents: Centimes;
-  statut: StatutMission;
+  /** Trajet de la maison au travail, en minutes (sans majoration), ou `null` : sert à l'heure de départ de l'agenda. */
+  trajetMin: number | null;
+  /** Panier repas par jour travaillé (non soumis aux cotisations). */
+  panierCents: Centimes;
+  /** Indemnité de déplacement par jour travaillé (non soumise aux cotisations). */
+  deplacementCents: Centimes;
   /** Minutes supplémentaires ajoutées à la main un jour précis (« +1 h ce soir »), payées en heures supplémentaires. */
   supplementaires: { jour: Jour; minutes: number }[];
 }
@@ -83,7 +114,9 @@ export type TypeContrat = "cdi" | "cdd";
 
 export interface Contrat {
   id: string;
+  /** Le poste. */
   libelle: string;
+  entreprise: string;
   type: TypeContrat;
   brutMensuelCents: Centimes;
   debut: Jour;
@@ -105,7 +138,7 @@ export interface Bulletin {
 export interface Donnees {
   schema: typeof SCHEMA;
   suivant: number;
-  reglages: Reglages;
+  agences: Agence[];
   missions: Mission[];
   reserves: PeriodeReserve[];
   contrats: Contrat[];
@@ -120,12 +153,12 @@ export interface Donnees {
 
 export type CodeErreur = "argument_invalide" | "introuvable" | "limite_atteinte" | "illisible";
 
-export class ErreurPaie extends Error {
+export class ErreurTravail extends Error {
   constructor(
     readonly code: CodeErreur,
     message: string,
   ) {
     super(message);
-    this.name = "ErreurPaie";
+    this.name = "ErreurTravail";
   }
 }

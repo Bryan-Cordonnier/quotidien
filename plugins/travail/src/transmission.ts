@@ -1,17 +1,17 @@
-// Transmission de Paie vers Budget, l'Agenda et Finances. Fonctions pures : l'appelant (`appeler`) est injecté, donc testé sans moteur.
+// Transmission de Travail vers Budget, l'Agenda et Finances. Fonctions pures : l'appelant (`appeler`) est injecté, donc testé sans moteur.
 // Règle de conception (docs/24, A.1.7) : un consommateur doit pouvoir être RÉPARÉ EN REJOUANT. La vérité est dans Paie ; les autres plugins
-// ne reçoivent que des projections. Un plugin absent n'empêche rien : le calcul et les écrans de Paie restent entiers, et ce qui n'a pas pu
+// ne reçoivent que des projections. Un plugin absent n'empêche rien : le calcul et les écrans de Travail restent entiers, et ce qui n'a pas pu
 // partir est compté « non transmis » jusqu'à la prochaine ouverture.
 import type { Jour } from "@etabli/ui/civil";
 import { enregistrerBulletin } from "./donnees";
 import { cleDe, empreinte, projections } from "./projection";
-import type { Donnees } from "./types";
+import type { Donnees, Reglages } from "./types";
 
 export type Cible = "budget" | "agenda" | "finances";
 export type Reponse<T = unknown> = { ok: true; valeur: T } | { ok: false; code: string; message: string };
 export type Appeler = (service: Cible, fonction: string, args: unknown) => Promise<Reponse>;
 
-/** Codes qui veulent dire « ce plugin n'est pas utilisable maintenant » (pas une erreur de Paie). */
+/** Codes qui veulent dire « ce plugin n'est pas utilisable maintenant » (pas une erreur de Travail). */
 const INDISPONIBLE = new Set(["service_absent", "contrat_incompatible", "permission_refusee", "delai_depasse", "occupe"]);
 
 export interface Rapport {
@@ -31,13 +31,13 @@ export function messageIndisponible(service: Cible, code: string): string {
   const nom = service === "budget" ? "Budget" : service === "agenda" ? "l'Agenda" : "Finances";
   switch (code) {
     case "service_absent":
-      return `Installez ${nom} pour y voir vos paies : tout le reste de Paie fonctionne sans.`;
+      return `Installez ${nom} pour y voir vos paies : tout le reste de Travail fonctionne sans.`;
     case "contrat_incompatible":
-      return `La version de ${nom} ne correspond pas à cette version de Paie : mettez l'un des deux à jour.`;
+      return `La version de ${nom} ne correspond pas à cette version de Travail : mettez l'un des deux à jour.`;
     case "permission_refusee":
-      return `Paie n'a pas la permission d'utiliser ${nom}. Réinstallez-la pour accepter ses permissions.`;
+      return `Travail n'a pas la permission d'utiliser ${nom}. Réinstallez-la pour accepter ses permissions.`;
     default:
-      return `${nom} ne répond pas pour l'instant : Paie réessaiera à la prochaine ouverture.`;
+      return `${nom} ne répond pas pour l'instant : Travail réessaiera à la prochaine ouverture.`;
   }
 }
 
@@ -47,11 +47,11 @@ const fonctionDe = { budget: "previsions", agenda: "evenements" } as const;
  * Envoie à Budget et à l'Agenda ce qui a changé depuis la dernière transmission réussie, et retire ce qui n'existe plus. Rend les données
  * avec le suivi `transmis` mis à jour (à enregistrer) et un rapport. Ne jette jamais : toute erreur est dans le rapport.
  */
-export async function transmettre(d: Donnees, aujourdhui: Jour, appeler: Appeler): Promise<{ donnees: Donnees; rapport: Rapport }> {
+export async function transmettre(d: Donnees, r: Reglages, aujourdhui: Jour, appeler: Appeler): Promise<{ donnees: Donnees; rapport: Rapport }> {
   const rapport: Rapport = { aJour: 0, envoyees: 0, enAttente: 0, indisponibles: [], erreurs: [] };
   const transmis = { ...d.transmis };
   const absents = new Set<Cible>();
-  const voulues = projections(d, aujourdhui);
+  const voulues = projections(d, r, aujourdhui);
   const marquer = (service: Cible, code: string) => {
     if (!absents.has(service)) rapport.indisponibles.push({ service, message: messageIndisponible(service, code) });
     absents.add(service);
@@ -123,11 +123,11 @@ export async function saisirNetRecu(d: Donnees, s: SaisieNetRecu, appeler: Appel
   let ecritureId: string | null = null;
   if (s.compteId) {
     const quand = Math.min(Date.parse(`${s.jour}T12:00:00Z`), maintenant);
-    const r = await appeler("finances", "ecritures.ajouter", { compteId: s.compteId, montantCents: s.netCents, quand, libelle: s.libelle, ref: s.ref, cle: `paie-${s.ref}-${s.jour}` });
+    const r = await appeler("finances", "ecritures.ajouter", { compteId: s.compteId, montantCents: s.netCents, quand, libelle: s.libelle, ref: s.ref, cle: `travail-${s.ref}-${s.jour}` });
     if (r.ok) ecritureId = (r.valeur as { id?: string }).id ?? null;
     else avertissements.push(r.code === "service_absent" ? messageIndisponible("finances", r.code) : `Finances a refusé l'écriture : ${r.message}`);
   } else {
-    avertissements.push("Aucun compte choisi : le net est noté dans Paie mais pas ajouté dans Finances.");
+    avertissements.push("Aucun compte choisi : le net est noté dans Travail mais pas ajouté dans Finances.");
   }
   if (s.jourPrevu) {
     const r = await appeler("budget", "previsions.realiser", { ref: s.ref, jour: s.jourPrevu, ...(ecritureId ? { ecritureId } : {}) });

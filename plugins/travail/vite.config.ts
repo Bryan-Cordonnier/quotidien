@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { defineConfig } from "vite";
 
-// Une page HTML par mini-app. Le dossier public/ (manifest.json) est copié tel quel dans dist/.
+// Une page HTML par app. Le dossier public/ (manifest.json) est copié tel quel dans dist/.
 const page = (chemin: string) => fileURLToPath(new URL(`./${chemin}/index.html`, import.meta.url));
 
 export default defineConfig({
@@ -15,7 +15,7 @@ export default defineConfig({
     target: "chrome120",
     rollupOptions: {
       input: {
-        paie: page("apps/paie"),
+        travail: page("apps/travail"),
       },
     },
   },

@@ -2,10 +2,10 @@
 // corriger ; un champ inconnu est refusé (une faute de frappe ne passe pas en silence).
 import { estJour, type Jour } from "@etabli/ui/civil";
 import { estCentimes } from "@etabli/ui/money";
-import { ErreurPaie } from "./types";
+import { ErreurTravail } from "./types";
 
 const refus = (message: string): never => {
-  throw new ErreurPaie("argument_invalide", message);
+  throw new ErreurTravail("argument_invalide", message);
 };
 
 export function objet(brut: unknown, obligatoires: readonly string[], facultatifs: readonly string[] = []): Record<string, unknown> {
@@ -25,6 +25,12 @@ export function texte(v: unknown, nom: string, max: number): string {
   if (t.length > max) return refus(`« ${nom} » est trop long (${max} caractères au plus).`);
   if (/[\u0000-\u001f\u007f]/.test(t)) return refus(`« ${nom} » contient un caractère de contrôle.`);
   return t;
+}
+
+/** Texte qui peut être vide (l'entreprise d'une mission, par exemple). */
+export function texteFacultatif(v: unknown, nom: string, max: number): string {
+  if (v === undefined || v === null || v === "") return "";
+  return texte(v, nom, max);
 }
 
 export function montant(v: unknown, nom: string, min = 0): number {
@@ -52,6 +58,6 @@ export function choix<T extends string>(v: unknown, nom: string, permis: readonl
 
 export function liste<T>(v: unknown, nom: string, element: (x: unknown) => T, max: number): T[] {
   if (!Array.isArray(v)) return refus(`« ${nom} » doit être une liste.`);
-  if (v.length > max) throw new ErreurPaie("limite_atteinte", `« ${nom} » : ${v.length} éléments, au plus ${max}.`);
+  if (v.length > max) throw new ErreurTravail("limite_atteinte", `« ${nom} » : ${v.length} éléments, au plus ${max}.`);
   return v.map(element);
 }
