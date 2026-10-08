@@ -210,3 +210,24 @@ describe("vue", () => {
     expect(lignes[1]?.chronologie).toBeNull();
   });
 });
+
+describe("événements de travail posés par Travail (contrat 3)", () => {
+  const evenement = { type: "travail", contrat: "interim", titre: "Opérateur de production", lieu: "Logis-Verre", jour: "2026-10-08", debutMin: 375, finMin: 855, tempsContratMin: 450, trajetMin: 25 };
+
+  it("accepte le type de contrat et le temps de travail du contrat, et les rend aux lecteurs", () => {
+    const r = executer(null, "evenements.remplacer", { ref: "mission:m1", evenements: [evenement], cle: "k1" }, "travail");
+    const lu = executer(r.carnet, "evenements.liste", { du: "2026-10-08", au: "2026-10-08" }, "budget");
+    expect(lu.valeur).toMatchObject([{ type: "travail", contrat: "interim", tempsContratMin: 450, lieu: "Logis-Verre", trajetMin: 25, source: "travail" }]);
+  });
+
+  it("un jour de réserve sans lieu ni trajet est accepté (champs à null)", () => {
+    const r = executer(null, "evenements.remplacer", { ref: "reserve:r1", evenements: [{ ...evenement, contrat: "reserve", lieu: null, trajetMin: null, tempsContratMin: 480 }], cle: "k2" }, "travail");
+    expect(r.carnet?.evenements[0]).toMatchObject({ contrat: "reserve", lieu: null, trajetMin: null });
+  });
+
+  it("refuse un type de contrat inconnu ou un temps de travail absurde", () => {
+    const essai = (x: object) => () => executer(null, "evenements.remplacer", { ref: "x", evenements: [{ ...evenement, ...x }], cle: "k3" }, "travail");
+    expect(essai({ contrat: "stage" })).toThrow(/contrat/);
+    expect(essai({ tempsContratMin: 5000 })).toThrow(/tempsContratMin/);
+  });
+});
