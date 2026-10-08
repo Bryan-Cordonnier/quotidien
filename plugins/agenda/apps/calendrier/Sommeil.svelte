@@ -9,7 +9,11 @@
 
   let { s }: { s: Session } = $props();
 
-  const SEMAINES = 17;
+  /** Largeur de la grille : le nombre de semaines affichées suit la place (plus de carrés quand le panneau du menu est replié). */
+  let largeur = $state(0);
+  const CARRE = 16;
+  const ECART = 4;
+  const SEMAINES = $derived(Math.max(4, Math.min(52, Math.floor((largeur + ECART) / (CARRE + ECART)) || 17)));
   const duree = (min: number) => `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")}`;
   const levers = (jour: string) => (s.carnet ? leverDe(occurrences(s.carnet.evenements, jour, jour), s.reglages.journee) : 0);
   const cible = $derived(s.reglages.journee.sommeilMin);
@@ -38,10 +42,9 @@
 <section class="bloc">
   <div class="bloc-titre">
     <h3>Sommeil</h3>
-    <span class="petit">cible : {duree(cible)}</span>
   </div>
   <div class="sl">
-    <div class="heat" role="img" aria-label="Sommeil des {SEMAINES} dernières semaines">
+    <div class="heat" bind:clientWidth={largeur} role="img" aria-label="Sommeil des {SEMAINES} dernières semaines">
       {#each grille as semaine (semaine[0]?.jour)}
         {#each semaine as c (c.jour)}
           <i class={c.zone ?? (c.futur ? "fut" : "")} title={c.minutes !== null ? `${c.jour} : ${duree(c.minutes)}` : c.jour}></i>
@@ -49,9 +52,9 @@
       {/each}
     </div>
     <div class="droite">
-      <div>
-        <div class="grand num">{moyenne === null ? "—" : duree(moyenne)}</div>
-        <span class="petit">moyenne</span>
+      <div class="chiffres">
+        <span>Objectif : <b class="num">{duree(cible)}</b></span>
+        <span>Moyenne : <b class="num">{moyenne === null ? "—" : duree(moyenne)}</b></span>
       </div>
       <div>
         <button class="btn primary" onclick={dormir}>{dejaNote ? "Coucher déjà noté" : "Je vais dormir maintenant"}</button>
@@ -65,8 +68,8 @@
 <style>
   .sl {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 200px;
-    gap: 28px;
+    grid-template-columns: minmax(0, 1fr) 190px;
+    gap: 24px;
     align-items: center;
     margin-top: 12px;
   }
@@ -77,8 +80,8 @@
     grid-template-rows: repeat(7, 16px);
     grid-auto-columns: 16px;
     gap: 4px;
-    justify-content: start;
-    overflow-x: auto;
+    justify-content: space-between;
+    overflow: hidden;
     padding-bottom: 4px;
   }
   .heat i {
@@ -114,10 +117,16 @@
     align-items: flex-end;
     text-align: right;
   }
-  .grand {
-    font-size: 34px;
-    font-weight: 600;
-    line-height: 1.1;
+  .chiffres {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 15px;
+    color: var(--muted);
+  }
+  .chiffres b {
+    color: var(--text);
+    font-weight: 700;
   }
   @media (max-width: 900px) {
     .sl {

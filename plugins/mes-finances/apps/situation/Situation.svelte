@@ -100,12 +100,12 @@
       </section>
     </div>
 
-    <section class="bloc">
-      <p class="etiquette">Courbe des {s.reglages.horizon} prochains jours</p>
-      <LineChart {points} title="Solde estimé de la vie courante" format={(v) => `${Math.round(v)} €`} />
-    </section>
+    <div class="grille-2-1">
+      <section class="bloc">
+        <p class="etiquette">Courbe des {s.reglages.horizon} prochains jours</p>
+        <LineChart {points} title="Solde estimé de la vie courante" format={(v) => `${Math.round(v)} €`} />
+      </section>
 
-    <div class="grille-2">
       <section class="bloc">
         <p class="etiquette">Prochains paiements</p>
         {#if s.paiements.length === 0}
@@ -118,32 +118,29 @@
           </ul>
         {/if}
       </section>
+    </div>
 
-      <section class="bloc">
-        <p class="etiquette">Ajustement rapide</p>
-        <p class="petit">Une dépense ou une rentrée oubliée{s.compteParDefaut ? ` (sur ${s.compteParDefaut.nom})` : ""}.</p>
-        <div class="ligne">
-          <input class="saisie num montant" bind:value={ajustement} placeholder="0,00 €" aria-label="Montant" inputmode="decimal" autocomplete="off" />
-          <input class="saisie" bind:value={libelle} placeholder="Libellé (facultatif)" aria-label="Libellé" autocomplete="off" />
+    <div class="grille-2">
+      <section class="bloc centre">
+        <p class="etiquette">Ajouter{s.compteParDefaut ? ` · ${s.compteParDefaut.nom}` : ""}</p>
+        <div class="ajout">
+          <input class="saisie num" bind:value={ajustement} placeholder="0,00 €" aria-label="Montant" inputmode="decimal" autocomplete="off" />
+          <button class="carre plus" onclick={() => ajuster(1)} aria-label="Ajouter une rentrée" title="Rentrée">+</button>
+          <input class="saisie" bind:value={libelle} placeholder="Libellé" aria-label="Libellé" autocomplete="off" />
+          <button class="carre moins" onclick={() => ajuster(-1)} aria-label="Ajouter une dépense" title="Dépense">−</button>
         </div>
-        <div class="ligne">
-          <button class="btn" onclick={() => ajuster(-1)}>− Dépense</button>
-          <button class="btn" onclick={() => ajuster(1)}>+ Rentrée</button>
+      </section>
+
+      <section class="bloc centre">
+        <p class="etiquette">Recaler sur le solde réel</p>
+        <div class="recaler">
+          <input class="saisie num" bind:value={reel} placeholder="0,00 €" aria-label="Solde réel" inputmode="decimal" autocomplete="off" onkeydown={(e) => e.key === "Enter" && recaler()} />
+          <button class="btn primary" onclick={recaler}>Recaler</button>
         </div>
       </section>
     </div>
 
-    <div class="grille-2">
-      <section class="bloc">
-        <p class="etiquette">Recaler sur le solde réel</p>
-        <p class="petit">Le total réel de la vie courante, tel que ma banque l'affiche. L'écart est noté pour mesurer la précision.</p>
-        <div class="ligne">
-          <input class="saisie num montant" bind:value={reel} placeholder="0,00 €" aria-label="Solde réel" inputmode="decimal" autocomplete="off" onkeydown={(e) => e.key === "Enter" && recaler()} />
-          <button class="btn" onclick={recaler}>Recaler</button>
-        </div>
-      </section>
-
-      <section class="bloc">
+    <div class="seul">      <section class="bloc">
         <p class="etiquette">Mes comptes</p>
         {#if s.comptes.length === 0}
           <p class="petit">Aucun compte. Créez-les dans Finances.</p>
@@ -187,15 +184,50 @@
     align-items: center;
     gap: 12px;
   }
-  .ligne {
+  .centre {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-direction: column;
+    justify-content: center;
+  }
+  /* Prix en haut, libellé en bas, et à droite deux gros boutons carrés alignés sur ces deux lignes : + (vert) et − (rouge). */
+  .ajout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: 58px 58px;
+    gap: 10px 14px;
     align-items: center;
     margin-top: 10px;
   }
-  .montant {
-    width: 120px;
+  .carre {
+    width: 58px;
+    height: 58px;
+    border: 0;
+    border-radius: 14px;
+    color: #fff;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .carre.plus {
+    background: var(--ok);
+  }
+  .carre.moins {
+    background: var(--err);
+  }
+  .recaler {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-top: 10px;
+  }
+  .recaler .saisie {
+    flex: 1;
+    min-width: 0;
+  }
+  .recaler .btn {
+    height: 44px;
+    padding: 0 22px;
   }
   .role {
     width: auto;

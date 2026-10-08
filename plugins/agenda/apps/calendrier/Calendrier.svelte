@@ -78,7 +78,7 @@
   }
   .bas {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 300px;
+    grid-template-columns: minmax(0, 1fr) 232px;
     gap: 14px;
     align-items: stretch;
   }

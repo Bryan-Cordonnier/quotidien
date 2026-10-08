@@ -39,6 +39,7 @@
     <h3>{libelleMois(reference)}</h3>
     <button class="btn" onclick={() => onmois(1)} aria-label="Mois suivant">›</button>
   </div>
+  <div class="cal-zone">
   <div class="cal" role="grid" aria-label="Calendrier de {libelleMois(reference)}">
     {#each JOURS_COURTS as j (j)}<div class="jour-nom">{j}</div>{/each}
     {#each jours as j (j)}
@@ -52,6 +53,7 @@
         onclick={() => onchoisir(j)}
       >{decomposer(j).jour}</button>
     {/each}
+  </div>
   </div>
   {#if presents.length > 0}
     <div class="legende">
@@ -77,12 +79,19 @@
   .nav h3::first-letter {
     text-transform: uppercase;
   }
-  .cal {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 8px 4px;
-    justify-items: center;
+  /* Les ronds ont un diamètre fixe (60 px au plus, moins si la place manque) et le même écart entre colonnes et entre lignes : un quadrillage carré. */
+  .cal-zone {
+    --ecart: 10px;
+    container-type: inline-size;
     margin-top: 12px;
+  }
+  .cal {
+    --d: min(60px, calc((100cqw - 6 * var(--ecart)) / 7));
+    display: grid;
+    grid-template-columns: repeat(7, var(--d));
+    gap: var(--ecart);
+    justify-content: center;
+    justify-items: center;
   }
   .jour-nom {
     color: var(--faint);
@@ -94,8 +103,8 @@
   .rond {
     display: grid;
     place-items: center;
-    width: min(60px, 100%);
-    aspect-ratio: 1;
+    width: var(--d);
+    height: var(--d);
     padding: 0;
     border: 3px solid transparent;
     border-radius: 50%;
