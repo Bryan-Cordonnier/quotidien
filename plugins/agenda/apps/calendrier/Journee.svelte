@@ -100,7 +100,7 @@
     flex: var(--m) 1 0;
     min-height: 36px;
     display: grid;
-    grid-template-columns: 46px 12px minmax(0, 1fr);
+    grid-template-columns: 46px 24px minmax(0, 1fr);
     gap: 0 10px;
     align-items: stretch;
   }

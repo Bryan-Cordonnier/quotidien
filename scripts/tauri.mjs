@@ -18,6 +18,6 @@ const resultat = spawnSync("npx", ["tauri", ...args, ...configs.flatMap((c) => [
   cwd: moteur,
   stdio: "inherit",
   shell: true,
-  env: { ...process.env, ETABLE_PLUGINS_DIR: join(racine, "plugins") },
+  env: { ...process.env, ETABLE_PLUGINS_DIR: join(racine, "plugins"), ETABLE_DISTRIBUTION: join(racine, "distribution.json") },
 });
 process.exit(resultat.status ?? 1);

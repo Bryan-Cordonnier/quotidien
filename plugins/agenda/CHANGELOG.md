@@ -7,6 +7,10 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ### Modifié
 
+- **Calendrier** : quadrillage des ronds à écarts égaux, grille de sommeil pleine largeur (le nombre de semaines suit la place), « Objectif » et « Moyenne » alignés, bloc Trajet plus étroit, barre de la journée plus large.
+
+### Modifié
+
 - **Rappels** : la page n'apparaît plus dans le menu de Quotidien (les rappels continuent de fonctionner).
 
 ## [0.2.0] — 2026-10-08
