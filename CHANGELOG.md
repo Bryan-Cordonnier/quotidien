@@ -6,6 +6,12 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.1] — 2026-10-08
+
+### Modifié
+
+- **Le menu ne garde que les cinq pages prévues** : Calendrier, Courses, Liste de courses, Mes finances et Travail. Les anciennes pages Tableau de bord, Courbe du mois, Prévisions et Rappels sont retirées du menu ; les plugins Finances, Budget et Agenda continuent de travailler en coulisses.
+
 ## [0.1.0] — 2026-10-08
 
 Première version publiée : l'application se met à jour toute seule à partir de celle-ci.
@@ -20,5 +26,6 @@ Première version publiée : l'application se met à jour toute seule à partir 
 - **Catégories** : Paramètres → Apparence, « Ranger les pages par catégories » (Argent, Temps).
 - **Mises à jour automatiques** : Quotidien cherche une nouvelle version au démarrage et propose de l'installer ; rien ne s'installe sans votre clic.
 
-[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.0...HEAD
+[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Bryan-Cordonnier/quotidien/releases/tag/v0.1.0
