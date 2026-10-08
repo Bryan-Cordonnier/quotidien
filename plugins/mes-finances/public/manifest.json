@@ -41,7 +41,11 @@
       "title": "Estimé et autonomie",
       "icon": "wallet",
       "app": "resume",
-      "sizes": ["2x1", "1x1", "2x2"],
+      "sizes": [
+        "2x1",
+        "1x1",
+        "2x2"
+      ],
       "default": "2x1"
     }
   ],
@@ -50,6 +54,7 @@
       "id": "situation",
       "title": "Mes finances",
       "icon": "wallet",
+      "category": "Argent",
       "layout": {
         "type": "app",
         "app": "situation"
@@ -77,9 +82,18 @@
       "group": "Prévision",
       "hint": "Nombre de jours calculés à partir d'aujourd'hui.",
       "options": [
-        { "value": "30", "label": "30 jours" },
-        { "value": "60", "label": "60 jours" },
-        { "value": "90", "label": "90 jours" }
+        {
+          "value": "30",
+          "label": "30 jours"
+        },
+        {
+          "value": "60",
+          "label": "60 jours"
+        },
+        {
+          "value": "90",
+          "label": "90 jours"
+        }
       ]
     },
     {

@@ -1,218 +1,217 @@
 {
-    "id":  "travail",
-    "name":  "Travail",
-    "version":  "0.2.0",
-    "apiVersion":  "^3",
-    "author":  "Bryan Cordonnier",
-    "description":  "Vos contrats et vos paies : missions d\u0027intérim avec leurs agences, jours de réserve, CDD et CDI. Dit combien vous serez payé et quand ; l\u0027argent réel et le budget restent dans d\u0027autres plugins. Les taux se règlent dans Paramètres.",
-    "color":  "#2b6cb0",
-    "icon":  "weight",
-    "permissions":  [
-                        "appelle:budget:ecriture",
-                        "appelle:agenda:ecriture",
-                        "appelle:finances:lecture",
-                        "appelle:finances:ecriture",
-                        "reglages"
-                    ],
-    "services":  {
-                     "budget":  "^1",
-                     "agenda":  "^1",
-                     "finances":  "^1"
-                 },
-    "optionalDependencies":  {
-                                 "budget":  "^1",
-                                 "agenda":  "^1",
-                                 "finances":  "^1"
-                             },
-    "apps":  [
-                 {
-                     "id":  "travail",
-                     "name":  "Travail",
-                     "entry":  "apps/travail/index.html",
-                     "accepts":  [
-
-                                 ]
-                 }
-             ],
-    "pages":  [
-                  {
-                      "id":  "travail",
-                      "title":  "Travail",
-                      "icon":  "weight",
-                      "layout":  {
-                                     "type":  "app",
-                                     "app":  "travail"
-                                 }
-                  }
-              ],
-    "parameters":  [
-                       {
-                           "id":  "cotisations",
-                           "label":  "Cotisations salariales par défaut",
-                           "type":  "number",
-                           "default":  22,
-                           "group":  "Cotisations et indemnités",
-                           "step":  0.5,
-                           "min":  0,
-                           "hint":  "Hypothèse à confirmer sur un vrai bulletin ; chaque agence peut avoir son taux.",
-                           "unit":  "%",
-                           "max":  60
-                       },
-                       {
-                           "id":  "ifm",
-                           "label":  "Indemnité de fin de mission",
-                           "type":  "number",
-                           "default":  10,
-                           "group":  "Intérim",
-                           "step":  0.5,
-                           "min":  0,
-                           "hint":  "légal : 10 % du brut",
-                           "unit":  "%",
-                           "max":  30
-                       },
-                       {
-                           "id":  "cp",
-                           "label":  "Congés payés",
-                           "type":  "number",
-                           "default":  10,
-                           "group":  "Intérim",
-                           "step":  0.5,
-                           "min":  0,
-                           "hint":  "légal : 10 % du brut et de l\u0027indemnité de fin de mission",
-                           "unit":  "%",
-                           "max":  30
-                       },
-                       {
-                           "id":  "delaiPaie",
-                           "label":  "Délai avant la paie",
-                           "type":  "number",
-                           "default":  7,
-                           "group":  "Intérim",
-                           "step":  1,
-                           "min":  0,
-                           "hint":  "Après le dernier jour d\u0027une période ; jamais un week-end ni un jour férié.",
-                           "unit":  "jours",
-                           "max":  90
-                       },
-                       {
-                           "id":  "seuilSemaine",
-                           "label":  "Heures normales par semaine",
-                           "type":  "number",
-                           "default":  35,
-                           "group":  "Heures supplémentaires",
-                           "step":  0.5,
-                           "min":  0,
-                           "unit":  "h",
-                           "max":  60
-                       },
-                       {
-                           "id":  "majoration1",
-                           "label":  "Majoration des premières heures supplémentaires",
-                           "type":  "number",
-                           "default":  25,
-                           "group":  "Heures supplémentaires",
-                           "step":  1,
-                           "min":  0,
-                           "hint":  "légal : +25 %",
-                           "unit":  "%",
-                           "max":  200
-                       },
-                       {
-                           "id":  "seuilMajoration1",
-                           "label":  "Nombre d\u0027heures payées à la première majoration",
-                           "type":  "number",
-                           "default":  8,
-                           "group":  "Heures supplémentaires",
-                           "step":  0.5,
-                           "min":  0,
-                           "hint":  "par semaine, légal : 8 h",
-                           "unit":  "h",
-                           "max":  40
-                       },
-                       {
-                           "id":  "majoration2",
-                           "label":  "Majoration des heures suivantes",
-                           "type":  "number",
-                           "default":  50,
-                           "group":  "Heures supplémentaires",
-                           "step":  1,
-                           "min":  0,
-                           "hint":  "légal : +50 %",
-                           "unit":  "%",
-                           "max":  200
-                       },
-                       {
-                           "id":  "tarifReserve",
-                           "label":  "Tarif d\u0027un jour de réserve (brut)",
-                           "type":  "number",
-                           "default":  0,
-                           "group":  "Réserve",
-                           "step":  1,
-                           "min":  0,
-                           "hint":  "À régler : aucune valeur par défaut.",
-                           "unit":  "€",
-                           "max":  10000
-                       },
-                       {
-                           "id":  "indemniteHorsBase",
-                           "label":  "Indemnité d\u0027un jour hors base",
-                           "type":  "number",
-                           "default":  38,
-                           "group":  "Réserve",
-                           "step":  1,
-                           "min":  0,
-                           "hint":  "hypothèse à confirmer",
-                           "unit":  "€",
-                           "max":  10000
-                       },
-                       {
-                           "id":  "reserveDebut",
-                           "label":  "Début d\u0027un jour de réserve dans le calendrier",
-                           "type":  "time",
-                           "default":  "08:00",
-                           "group":  "Réserve"
-                       },
-                       {
-                           "id":  "reserveFin",
-                           "label":  "Fin d\u0027un jour de réserve dans le calendrier",
-                           "type":  "time",
-                           "default":  "17:00",
-                           "group":  "Réserve"
-                       },
-                       {
-                           "id":  "reserveTravail",
-                           "label":  "Temps de travail d\u0027un jour de réserve",
-                           "type":  "number",
-                           "default":  8,
-                           "group":  "Réserve",
-                           "step":  0.5,
-                           "min":  0,
-                           "unit":  "h",
-                           "max":  24
-                       },
-                       {
-                           "id":  "precarite",
-                           "label":  "Prime de précarité (CDD)",
-                           "type":  "number",
-                           "default":  10,
-                           "group":  "CDD",
-                           "step":  0.5,
-                           "min":  0,
-                           "hint":  "légal : 10 % du brut total",
-                           "unit":  "%",
-                           "max":  30
-                       },
-                       {
-                           "id":  "cpCdd",
-                           "label":  "Congés payés non pris (CDD)",
-                           "type":  "number",
-                           "default":  10,
-                           "group":  "CDD",
-                           "step":  0.5,
-                           "min":  0,
-                           "hint":  "légal : 10 % du brut total",
-                           "unit":  "%",
-                           "max":  30
-                       }
-                   ]
+  "id": "travail",
+  "name": "Travail",
+  "version": "0.2.0",
+  "apiVersion": "^3",
+  "author": "Bryan Cordonnier",
+  "description": "Vos contrats et vos paies : missions d'intérim avec leurs agences, jours de réserve, CDD et CDI. Dit combien vous serez payé et quand ; l'argent réel et le budget restent dans d'autres plugins. Les taux se règlent dans Paramètres.",
+  "color": "#2b6cb0",
+  "icon": "weight",
+  "permissions": [
+    "appelle:budget:ecriture",
+    "appelle:agenda:ecriture",
+    "appelle:finances:lecture",
+    "appelle:finances:ecriture",
+    "reglages"
+  ],
+  "services": {
+    "budget": "^1",
+    "agenda": "^1",
+    "finances": "^1"
+  },
+  "optionalDependencies": {
+    "budget": "^1",
+    "agenda": "^1",
+    "finances": "^1"
+  },
+  "apps": [
+    {
+      "id": "travail",
+      "name": "Travail",
+      "entry": "apps/travail/index.html",
+      "accepts": []
+    }
+  ],
+  "pages": [
+    {
+      "id": "travail",
+      "title": "Travail",
+      "icon": "weight",
+      "category": "Temps",
+      "layout": {
+        "type": "app",
+        "app": "travail"
+      }
+    }
+  ],
+  "parameters": [
+    {
+      "id": "cotisations",
+      "label": "Cotisations salariales par défaut",
+      "type": "number",
+      "default": 22,
+      "group": "Cotisations et indemnités",
+      "step": 0.5,
+      "min": 0,
+      "hint": "Hypothèse à confirmer sur un vrai bulletin ; chaque agence peut avoir son taux.",
+      "unit": "%",
+      "max": 60
+    },
+    {
+      "id": "ifm",
+      "label": "Indemnité de fin de mission",
+      "type": "number",
+      "default": 10,
+      "group": "Intérim",
+      "step": 0.5,
+      "min": 0,
+      "hint": "légal : 10 % du brut",
+      "unit": "%",
+      "max": 30
+    },
+    {
+      "id": "cp",
+      "label": "Congés payés",
+      "type": "number",
+      "default": 10,
+      "group": "Intérim",
+      "step": 0.5,
+      "min": 0,
+      "hint": "légal : 10 % du brut et de l'indemnité de fin de mission",
+      "unit": "%",
+      "max": 30
+    },
+    {
+      "id": "delaiPaie",
+      "label": "Délai avant la paie",
+      "type": "number",
+      "default": 7,
+      "group": "Intérim",
+      "step": 1,
+      "min": 0,
+      "hint": "Après le dernier jour d'une période ; jamais un week-end ni un jour férié.",
+      "unit": "jours",
+      "max": 90
+    },
+    {
+      "id": "seuilSemaine",
+      "label": "Heures normales par semaine",
+      "type": "number",
+      "default": 35,
+      "group": "Heures supplémentaires",
+      "step": 0.5,
+      "min": 0,
+      "unit": "h",
+      "max": 60
+    },
+    {
+      "id": "majoration1",
+      "label": "Majoration des premières heures supplémentaires",
+      "type": "number",
+      "default": 25,
+      "group": "Heures supplémentaires",
+      "step": 1,
+      "min": 0,
+      "hint": "légal : +25 %",
+      "unit": "%",
+      "max": 200
+    },
+    {
+      "id": "seuilMajoration1",
+      "label": "Nombre d'heures payées à la première majoration",
+      "type": "number",
+      "default": 8,
+      "group": "Heures supplémentaires",
+      "step": 0.5,
+      "min": 0,
+      "hint": "par semaine, légal : 8 h",
+      "unit": "h",
+      "max": 40
+    },
+    {
+      "id": "majoration2",
+      "label": "Majoration des heures suivantes",
+      "type": "number",
+      "default": 50,
+      "group": "Heures supplémentaires",
+      "step": 1,
+      "min": 0,
+      "hint": "légal : +50 %",
+      "unit": "%",
+      "max": 200
+    },
+    {
+      "id": "tarifReserve",
+      "label": "Tarif d'un jour de réserve (brut)",
+      "type": "number",
+      "default": 0,
+      "group": "Réserve",
+      "step": 1,
+      "min": 0,
+      "hint": "À régler : aucune valeur par défaut.",
+      "unit": "€",
+      "max": 10000
+    },
+    {
+      "id": "indemniteHorsBase",
+      "label": "Indemnité d'un jour hors base",
+      "type": "number",
+      "default": 38,
+      "group": "Réserve",
+      "step": 1,
+      "min": 0,
+      "hint": "hypothèse à confirmer",
+      "unit": "€",
+      "max": 10000
+    },
+    {
+      "id": "reserveDebut",
+      "label": "Début d'un jour de réserve dans le calendrier",
+      "type": "time",
+      "default": "08:00",
+      "group": "Réserve"
+    },
+    {
+      "id": "reserveFin",
+      "label": "Fin d'un jour de réserve dans le calendrier",
+      "type": "time",
+      "default": "17:00",
+      "group": "Réserve"
+    },
+    {
+      "id": "reserveTravail",
+      "label": "Temps de travail d'un jour de réserve",
+      "type": "number",
+      "default": 8,
+      "group": "Réserve",
+      "step": 0.5,
+      "min": 0,
+      "unit": "h",
+      "max": 24
+    },
+    {
+      "id": "precarite",
+      "label": "Prime de précarité (CDD)",
+      "type": "number",
+      "default": 10,
+      "group": "CDD",
+      "step": 0.5,
+      "min": 0,
+      "hint": "légal : 10 % du brut total",
+      "unit": "%",
+      "max": 30
+    },
+    {
+      "id": "cpCdd",
+      "label": "Congés payés non pris (CDD)",
+      "type": "number",
+      "default": 10,
+      "group": "CDD",
+      "step": 0.5,
+      "min": 0,
+      "hint": "légal : 10 % du brut total",
+      "unit": "%",
+      "max": 30
+    }
+  ]
 }
