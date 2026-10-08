@@ -9,7 +9,7 @@
     "plugins/*"
   ],
   "scripts": {
-    "build:plugins": "npm run build -w plugins/finances -w plugins/agenda -w plugins/budget -w plugins/travail",
+    "build:plugins": "npm run build -w plugins/finances -w plugins/agenda -w plugins/budget -w plugins/travail -w plugins/courses",
     "check": "npm run check --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "dev": "npm run build:plugins && node scripts/tauri.mjs dev",
