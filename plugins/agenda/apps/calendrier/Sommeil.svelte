@@ -58,7 +58,7 @@
       </div>
       <div>
         <button class="btn primary" onclick={dormir}>{dejaNote ? "Coucher déjà noté" : "Je vais dormir maintenant"}</button>
-        <div class="petit" style="margin-top: 6px">Coucher conseillé ce soir : <b class="num">{heure(ce_soir % 1440)}</b></div>
+        <div class="conseil"><small>Coucher conseillé ce soir</small><b class="num">{heure(ce_soir % 1440)}</b></div>
       </div>
     </div>
   </div>
@@ -68,7 +68,7 @@
 <style>
   .sl {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 190px;
+    grid-template-columns: minmax(0, 1fr) 210px;
     gap: 24px;
     align-items: center;
     margin-top: 12px;
@@ -120,13 +120,31 @@
   .chiffres {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    font-size: 15px;
-    color: var(--muted);
+    gap: 6px;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
   }
   .chiffres b {
-    color: var(--text);
     font-weight: 700;
+  }
+  /* Le coucher conseillé ce soir : l'information utile du bloc, donc bien visible. */
+  .conseil {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--text);
+    text-align: center;
+  }
+  .conseil small {
+    display: block;
+    color: var(--muted);
+    font-size: 12.5px;
+  }
+  .conseil b {
+    font-size: 26px;
+    line-height: 1.2;
   }
   @media (max-width: 900px) {
     .sl {

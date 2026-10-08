@@ -62,7 +62,7 @@
     {
       "id": "calendrier",
       "title": "Calendrier",
-      "icon": "clock",
+      "icon": "calendrier",
       "category": "Temps",
       "layout": {
         "type": "app",

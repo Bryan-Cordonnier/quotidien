@@ -4,6 +4,10 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+### Modifié
+
+- **Icône « travail » de Quotidien** pour la page Travail.
+
 ## [0.2.0] — 2026-10-08
 
 Paie devient **Travail**. Les montants restent des **estimations** : tous les taux sont des paramètres, à confirmer sur un vrai bulletin.

@@ -1,22 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-  <defs>
-    <linearGradient id="ciel" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#2b2150"/>
-      <stop offset="0.55" stop-color="#8a3f62"/>
-      <stop offset="1" stop-color="#f08a5d"/>
-    </linearGradient>
-    <linearGradient id="soleil" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffe3a6"/>
-      <stop offset="1" stop-color="#ffb066"/>
-    </linearGradient>
-    <clipPath id="haut"><rect x="0" y="0" width="1024" height="660"/></clipPath>
-  </defs>
-  <rect width="1024" height="1024" rx="230" fill="url(#ciel)"/>
-  <g clip-path="url(#haut)"><circle cx="512" cy="660" r="210" fill="url(#soleil)"/></g>
-  <g stroke="#ffe9c4" stroke-width="30" stroke-linecap="round" fill="none">
-    <path d="M512 330v-70M330 410l-48-48M694 410l48-48M262 540h-60M762 540h60"/>
+  <defs><clipPath id="carre"><rect width="1024" height="1024" rx="230"/></clipPath></defs>
+  <rect width="1024" height="1024" rx="230" fill="#2b2150"/>
+  <g clip-path="url(#carre)">
+    <circle cx="1010" cy="40" r="560" fill="#37296b"/>
+    <circle cx="60" cy="1010" r="330" fill="#241b47"/>
   </g>
-  <rect x="150" y="660" width="724" height="34" rx="17" fill="#fff4de"/>
-  <rect x="270" y="730" width="484" height="26" rx="13" fill="#fff4de" opacity="0.55"/>
-  <rect x="380" y="792" width="264" height="22" rx="11" fill="#fff4de" opacity="0.3"/>
+  <circle cx="490" cy="490" r="262" fill="none" stroke="#fff1dc" stroke-width="132"/>
+  <path d="M350 560 A110 110 0 0 1 570 560 Z" fill="#ff8f5e"/>
+  <path d="M625 625 L810 810" stroke="#ff8f5e" stroke-width="132" stroke-linecap="round"/>
 </svg>

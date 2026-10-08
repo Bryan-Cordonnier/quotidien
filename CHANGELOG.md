@@ -5,6 +5,17 @@ Chaque version a sa section ici avant d'être publiée : ce texte devient la Rel
 Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
+## [0.1.3] — 2026-10-09
+
+### Ajouté
+
+- **Une nouvelle icône d'application et des icônes de pages dans le même style** : un Q flat avec un soleil levant (l'icône de l'application et le logo de la colonne), et des icônes en aplats pour Calendrier, Courses, Liste de courses, Mes finances et Travail.
+
+### Modifié
+
+- **Calendrier** : le mois n'a plus de vide à droite et à gauche (le bloc épouse le quadrillage, les marges sont les mêmes tout autour) ; la journée est faite de cartes pleine largeur teintées de la couleur du contrat, au lieu d'une fine barre ; « Objectif » et « Moyenne » sont plus gros et en blanc ; le coucher conseillé ce soir est mis en évidence dans un encadré.
+- **Mes finances** : « Ajout », « Recalage » et « Mes comptes » forment une même rangée de trois blocs de même forme (titre, une ligne d'explication, contenu) ; les boutons + et − sont plus petits.
+- **Liste de courses** : « Listes en cours » et « Nouvelle liste » sont côte à côte sur grand écran.
 ## [0.1.2] — 2026-10-09
 
 ### Ajouté
@@ -38,7 +49,8 @@ Première version publiée : l'application se met à jour toute seule à partir 
 - **Catégories** : Paramètres → Apparence, « Ranger les pages par catégories » (Argent, Temps).
 - **Mises à jour automatiques** : Quotidien cherche une nouvelle version au démarrage et propose de l'installer ; rien ne s'installe sans votre clic.
 
-[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.2...HEAD
+[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Bryan-Cordonnier/quotidien/releases/tag/v0.1.0

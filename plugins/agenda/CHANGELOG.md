@@ -7,6 +7,10 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ### Modifié
 
+- **Calendrier** : le mois sans vide sur les côtés, la journée en cartes pleine largeur, « Objectif » et « Moyenne » plus gros, coucher conseillé mis en évidence ; la page utilise l'icône « calendrier » de Quotidien.
+
+### Modifié
+
 - **Calendrier** : quadrillage des ronds à écarts égaux, grille de sommeil pleine largeur (le nombre de semaines suit la place), « Objectif » et « Moyenne » alignés, bloc Trajet plus étroit, barre de la journée plus large.
 
 ### Modifié

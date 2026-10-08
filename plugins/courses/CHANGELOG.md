@@ -4,6 +4,10 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+### Modifié
+
+- **Liste de courses** : « Listes en cours » et « Nouvelle liste » côte à côte sur grand écran ; icônes « courses » et « liste » de Quotidien.
+
 ## [0.1.0] — 2026-10-08
 
 Première version.

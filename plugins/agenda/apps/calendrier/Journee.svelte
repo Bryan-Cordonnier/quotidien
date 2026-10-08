@@ -44,11 +44,10 @@
           {@const modifiable = seg.genre === "evenement" && seg.occurrence?.source === UTILISATEUR}
           <div class="seg {seg.genre} {classe(seg)}" style="--m: {Math.max(0, seg.finMin - seg.debutMin)}">
             <span class="h num">{hhmm(seg.debutMin)}</span>
-            <span class="trait"></span>
             {#if modifiable}
-              <button class="nom" onclick={() => onmodifier(seg.occurrence!.evenementId)} title="Modifier cet événement"><b>{seg.titre}</b><small>{detail(seg)}</small></button>
+              <button class="carte nom" onclick={() => onmodifier(seg.occurrence!.evenementId)} title="Modifier cet événement"><b>{seg.titre}</b><small>{detail(seg)}</small></button>
             {:else}
-              <span class="nom"><b>{seg.titre}</b>{#if seg.genre !== "coucher"}<small>{detail(seg)}</small>{/if}</span>
+              <span class="carte nom"><b>{seg.titre}</b>{#if seg.genre !== "coucher"}<small>{detail(seg)}</small>{/if}</span>
             {/if}
           </div>
         {/each}
@@ -96,58 +95,62 @@
     margin-top: 12px;
     overflow-y: auto;
   }
+  /* Chaque étape est une carte pleine largeur, teintée de la couleur du contrat, avec l'heure à gauche : plus de grand vide à droite. */
   .seg {
     flex: var(--m) 1 0;
-    min-height: 36px;
+    min-height: 46px;
     display: grid;
-    grid-template-columns: 46px 24px minmax(0, 1fr);
+    grid-template-columns: 46px minmax(0, 1fr);
     gap: 0 10px;
     align-items: stretch;
+    padding: 3px 0;
   }
   .seg.coucher {
-    flex: 0 0 26px;
-    min-height: 26px;
+    flex: 0 0 34px;
+    min-height: 34px;
   }
   .h {
-    padding-top: 1px;
+    padding-top: 9px;
     color: var(--muted);
     font-size: 11.5px;
     text-align: right;
   }
-  .trait {
-    margin: 1px 0;
-    border-radius: 6px;
-    background: var(--kc, var(--border));
-  }
-  .seg.preparation .trait {
-    background: var(--accent);
-  }
-  .seg.trajet .trait {
-    background: var(--faint);
-  }
-  .seg.libre .trait {
-    border: 1px solid var(--border);
-    background: repeating-linear-gradient(135deg, var(--border) 0 4px, transparent 4px 8px);
-  }
-  .seg.coucher .trait {
-    background: var(--text);
-  }
-  .nom {
+  .carte {
+    min-width: 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    min-width: 0;
-    padding: 1px 0;
+    padding: 6px 14px;
     border: 0;
-    background: none;
+    border-left: 5px solid var(--kc, var(--border));
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--kc, var(--faint)) 16%, var(--surface));
     text-align: left;
     font: inherit;
     color: inherit;
   }
-  button.nom {
+  .seg.preparation .carte {
+    --kc: var(--accent);
+  }
+  .seg.trajet .carte {
+    --kc: var(--faint);
+  }
+  .seg.libre .carte {
+    border: 1px dashed var(--border);
+    background: transparent;
+    color: var(--muted);
+  }
+  .seg.coucher .carte {
+    --kc: var(--text);
+    justify-content: center;
+    background: var(--surface-2);
+  }
+  .nom {
+    min-width: 0;
+  }  button.carte {
     cursor: pointer;
   }
-  button.nom:hover b {
+  button.carte:hover b {
     text-decoration: underline;
   }
   .nom b {
@@ -157,6 +160,9 @@
   .nom small {
     color: var(--muted);
     font-size: 11.5px;
+  }
+  .seg.libre .nom small {
+    color: var(--faint);
   }
   .k-interim {
     --kc: var(--k-interim);

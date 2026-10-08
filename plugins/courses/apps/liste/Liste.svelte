@@ -57,6 +57,8 @@
       <p class="negatif">{s.illisible}</p>
     </section>
   {:else if s.donnees}
+    <!-- Sur grand écran : « Listes en cours » et « Nouvelle liste » côte à côte, deux blocs presque carrés. -->
+    <div class="grille-2">
     {#if enCours.length > 0}
       <section class="bloc">
         <div class="bloc-titre">
@@ -91,8 +93,11 @@
       {#if erreur}<p class="negatif" role="alert" style="margin: 8px 0 0">{erreur}</p>{/if}
       <button class="btn primary" style="margin-top: 12px" onclick={creer}>Créer la liste</button>
     </section>
+    <!-- Sans liste en cours, l'historique prend la place de la colonne vide. -->
+    {#if enCours.length === 0}<ListesReglees {s} listes={reglees} />{/if}
+    </div>
 
-    <ListesReglees {s} listes={reglees} />
+    {#if enCours.length > 0}<ListesReglees {s} listes={reglees} />{/if}
 
     {#if reglage}<Regler {s} listeId={reglage} onclose={() => (reglage = null)} />{/if}
     {#if s.message && !erreur}<p class="negatif" role="alert">{s.message}</p>{/if}

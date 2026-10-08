@@ -79,19 +79,19 @@
   .nav h3::first-letter {
     text-transform: uppercase;
   }
-  /* Les ronds ont un diamètre fixe (60 px au plus, moins si la place manque) et le même écart entre colonnes et entre lignes : un quadrillage carré. */
+  /* Le bloc épouse le quadrillage : des ronds de 56 px au plus, avec le même écart entre colonnes et entre lignes, donc les mêmes marges tout autour. */
   .cal-zone {
-    --ecart: 10px;
-    container-type: inline-size;
     margin-top: 12px;
   }
   .cal {
-    --d: min(60px, calc((100cqw - 6 * var(--ecart)) / 7));
     display: grid;
-    grid-template-columns: repeat(7, var(--d));
-    gap: var(--ecart);
+    grid-template-columns: repeat(7, minmax(0, 56px));
+    gap: 10px;
     justify-content: center;
     justify-items: center;
+  }
+  .cal > * {
+    width: 100%;
   }
   .jour-nom {
     color: var(--faint);
@@ -103,15 +103,14 @@
   .rond {
     display: grid;
     place-items: center;
-    width: var(--d);
-    height: var(--d);
+    aspect-ratio: 1;
     padding: 0;
     border: 3px solid transparent;
     border-radius: 50%;
     background: var(--surface-2);
     color: var(--text);
     font-family: var(--mono);
-    font-size: 21px;
+    font-size: 19px;
     font-weight: 600;
     cursor: pointer;
   }
