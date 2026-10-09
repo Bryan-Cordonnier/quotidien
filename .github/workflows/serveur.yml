@@ -42,6 +42,10 @@ jobs:
           npm run build:web -w @etabli/desktop
           node etable/scripts/construire-web.mjs
 
+      # Le script de paquets du moteur compresse avec fflate, une dépendance du dépôt du moteur seulement.
+      - name: Outil de paquets
+        run: npm install --no-save --no-package-lock fflate
+
       - name: Paquets de plugins signés
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
