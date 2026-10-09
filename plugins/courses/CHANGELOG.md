@@ -4,6 +4,10 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+### Ajouté
+
+- **Scanner un ticket** : photo du ticket, lecture par l'IA (magasin, date, total, articles), vérification puis enregistrement ; les tickets gardent leurs lignes (bouton « Détail »). Nouvelle permission `ia`.
+
 ### Modifié
 
 - **Widgets** : les petites tailles resserrent le texte.

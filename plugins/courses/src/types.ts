@@ -14,6 +14,15 @@ export interface Ticket {
   montantCents: Centimes;
   /** La liste de courses réglée par ce ticket, s'il y en a une. */
   listeId: string | null;
+  /** Les lignes du ticket quand il a été lu sur une photo (vide : saisi à la main). */
+  articles: LigneTicket[];
+}
+
+/** Une ligne d'un ticket lu : le nom tel qu'imprimé (nettoyé), la quantité et le prix de la ligne. */
+export interface LigneTicket {
+  nom: string;
+  quantite: number;
+  prixCents: Centimes;
 }
 
 export interface Article {
