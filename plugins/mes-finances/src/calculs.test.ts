@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { courbe, ecartDeRecalage, estime, precision, premierJourSousSeuil, prochainsPaiements, reglagesDepuis, roleDe } from "./calculs";
-import { avecRecalage, avecRole, donneesVides, lireDonnees } from "./donnees";
+import { avecCompteWidget, avecRecalage, avecRole, donneesVides, lireDonnees } from "./donnees";
 import { ErreurMesFinances, RECALAGES_MAX, type Compte, type Prevision } from "./types";
 
 const courant: Compte = { id: "c1", nom: "Courant", type: "courant" };
@@ -92,6 +92,13 @@ describe("données", () => {
     expect(() => lireDonnees({ schema: 1, roles: { c1: "roi" }, recalages: [] })).toThrow(ErreurMesFinances);
     expect(() => lireDonnees({ schema: 1, roles: {}, recalages: [{ jour: "2026-02-30", ecartCents: 1 }] })).toThrow(ErreurMesFinances);
     expect(() => lireDonnees({ schema: 1, roles: {}, recalages: [{ jour: "2026-02-10", ecartCents: 1.5 }] })).toThrow(ErreurMesFinances);
+  });
+
+  it("garde le compte du widget, et accepte des données plus anciennes qui n'en ont pas", () => {
+    const d = avecCompteWidget(donneesVides(), "c2");
+    expect(lireDonnees(JSON.parse(JSON.stringify(d))).compteWidget).toBe("c2");
+    expect(lireDonnees({ schema: 1, roles: {}, recalages: [] }).compteWidget).toBeNull();
+    expect(() => lireDonnees({ schema: 1, roles: {}, recalages: [], compteWidget: "../x" })).toThrow(ErreurMesFinances);
   });
 
   it("relit ce qu'il a écrit et borne l'historique", () => {

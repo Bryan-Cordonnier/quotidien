@@ -20,6 +20,8 @@ export interface Donnees {
   /** Rôle choisi par compte ; un compte absent prend le rôle par défaut de son type. */
   roles: Record<string, Role>;
   recalages: Recalage[];
+  /** Le compte que montre le widget « Un compte » de l'accueil (`null` : pas encore choisi). */
+  compteWidget: string | null;
 }
 
 export interface Compte {

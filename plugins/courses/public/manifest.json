@@ -5,7 +5,7 @@
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Un budget par semaine pour les courses : les tickets, ce qu'il reste à dépenser, la moyenne par semaine et par mois, et vos listes de courses à régler.",
-  "color": "#c9661a",
+  "color": "#e8734a",
   "icon": "store",
   "permissions": [
     "appelle:budget:ecriture",
@@ -28,6 +28,12 @@
       "id": "liste",
       "name": "Liste de courses",
       "entry": "apps/liste/index.html",
+      "accepts": []
+    },
+    {
+      "id": "widgets",
+      "name": "Widgets",
+      "entry": "apps/widgets/index.html",
       "accepts": []
     }
   ],
@@ -123,6 +129,31 @@
       "default": false,
       "group": "Budget",
       "hint": "Le reste d'une semaine s'ajoute au budget de la suivante."
+    }
+  ],
+  "widgets": [
+    {
+      "id": "budget",
+      "title": "Budget des courses",
+      "icon": "courses",
+      "app": "widgets",
+      "sizes": [
+        "1x1",
+        "2x1"
+      ],
+      "default": "2x1"
+    },
+    {
+      "id": "liste",
+      "title": "Liste de courses",
+      "icon": "liste",
+      "app": "widgets",
+      "sizes": [
+        "2x2",
+        "2x1",
+        "1x2"
+      ],
+      "default": "2x2"
     }
   ]
 }

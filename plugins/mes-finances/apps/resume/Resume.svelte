@@ -1,51 +1,152 @@
 <script lang="ts">
-  // Widget de l'accueil : l'estimé de la vie courante et jusqu'à quand je tiens, en un coup d'œil.
-  import { decomposer, differenceJours } from "@etabli/ui/civil";
+  // Les widgets de Mes finances sur l'accueil : l'estimé, jusqu'à quand je tiens, la courbe, les prochains paiements, un compte au choix.
+  // L'accueil donne l'identifiant du widget dans l'adresse (« #widget=courbe ») ; un clic ouvre la page Mes finances en grand.
+  import { LineChart } from "@etabli/ui";
+  import { ajouterJours, decomposer, differenceJours } from "@etabli/ui/civil";
   import { formatEuros } from "@etabli/ui/money";
   import { Session } from "../../src/session.svelte";
 
+  const id = /^#widget=([a-z0-9-]+)/.exec(location.hash)?.[1] ?? "resume";
   const s = new Session();
   void s.demarrer();
 
   const MOIS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
   const court = (j: string): string => `${decomposer(j).jour} ${MOIS[decomposer(j).mois - 1]}`;
+  const dateLongue = (j: string): string => {
+    const { annee, mois, jour } = decomposer(j);
+    return new Date(annee, mois - 1, jour).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  };
   const euros = (c: number): string => `${c < 0 ? "− " : ""}${formatEuros(Math.abs(c))}`;
   const jours = $derived(s.tient ? differenceJours(s.aujourdhui, s.tient) : null);
+  const points = $derived(s.courbe.map((p) => ({ label: court(p.jour), value: p.soldeCents / 100 })));
+  const compte = $derived(s.comptes.find((c) => c.id === s.donnees?.compteWidget) ?? null);
+  const ouvrir = () => s.ouvrirPage("situation");
 </script>
 
-<div class="widget">
-  {#if s.illisible}
-    <p class="petit negatif">Données illisibles.</p>
-  {:else if !s.charge}
-    <p class="petit">Chargement…</p>
-  {:else if s.sansFinances}
-    <p class="petit">Finances n'est pas disponible.</p>
+{#snippet duree()}
+  {#if s.tient && jours !== null}
+    <div class="grand num negatif">{jours === 0 ? "Aujourd'hui" : `${jours} jour${jours > 1 ? "s" : ""}`}</div>
+    <p class="date">{jours === 0 ? "Sous le seuil dès" : "Jusqu'au"} <b>{dateLongue(jours === 0 ? s.tient : ajouterJours(s.tient, -1))}</b></p>
   {:else}
+    <div class="grand num">Tout l'horizon</div>
+    <p class="date">Au moins jusqu'au <b>{dateLongue(s.courbe.at(-1)?.jour ?? s.aujourdhui)}</b></p>
+  {/if}
+{/snippet}
+
+{#if s.illisible}
+  <div class="w"><p class="petit negatif">Données illisibles.</p></div>
+{:else if !s.charge}
+  <div class="w"><p class="petit">Chargement…</p></div>
+{:else if s.sansFinances}
+  <div class="w"><p class="petit">Finances n'est pas disponible.</p></div>
+{:else if id === "compte"}
+  <div class="w">
+    <p class="etiquette">Un compte</p>
+    <select class="saisie choix" value={s.donnees?.compteWidget ?? ""} aria-label="Compte affiché" onchange={(e) => s.choisirCompteWidget(e.currentTarget.value || null)}>
+      <option value="">Choisir un compte…</option>
+      {#each s.comptes as c (c.id)}<option value={c.id}>{c.nom}</option>{/each}
+    </select>
+    {#if compte}
+      <button class="lien" onclick={ouvrir}>
+        <span class="grand num" class:negatif={(s.soldes[compte.id] ?? 0) < 0}>{euros(s.soldes[compte.id] ?? 0)}</span>
+      </button>
+    {/if}
+  </div>
+{:else if id === "tient"}
+  <button class="w lien" onclick={ouvrir} aria-label="Ouvrir Mes finances">
+    <p class="etiquette">Jusqu'à quand je tiens</p>
+    {@render duree()}
+  </button>
+{:else if id === "courbe"}
+  <button class="w lien" onclick={ouvrir} aria-label="Ouvrir Mes finances">
+    <p class="etiquette">Courbe des {s.reglages.horizon} prochains jours</p>
+    <div class="courbe"><LineChart {points} title="Solde estimé de la vie courante" format={(v) => `${Math.round(v)} €`} height={150} /></div>
+  </button>
+{:else if id === "paiements"}
+  <button class="w lien haut" onclick={ouvrir} aria-label="Ouvrir Mes finances">
+    <p class="etiquette">Prochains paiements</p>
+    {#if s.paiements.length === 0}
+      <p class="petit">Rien de prévu.</p>
+    {:else}
+      <ul class="liste">
+        {#each s.paiements as p (p.id)}<li><span>{court(p.jour)} · {p.libelle}</span><b class="num">{euros(p.montantCents)}</b></li>{/each}
+      </ul>
+    {/if}
+  </button>
+{:else if id === "estime"}
+  <button class="w lien" onclick={ouvrir} aria-label="Ouvrir Mes finances">
+    <p class="etiquette">Argent actuel · vie courante</p>
+    <div class="grand num" class:negatif={s.estime.vie < 0}>{euros(s.estime.vie)}</div>
+    {#if s.estime.secours !== 0}<p class="petit">Secours à part : {euros(s.estime.secours)}</p>{/if}
+  </button>
+{:else}
+  <button class="w lien" onclick={ouvrir} aria-label="Ouvrir Mes finances">
     <p class="etiquette">Estimé · vie courante</p>
     <div class="grand num" class:negatif={s.estime.vie < 0}>{euros(s.estime.vie)}</div>
     <p class="petit">
-      {#if s.tient && jours !== null}
-        <span class="negatif">{jours === 0 ? "Sous le seuil aujourd'hui" : `Je tiens ${jours} jour${jours > 1 ? "s" : ""}`}</span> · dès le {court(s.tient)}
-      {:else}
-        Au-dessus du seuil jusqu'au {court(s.courbe.at(-1)?.jour ?? s.aujourdhui)}
-      {/if}
+      {#if s.tient && jours !== null}Je tiens {jours} jour{jours > 1 ? "s" : ""} · jusqu'au {court(ajouterJours(s.tient, -1))}{:else}Au-dessus du seuil jusqu'au {court(s.courbe.at(-1)?.jour ?? s.aujourdhui)}{/if}
     </p>
-  {/if}
-</div>
+  </button>
+{/if}
 
 <style>
-  .widget {
-    height: 100vh;
+  .w {
     box-sizing: border-box;
+    width: 100%;
+    height: 100vh;
     padding: 14px 16px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 4px;
+    margin: 0;
+    border: 0;
+    background: none;
+    color: var(--text);
+    text-align: left;
+    font: inherit;
+  }
+  .w.haut {
+    justify-content: flex-start;
+    overflow: auto;
+  }
+  .lien {
+    cursor: pointer;
+  }
+  .lien:hover {
+    background: var(--surface-2);
   }
   .grand {
     font-size: 30px;
     font-weight: 600;
     line-height: 1.1;
+  }
+  .date {
+    margin: 4px 0 0;
+    font-size: 16px;
+  }
+  .date b {
+    font-weight: 800;
+  }
+  .courbe {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .liste {
+    list-style: none;
+    margin: 6px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .liste li {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .choix {
+    width: 100%;
   }
 </style>

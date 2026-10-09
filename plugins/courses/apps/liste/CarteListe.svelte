@@ -2,6 +2,7 @@
   // Une liste en cours, dépliable : son nom et ses articles se modifient sur place (un clic sur le nom, Entrée ou « Valider »).
   // Chaque article a un gros bouton ✓ (« dans le caddie ») et une petite croix pour le retirer. « Régler la course » est tout en bas ;
   // un article non coché n'empêche jamais de régler.
+  import { Icon } from "@etabli/ui";
   import { ajouterArticle, basculerPris, renommerArticle, renommerListe, retirerArticle } from "../../src/donnees";
   import type { Session } from "../../src/session.svelte";
   import type { Liste } from "../../src/types";
@@ -10,11 +11,13 @@
     s: Session;
     liste: Liste;
     ouverte: boolean;
+    /** Affichée en grand (fenêtre) : pas de flèche pour replier, le nom est déjà le titre. */
+    plein?: boolean;
     onbasculer: () => void;
     onregler: () => void;
   }
 
-  let { s, liste, ouverte, onbasculer, onregler }: Props = $props();
+  let { s, liste, ouverte, plein = false, onbasculer, onregler }: Props = $props();
 
   let edition = $state<{ article: string | null } | null>(null);
   let nouvelArticle = $state("");
@@ -60,7 +63,7 @@
 
 <div class="carte">
   <div class="tete">
-    <button class="chevron" onclick={onbasculer} aria-expanded={ouverte} aria-label="{ouverte ? 'Replier' : 'Déplier'} {liste.nom}">{ouverte ? "▾" : "▸"}</button>
+    {#if !plein}<button class="chevron" onclick={onbasculer} aria-expanded={ouverte} aria-label="{ouverte ? 'Replier' : 'Déplier'} {liste.nom}"><Icon name={ouverte ? "chevron-down" : "chevron-right"} size={18} /></button>{/if}
     {@render nom(liste.nom, null)}
     <span class="num petit compte">{pris}/{liste.articles.length}</span>
   </div>
@@ -68,9 +71,9 @@
     <div class="corps">
       {#each liste.articles as a (a.id)}
         <div class="article" class:fait={a.pris}>
-          <button class="coche" aria-pressed={a.pris} aria-label="{a.pris ? 'Pris' : 'Marquer comme pris'} : {a.nom}" onclick={() => s.appliquer((d) => basculerPris(d, liste.id, a.id))}>✓</button>
+          <button class="coche" aria-pressed={a.pris} aria-label="{a.pris ? 'Pris' : 'Marquer comme pris'} : {a.nom}" onclick={() => s.appliquer((d) => basculerPris(d, liste.id, a.id))}><Icon name="check" size={22} strokeWidth={3} /></button>
           <span class="texte">{@render nom(a.nom, a.id)}</span>
-          <button class="retrait" aria-label="Retirer {a.nom}" onclick={() => s.appliquer((d) => retirerArticle(d, liste.id, a.id))}>×</button>
+          <button class="retrait" aria-label="Retirer {a.nom}" onclick={() => s.appliquer((d) => retirerArticle(d, liste.id, a.id))}><Icon name="x" size={16} /></button>
         </div>
       {:else}
         <span class="petit">Liste vide.</span>
@@ -105,7 +108,8 @@
     border: 0;
     background: none;
     color: var(--muted);
-    font-size: 16px;
+    display: grid;
+    place-items: center;
     cursor: pointer;
   }
   .nom {
@@ -162,8 +166,9 @@
     border-radius: 10px;
     background: var(--surface);
     color: var(--faint);
-    font-size: 18px;
-    font-weight: 800;
+    display: grid;
+    place-items: center;
+    padding: 0;
     cursor: pointer;
   }
   .coche[aria-pressed="true"] {
@@ -178,7 +183,9 @@
     border-radius: 6px;
     background: none;
     color: var(--faint);
-    font-size: 18px;
+    display: grid;
+    place-items: center;
+    padding: 0;
     cursor: pointer;
   }
   .retrait:hover {

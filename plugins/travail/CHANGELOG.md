@@ -4,6 +4,10 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+### Ajouté
+
+- **Widget « Mission »** pour l'accueil ; flèches de réglage du temps dessinées avec les pictogrammes du kit.
+
 ### Modifié
 
 - **Icône « travail » de Quotidien** pour la page Travail.

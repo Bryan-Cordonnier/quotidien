@@ -2,7 +2,7 @@
   // Travail : vos contrats et vos paies. Deux blocs en haut (la mission en cours, la prochaine), puis un onglet par type de contrat.
   // Tous les montants sont des ESTIMATIONS : les taux se règlent dans Paramètres → Travail et se confirment sur un vrai bulletin.
   // Le calcul est dans src/ ; l'écran est mince. Sans Budget, Finances ni Agenda, tout fonctionne : ce qui n'a pas pu partir est « en attente ».
-  import { Entete, Tabs } from "@etabli/ui";
+  import { Entete, Tabs, Icon } from "@etabli/ui";
   import { precisionMoyenne, ONGLETS, type Onglet } from "../../src/vue";
   import { Session } from "../../src/session.svelte";
   import Agences from "./Agences.svelte";
@@ -42,7 +42,7 @@
   <Entete titre="Travail">
     {#snippet actions()}
       <button class="btn" onclick={() => s.ouvrirParametres()}>Paramètres</button>
-      <button class="btn primary" onclick={() => (fenetre = { type: "mission" })}>+ Nouvelle mission</button>
+      <button class="btn primary" onclick={() => (fenetre = { type: "mission" })}><Icon name="plus" size={16} /> Nouvelle mission</button>
     {/snippet}
   </Entete>
 

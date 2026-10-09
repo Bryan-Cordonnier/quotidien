@@ -5,7 +5,7 @@
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Vos contrats et vos paies : missions d'intérim avec leurs agences, jours de réserve, CDD et CDI. Dit combien vous serez payé et quand ; l'argent réel et le budget restent dans d'autres plugins. Les taux se règlent dans Paramètres.",
-  "color": "#2b6cb0",
+  "color": "#d99a2b",
   "icon": "weight",
   "permissions": [
     "appelle:budget:ecriture",
@@ -29,6 +29,12 @@
       "id": "travail",
       "name": "Travail",
       "entry": "apps/travail/index.html",
+      "accepts": []
+    },
+    {
+      "id": "widgets",
+      "name": "Widgets",
+      "entry": "apps/widgets/index.html",
       "accepts": []
     }
   ],
@@ -212,6 +218,19 @@
       "hint": "légal : 10 % du brut total",
       "unit": "%",
       "max": 30
+    }
+  ],
+  "widgets": [
+    {
+      "id": "mission",
+      "title": "Mission",
+      "icon": "travail",
+      "app": "widgets",
+      "sizes": [
+        "2x1",
+        "2x2"
+      ],
+      "default": "2x1"
     }
   ]
 }

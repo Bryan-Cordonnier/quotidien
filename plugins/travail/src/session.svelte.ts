@@ -67,6 +67,11 @@ export class Session {
   }
 
   /** Ouvre l'onglet Travail des Paramètres du moteur (taux, seuils, délais). */
+  /** Ouvre une page de ce plugin (depuis un widget de l'accueil). */
+  ouvrirPage(page: string): void {
+    this.#hote?.openPage(page);
+  }
+
   ouvrirParametres(): void {
     this.#hote?.openSettings("travail");
   }

@@ -2,7 +2,7 @@
   // Calendrier : le mois en ronds (une couleur par type de contrat) et la journée du jour choisi, du lever au coucher estimé. En dessous : le
   // sommeil, les trajets (« je suis parti », « je suis arrivé ») et le repos légal de la semaine. Les contrats viennent de Travail ; ici,
   // « + Événement » crée un événement quelconque. Tout le calcul est dans src/ ; l'écran est mince.
-  import { Entete } from "@etabli/ui";
+  import { Entete, Icon } from "@etabli/ui";
   import { ajouterJours, ajouterMois, premierDuMois, type Jour } from "@etabli/ui/civil";
   import { occurrences } from "../../src/calculs";
   import { genererIcs } from "../../src/ics";
@@ -11,7 +11,6 @@
   import FormEvenement from "./FormEvenement.svelte";
   import Journee from "./Journee.svelte";
   import Mois from "./Mois.svelte";
-  import Repos from "./Repos.svelte";
   import Sommeil from "./Sommeil.svelte";
   import Trajet from "./Trajet.svelte";
 
@@ -42,7 +41,7 @@
     {#snippet actions()}
       <button class="btn" onclick={exporter}>Exporter (.ics)</button>
       <button class="btn" onclick={() => s.ouvrirParametres()}>Paramètres</button>
-      <button class="btn primary" onclick={() => (fenetre = {})}>+ Événement</button>
+      <button class="btn primary" onclick={() => (fenetre = {})}><Icon name="plus" size={16} /> Événement</button>
     {/snippet}
   </Entete>
 
@@ -61,7 +60,6 @@
       <Sommeil {s} />
       <Trajet {s} />
     </div>
-    <Repos {s} jour={choisi} />
     {#if s.message}<p class="negatif" role="alert">{s.message}</p>{/if}
     {#if fenetre}<FormEvenement {s} id={fenetre.id} jour={choisi} onclose={() => (fenetre = null)} onenregistre={aller} />{/if}
   {:else}

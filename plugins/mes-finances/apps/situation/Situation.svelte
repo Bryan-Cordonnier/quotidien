@@ -1,8 +1,8 @@
 <script lang="ts">
   // Mes finances : l'estimé de la vie courante, jusqu'à quand je tiens, la courbe, les prochains paiements, l'ajustement rapide,
   // le recalage sur le solde réel et le rôle de chaque compte.
-  import { Entete, LineChart } from "@etabli/ui";
-  import { decomposer, differenceJours } from "@etabli/ui/civil";
+  import { Entete, LineChart, Icon } from "@etabli/ui";
+  import { ajouterJours, decomposer, differenceJours } from "@etabli/ui/civil";
   import { formatEuros, parseEuros } from "@etabli/ui/money";
   import { roleDe } from "../../src/calculs";
   import { Session } from "../../src/session.svelte";
@@ -13,6 +13,11 @@
 
   const MOIS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
   const court = (j: string): string => `${decomposer(j).jour} ${MOIS[decomposer(j).mois - 1]}`;
+  /** « samedi 17 octobre » : la date en toutes lettres, pour qu'on la lise d'un coup d'œil. */
+  const dateLongue = (j: string): string => {
+    const { annee, mois, jour } = decomposer(j);
+    return new Date(annee, mois - 1, jour).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  };
   const euros = (c: number): string => `${c < 0 ? "− " : ""}${formatEuros(Math.abs(c))}`;
   const ROLES: { valeur: Role; nom: string }[] = [
     { valeur: "vie", nom: "Vie courante" },
@@ -89,12 +94,13 @@
         <p class="etiquette">Jusqu'à quand je tiens</p>
         {#if s.tient && jours !== null}
           <div class="grand num negatif">{jours === 0 ? "Aujourd'hui" : `${jours} jour${jours > 1 ? "s" : ""}`}</div>
-          <p class="petit">Sous le seuil de {euros(s.reglages.seuilCents)} dès le {court(s.tient)}</p>
+          <p class="date">{jours === 0 ? "Sous le seuil dès" : "Jusqu'au"} <b>{dateLongue(jours === 0 ? s.tient : ajouterJours(s.tient, -1))}</b></p>
+          <p class="petit">Seuil réglé : {euros(s.reglages.seuilCents)}</p>
         {:else}
           <div class="grand num">Tout l'horizon</div>
-          <p class="petit">Au-dessus de {euros(s.reglages.seuilCents)} jusqu'au {court(s.courbe.at(-1)?.jour ?? s.aujourdhui)}</p>
-        {/if}
-        {#if s.sansBudget}
+          <p class="date">Au moins jusqu'au <b>{dateLongue(s.courbe.at(-1)?.jour ?? s.aujourdhui)}</b></p>
+          <p class="petit">Seuil réglé : {euros(s.reglages.seuilCents)}</p>
+        {/if}        {#if s.sansBudget}
           <p class="petit">Budget n'est pas là : la courbe ne montre que l'état actuel, sans les paiements prévus.</p>
         {/if}
       </section>
@@ -127,9 +133,9 @@
         <p class="petit">{s.compteParDefaut ? `Sur ${s.compteParDefaut.nom}` : "Une dépense ou une rentrée oubliée"}</p>
         <div class="ajout">
           <input class="saisie num" bind:value={ajustement} placeholder="0,00 €" aria-label="Montant" inputmode="decimal" autocomplete="off" />
-          <button class="carre plus" onclick={() => ajuster(1)} aria-label="Ajouter une rentrée" title="Rentrée">+</button>
+          <button class="carre plus" onclick={() => ajuster(1)} aria-label="Ajouter une rentrée" title="Rentrée"><Icon name="plus" size={20} /></button>
           <input class="saisie" bind:value={libelle} placeholder="Libellé" aria-label="Libellé" autocomplete="off" />
-          <button class="carre moins" onclick={() => ajuster(-1)} aria-label="Ajouter une dépense" title="Dépense">−</button>
+          <button class="carre moins" onclick={() => ajuster(-1)} aria-label="Ajouter une dépense" title="Dépense"><Icon name="minus" size={20} /></button>
         </div>
       </section>
 
@@ -172,6 +178,15 @@
     font-weight: 600;
     line-height: 1.1;
   }
+  /* La date de fin, bien lisible sous le nombre de jours. */
+  .date {
+    margin: 6px 0 0;
+    font-size: 18px;
+    color: var(--text);
+  }
+  .date b {
+    font-weight: 800;
+  }
   .liste {
     list-style: none;
     margin: 8px 0 0;
@@ -201,20 +216,20 @@
   .ajout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: 46px 46px;
+    grid-template-rows: 38px 38px;
     gap: 10px 14px;
     align-items: center;
     margin-top: 10px;
   }
   .carre {
-    width: 46px;
-    height: 46px;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    padding: 0;
     border: 0;
-    border-radius: 12px;
+    border-radius: 10px;
     color: #fff;
-    font-size: 26px;
-    font-weight: 700;
-    line-height: 1;
     cursor: pointer;
   }
   .carre.plus {
