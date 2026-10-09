@@ -18,6 +18,8 @@ const latest = {
   version: tag.replace(/^v/, ""),
   notes: readFileSync(notesFile, "utf8").trim(),
   pub_date: new Date().toISOString(),
+  // APK Android (publié par le job « Android » de la même version) : l'application Android l'ouvre pour se mettre à jour.
+  android: { url: `https://github.com/${depot}/releases/download/${tag}/Quotidien_${tag.replace(/^v/, "")}_android.apk` },
   platforms: { "windows-x86_64-msi": platform, "windows-x86_64": platform },
 };
 process.stdout.write(`${JSON.stringify(latest, null, 2)}\n`);
