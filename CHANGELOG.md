@@ -5,6 +5,12 @@ Chaque version a sa section ici avant d'être publiée : ce texte devient la Rel
 Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
+
+## [0.1.12] — 2026-10-10
+
+### Ajouté
+
+- **Reliez Quotidien à votre serveur** (PC et téléphone) : *Paramètres → Serveur*, saisissez l'adresse, l'identifiant et le mot de passe. Vos calculs et les données de vos plugins sont alors gardés sur le serveur, avec une copie sur l'appareil qui repart au serveur dès que la connexion revient ; le PC et le téléphone voient les mêmes données. Les plugins, la clé IA et les réglages de l'appareil restent sur l'appareil.
 ## [0.1.11] — 2026-10-09
 
 ### Ajouté
