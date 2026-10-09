@@ -6,6 +6,10 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ### Ajouté
 
+- **Tickets hors budget** : un ticket peut être gardé seulement pour ses articles et ses prix ; il ne compte ni dans la dépense de la semaine, ni dans les moyennes, ni dans ce qui est annoncé à Budget.
+
+### Ajouté
+
 - **Scanner un ticket** : photo du ticket, lecture par l'IA (magasin, date, total, articles), vérification puis enregistrement ; les tickets gardent leurs lignes (bouton « Détail »). Nouvelle permission `ia`.
 
 ### Modifié

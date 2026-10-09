@@ -1,16 +1,19 @@
 // Calculs de Courses, purs et testés : budget disponible de la semaine, moyenne par semaine et par mois, semaines pour le graphique.
 // Une semaine va du lundi au dimanche. Tout en centimes entiers.
 import { ajouterJours, comparerJours, decomposer, differenceJours, jourDeSemaine, lundiDe, premierDuMois, type Jour } from "@etabli/ui/civil";
-import type { Donnees, Reglages } from "./types";
+import type { Donnees, Reglages, Ticket } from "./types";
 
 export type Niveau = "normal" | "attention" | "alerte";
 
 /** Dépense d'une semaine (celle qui contient `jour`) : le total des tickets et leur nombre. */
+/** Les tickets qui comptent : ceux gardés « hors budget » (pour leurs prix seulement) n'entrent dans aucun calcul du budget. */
+export const dansLeBudget = (d: Donnees): Ticket[] => d.tickets.filter((t) => !t.horsBudget);
+
 export function depenseSemaine(d: Donnees, jour: Jour): { totalCents: number; nb: number } {
   const lundi = lundiDe(jour);
   let totalCents = 0;
   let nb = 0;
-  for (const t of d.tickets) {
+  for (const t of dansLeBudget(d)) {
     if (lundiDe(t.jour) === lundi) {
       totalCents += t.montantCents;
       nb++;
@@ -26,9 +29,9 @@ const SEMAINES_MAX = 260;
  * Le report ne remonte pas avant le premier ticket.
  */
 export function budgetDeLaSemaine(d: Donnees, r: Reglages, jour: Jour): number {
-  if (!r.report || d.tickets.length === 0) return r.budgetCents;
+  if (!r.report || dansLeBudget(d).length === 0) return r.budgetCents;
   const cible = lundiDe(jour);
-  const premier = d.tickets.map((t) => lundiDe(t.jour)).sort(comparerJours)[0]!;
+  const premier = dansLeBudget(d).map((t) => lundiDe(t.jour)).sort(comparerJours)[0]!;
   if (comparerJours(premier, cible) >= 0) return r.budgetCents;
   let semaine = differenceJours(premier, cible) / 7 > SEMAINES_MAX ? ajouterJours(cible, -7 * SEMAINES_MAX) : premier;
   let effectif = r.budgetCents;
@@ -77,7 +80,7 @@ export type Periode = "mois" | "annee" | "total";
 /** Toutes les semaines depuis le premier ticket, ou seulement les dernières (« mois » : 5 semaines, « année » : 52). */
 export function toutesLesSemaines(d: Donnees, jour: Jour, periode: Periode): SemaineTotal[] {
   const courante = lundiDe(jour);
-  const premier = d.tickets.length ? d.tickets.map((t) => lundiDe(t.jour)).sort(comparerJours)[0]! : courante;
+  const premier = dansLeBudget(d).length ? dansLeBudget(d).map((t) => lundiDe(t.jour)).sort(comparerJours)[0]! : courante;
   const nb = Math.min(SEMAINES_MAX, Math.max(1, Math.floor(differenceJours(premier, courante) / 7) + 1));
   const toutes = semainesRecentes(d, jour, nb);
   return periode === "mois" ? toutes.slice(-5) : periode === "annee" ? toutes.slice(-52) : toutes;
@@ -104,7 +107,7 @@ export function moyenneMensuelle(d: Donnees, jour: Jour): MoyenneMensuelle {
     return annee * 12 + (m - 1);
   };
   const parMois = new Map<number, number>();
-  for (const t of d.tickets) parMois.set(mois(t.jour), (parMois.get(mois(t.jour)) ?? 0) + t.montantCents);
+  for (const t of dansLeBudget(d)) parMois.set(mois(t.jour), (parMois.get(mois(t.jour)) ?? 0) + t.montantCents);
   const ceMoisCents = parMois.get(mois(courant)) ?? 0;
   const anterieurs = [...parMois.keys()].filter((m) => m < mois(courant));
   if (anterieurs.length === 0) return { moyenneCents: 0, nbMois: 0, ceMoisCents };

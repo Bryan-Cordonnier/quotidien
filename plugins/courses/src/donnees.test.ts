@@ -18,6 +18,13 @@ const avecListe = (): { id: string; d: Donnees } => {
 };
 
 describe("tickets", () => {
+  it("un ticket peut être gardé hors budget ; l'indicateur doit être vrai ou faux et se relit", () => {
+    const { donnees } = ajouterTicket(donneesVides(), { jour: "2026-10-08", montantCents: 840, magasin: "Lidl", horsBudget: true });
+    expect(donnees.tickets[0]?.horsBudget).toBe(true);
+    expect(lireDonnees(JSON.parse(JSON.stringify(donnees))).tickets[0]?.horsBudget).toBe(true);
+    expect(ajouterTicket(donneesVides(), { jour: "2026-10-08", montantCents: 840 }).donnees.tickets[0]?.horsBudget).toBe(false);
+    expect(refus(() => ajouterTicket(donneesVides(), { jour: "2026-10-08", montantCents: 840, horsBudget: "oui" })).code).toBe("argument_invalide");
+  });
   it("un ticket lu sur photo garde ses lignes, relues telles quelles ; un ancien ticket sans lignes reste lisible", () => {
     const lignes = [{ nom: "Lait", quantite: 6, prixCents: 690 }, { nom: "Pâtes", quantite: 1, prixCents: 150 }];
     const { donnees } = ajouterTicket(donneesVides(), { jour: "2026-10-08", montantCents: 840, magasin: "Lidl", articles: lignes });
@@ -79,7 +86,7 @@ describe("listes de courses", () => {
     let { id, d } = avecListe();
     d = basculerPris(d, id, d.listes[0]!.articles[0]!.id); // un seul article sur trois dans le caddie
     const r = reglerListe(d, id, { jour: "2026-10-10", montantCents: 5210, magasin: "Leclerc Drive" });
-    expect(r.donnees.tickets).toEqual([{ id: r.ticketId, jour: "2026-10-10", magasin: "Leclerc Drive", montantCents: 5210, listeId: id, articles: [] }]);
+    expect(r.donnees.tickets).toEqual([{ id: r.ticketId, jour: "2026-10-10", magasin: "Leclerc Drive", montantCents: 5210, listeId: id, articles: [], horsBudget: false }]);
     expect(r.donnees.listes[0]?.reglement).toEqual({ jour: "2026-10-10", magasin: "Leclerc Drive", montantCents: 5210, ticketId: r.ticketId });
     expect(listesEnCours(r.donnees)).toEqual([]);
     expect(listesReglees(r.donnees)).toHaveLength(1);

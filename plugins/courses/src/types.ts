@@ -16,6 +16,8 @@ export interface Ticket {
   listeId: string | null;
   /** Les lignes du ticket quand il a été lu sur une photo (vide : saisi à la main). */
   articles: LigneTicket[];
+  /** Ticket gardé seulement pour ses données (articles, prix) : il ne compte ni dans le budget, ni dans les moyennes, ni chez Budget. */
+  horsBudget: boolean;
 }
 
 /** Une ligne d'un ticket lu : le nom tel qu'imprimé (nettoyé), la quantité et le prix de la ligne. */

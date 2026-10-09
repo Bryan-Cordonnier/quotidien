@@ -10,7 +10,11 @@
   import type { Session } from "../../src/session.svelte";
   import type { LigneTicket } from "../../src/types";
 
-  let { s, onclose }: { s: Session; onclose: () => void } = $props();
+  let { s, onclose, horsBudget = false }: { s: Session; onclose: () => void; horsBudget?: boolean } = $props();
+
+  // Hors budget : le ticket sert seulement à garder les articles et leurs prix, sans compter dans les courses de la semaine.
+  // svelte-ignore state_referenced_locally
+  let hors = $state(horsBudget);
 
   type Etape = "choisir" | "lecture" | "verifier" | "erreur";
   let etape = $state<Etape>("choisir");
@@ -62,7 +66,7 @@
       erreurSaisie = "Le total s'écrit comme 41,20.";
       return;
     }
-    const ok = s.appliquer((d) => ajouterTicket(d, { jour, montantCents: totalCents, magasin, articles: lignes }).donnees);
+    const ok = s.appliquer((d) => ajouterTicket(d, { jour, montantCents: totalCents, magasin, articles: lignes, horsBudget: hors }).donnees);
     if (ok) onclose();
     else erreurSaisie = s.message;
   }
@@ -70,9 +74,9 @@
   const retirer = (i: number): void => void (lignes = lignes.filter((_, k) => k !== i));
 </script>
 
-<Modal open titre="Scanner un ticket" {onclose} largeur={640}>
+<Modal open titre={horsBudget ? "Scanner un ticket hors budget" : "Scanner un ticket"} {onclose} largeur={640}>
   {#if etape === "choisir"}
-    <p class="petit" style="margin: 0 0 14px">Prenez le ticket en photo, bien à plat et bien cadré : l'IA lit le magasin, la date, le total et les articles. Vous vérifiez avant d'enregistrer.</p>
+    <p class="petit" style="margin: 0 0 14px">Prenez le ticket en photo, bien à plat et bien cadré : l'IA lit le magasin, la date, le total et les articles. Vous vérifiez avant d'enregistrer.{horsBudget ? " Ce ticket ne comptera pas dans vos courses : il sert seulement à garder les articles et leurs prix." : ""}</p>
     <div class="actions">
       <label class="btn primary gros">
         <Icon name="plus" size={18} /> Prendre une photo
@@ -107,6 +111,7 @@
       <label for="t-total">Total payé (€)</label>
       <input id="t-total" class="saisie num" bind:value={total} inputmode="decimal" autocomplete="off" />
     </div>
+    <label class="hors"><input type="checkbox" bind:checked={hors} /> Hors budget : garder les prix sans compter cette dépense dans les courses</label>
     {#if ecart !== 0}
       <p class="alerte" role="status">Le total ne correspond pas à la somme des lignes ({formatEuros(somme)}), écart de {formatEuros(Math.abs(ecart))} : une ligne manque ou est fausse. Vous pouvez enregistrer quand même.</p>
     {/if}
@@ -141,6 +146,15 @@
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+  }
+  .hors {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 0 0;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
   }
   .gros {
     height: 46px;
