@@ -29,7 +29,8 @@ export function lireLigne(brut: unknown): LigneTicket {
 }
 
 function lireTicket(brut: unknown, suivant: number): Ticket {
-  const o = objet(brut, ["id", "jour", "magasin", "montantCents", "listeId"], ["articles"]);
+  const o = objet(brut, ["id", "jour", "magasin", "montantCents", "listeId"], ["articles", "horsBudget"]);
+  if (o.horsBudget !== undefined && typeof o.horsBudget !== "boolean") throw new ErreurCourses("illisible", "Ticket illisible.");
   return {
     id: identifiant("t", o.id, suivant),
     jour: jourValide(o.jour, "jour"),
@@ -38,6 +39,7 @@ function lireTicket(brut: unknown, suivant: number): Ticket {
     listeId: o.listeId === null ? null : identifiant("l", o.listeId, suivant),
     // Les tickets enregistrés avant la lecture par photo n'ont pas de lignes : ce n'est pas une erreur.
     articles: o.articles === undefined ? [] : listeDe(o.articles, "articles", lireLigne, LIGNES_MAX),
+    horsBudget: o.horsBudget === true,
   };
 }
 
@@ -84,10 +86,11 @@ function verifier(d: Donnees): Donnees {
 /** Un ticket de caisse (le montant est positif : c'est une dépense). */
 export function ajouterTicket(d: Donnees, brut: unknown): { id: string; donnees: Donnees } {
   if (d.tickets.length >= TICKETS_MAX) throw new ErreurCourses("limite_atteinte", `Au plus ${TICKETS_MAX} tickets.`);
-  const o = objet(brut, ["jour", "montantCents"], ["magasin", "articles"]);
+  const o = objet(brut, ["jour", "montantCents"], ["magasin", "articles", "horsBudget"]);
+  if (o.horsBudget !== undefined && typeof o.horsBudget !== "boolean") throw new ErreurCourses("argument_invalide", "« horsBudget » doit valoir vrai ou faux.");
   const magasin = typeof o.magasin === "string" && o.magasin.trim() !== "" ? texte(o.magasin, "magasin", 80) : SANS_MAGASIN;
   const id = `t${d.suivant}`;
-  const ticket: Ticket = { id, jour: jourValide(o.jour, "jour"), magasin, montantCents: montant(o.montantCents, "montantCents", 1), listeId: null, articles: o.articles === undefined ? [] : listeDe(o.articles, "articles", lireLigne, LIGNES_MAX) };
+  const ticket: Ticket = { id, jour: jourValide(o.jour, "jour"), magasin, montantCents: montant(o.montantCents, "montantCents", 1), listeId: null, articles: o.articles === undefined ? [] : listeDe(o.articles, "articles", lireLigne, LIGNES_MAX), horsBudget: o.horsBudget === true };
   return { id, donnees: verifier({ ...d, suivant: d.suivant + 1, tickets: [...d.tickets, ticket] }) };
 }
 
@@ -173,7 +176,7 @@ export function basculerPris(d: Donnees, listeId: string, id: string): Donnees {
  */
 export function reglerListe(d: Donnees, listeId: string, brut: unknown): { ticketId: string; donnees: Donnees } {
   const l = modifiable(d, listeId);
-  const o = objet(brut, ["jour", "montantCents"], ["magasin", "articles"]);
+  const o = objet(brut, ["jour", "montantCents"], ["magasin"]);
   const magasin = typeof o.magasin === "string" && o.magasin.trim() !== "" ? texte(o.magasin, "magasin", 80) : SANS_MAGASIN;
   const { id: ticketId, donnees } = ajouterTicket(d, { jour: o.jour, montantCents: o.montantCents, magasin });
   const reglement: Reglement = { jour: jourValide(o.jour, "jour"), magasin, montantCents: montant(o.montantCents, "montantCents", 1), ticketId };

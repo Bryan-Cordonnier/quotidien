@@ -110,3 +110,28 @@ describe("jours de courses et magasins", () => {
     expect(magasinsConnus(d)).toEqual(["Leclerc", "Lidl"]);
   });
 });
+
+describe("tickets hors budget", () => {
+  const avecHors = (): Donnees => {
+    let d = avec([["2026-10-05", "Boulangerie", 680], ["2026-10-07", "Leclerc Drive", 3450]]);
+    d = ajouterTicket(d, { jour: "2026-10-06", magasin: "Lidl", montantCents: 9999, horsBudget: true }).donnees;
+    d = ajouterTicket(d, { jour: "2026-09-10", magasin: "Lidl", montantCents: 7777, horsBudget: true }).donnees;
+    return d;
+  };
+
+  it("ne comptent ni dans la dépense de la semaine, ni dans le budget disponible", () => {
+    const d = avecHors();
+    expect(depenseSemaine(d, AUJ)).toEqual({ totalCents: 4130, nb: 2 });
+    expect(budgetDisponible(d, R, AUJ).depenseCents).toBe(4130);
+  });
+
+  it("ne comptent pas dans les moyennes par mois, ni dans le report du budget", () => {
+    const d = avecHors();
+    expect(moyenneMensuelle(d, AUJ)).toEqual({ moyenneCents: 0, nbMois: 0, ceMoisCents: 4130 });
+    expect(budgetDeLaSemaine(d, { ...R, report: true }, AUJ)).toBe(budgetDeLaSemaine(avec([["2026-10-05", "Boulangerie", 680], ["2026-10-07", "Leclerc Drive", 3450]]), { ...R, report: true }, AUJ));
+  });
+
+  it("le magasin reste connu pour les suggestions", () => {
+    expect(magasinsConnus(avecHors())).toContain("Lidl");
+  });
+});

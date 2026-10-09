@@ -5,6 +5,11 @@ Chaque version a sa section ici avant d'être publiée : ce texte devient la Rel
 Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
+## [0.1.8] — 2026-10-09
+
+### Ajouté
+
+- **Tickets hors budget** (Courses → Tickets → « Hors budget ») : on scanne un ticket uniquement pour garder ses articles et leurs prix, sans que la dépense compte dans les courses de la semaine, les moyennes ni le budget transmis à Budget. La case « Hors budget » se coche aussi au moment de vérifier un ticket scanné normalement. Ces tickets portent une pastille « hors budget » et un compteur indique combien d'articles ont été gardés pour les prix.
 ## [0.1.7] — 2026-10-09
 
 ### Corrigé
@@ -90,7 +95,8 @@ Première version publiée : l'application se met à jour toute seule à partir 
 - **Catégories** : Paramètres → Apparence, « Ranger les pages par catégories » (Argent, Temps).
 - **Mises à jour automatiques** : Quotidien cherche une nouvelle version au démarrage et propose de l'installer ; rien ne s'installe sans votre clic.
 
-[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.7...HEAD
+[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.8...HEAD
+[0.1.8]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.4...v0.1.5
