@@ -6,6 +6,14 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.13] — 2026-10-10
+
+### Modifié
+
+- **Une interface pensée pour le téléphone** : l'accueil est une liste des pages, comme une messagerie (le nom de l'application en haut, les pages au centre, les paramètres en bas). Une page s'ouvre en plein écran ; le geste « retour » d'Android ou la flèche revient à la liste. Plus de panneau latéral, plus de recherche en haut, et les fenêtres (scanner, réglages…) occupent tout l'écran.
+- **Le titre des pages est centré**, sur PC comme sur téléphone, et les blocs sont mieux centrés sur téléphone.
+- **L'icône de l'application Android est le logo Quotidien.**
+
 ## [0.1.12] — 2026-10-10
 
 ### Ajouté
