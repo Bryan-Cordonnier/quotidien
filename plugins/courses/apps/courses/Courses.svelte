@@ -1,6 +1,7 @@
 <script lang="ts">
   // Courses : le budget de la semaine, la moyenne par mois, les dernières semaines et les derniers tickets.
-  import { Entete } from "@etabli/ui";
+  import { Entete, Icon } from "@etabli/ui";
+  import ProposerRepas from "../liste/ProposerRepas.svelte";
   import { Session } from "../../src/session.svelte";
   import BudgetSemaine from "./BudgetSemaine.svelte";
   import MoyenneMois from "./MoyenneMois.svelte";
@@ -9,11 +10,15 @@
 
   const s = new Session();
   void s.demarrer();
+  let repas = $state(false);
 </script>
 
 <div class="page-plugin">
   <Entete titre="Courses">
-    {#snippet actions()}<button class="btn" onclick={() => s.ouvrirParametres()}>Paramètres</button>{/snippet}
+    {#snippet actions()}
+      <button class="btn primary" onclick={() => (repas = true)}><Icon name="plus" size={16} /> Proposer des repas (IA)</button>
+      <button class="btn" onclick={() => s.ouvrirParametres()}>Paramètres</button>
+    {/snippet}
   </Entete>
 
   {#if s.illisible}
@@ -32,6 +37,7 @@
       <Tickets {s} />
     </div>
     {#if s.rapport && s.rapport.message}<p class="petit" role="status">{s.rapport.message}</p>{/if}
+    {#if repas}<ProposerRepas {s} onclose={() => (repas = false)} onfini={() => s.ouvrirPage("liste")} />{/if}
     {#if s.message}<p class="negatif" role="alert">{s.message}</p>{/if}
   {:else}
     <p class="petit">Chargement…</p>

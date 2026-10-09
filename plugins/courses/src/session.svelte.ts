@@ -4,6 +4,7 @@ import { connect, type AiImage } from "@etabli/sdk";
 import { jourDeInstant, type Jour } from "@etabli/ui/civil";
 import { lireDonnees } from "./donnees";
 import { reglagesDepuis, type Parametres } from "./parametres";
+import { construireConsigne, lireMenuIa, prixConnus, SCHEMA_MENU, type Demande, type Proposition } from "./menu";
 import { INSTRUCTION, lireTicketIa, SCHEMA_TICKET, type Lecture } from "./scan";
 import { transmettre, type Appeler, type Rapport } from "./transmission";
 import { ErreurCourses, type Donnees, type Reglages } from "./types";
@@ -87,6 +88,19 @@ export class Session {
     if (!this.#hote) return { ok: false, message: "Pas encore connecté au moteur." };
     const reponse = await this.#hote.ai.extraire({ instruction: INSTRUCTION, images: [image], schema: SCHEMA_TICKET });
     return reponse.ok ? lireTicketIa(reponse.texte, this.aujourdhui) : { ok: false, message: reponse.message };
+  }
+
+  /** Demande à l'IA des repas et leurs ingrédients dans le budget, en partant de nos prix connus ; ne jette jamais. */
+  async proposerRepas(demande: Demande): Promise<Proposition> {
+    if (!this.#hote) return { ok: false, message: "Pas encore connecté au moteur." };
+    const connus = this.donnees ? prixConnus(this.donnees) : [];
+    const reponse = await this.#hote.ai.extraire({ instruction: construireConsigne(demande, connus), schema: SCHEMA_MENU, recherche: demande.internet });
+    return reponse.ok ? lireMenuIa(reponse.texte, demande.repas) : { ok: false, message: reponse.message };
+  }
+
+  /** Nombre d'articles dont on connaît déjà le prix (pour l'annoncer à l'utilisateur). */
+  get nbPrixConnus(): number {
+    return this.donnees ? prixConnus(this.donnees, 500).length : 0;
   }
 
   /** Ouvre une page de ce plugin (depuis un widget de l'accueil). */

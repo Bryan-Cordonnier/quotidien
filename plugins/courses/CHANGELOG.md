@@ -6,6 +6,10 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ### Ajouté
 
+- **Proposer des repas (IA)** : plats et liste de courses dans le budget, d'abord d'après vos prix déjà vus, puis internet ; la liste fusionne les ingrédients.
+
+### Ajouté
+
 - **Tickets hors budget** : un ticket peut être gardé seulement pour ses articles et ses prix ; il ne compte ni dans la dépense de la semaine, ni dans les moyennes, ni dans ce qui est annoncé à Budget.
 
 ### Ajouté
