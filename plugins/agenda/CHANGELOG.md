@@ -5,6 +5,10 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ## [Non publié]
 
+### Ajouté
+
+- **Widgets** « Aujourd'hui » et « Coucher conseillé » pour l'accueil ; le bloc « Repos légal » est retiré de la page Calendrier ; boutons à pictogrammes cohérents.
+
 ### Modifié
 
 - **Calendrier** : le mois sans vide sur les côtés, la journée en cartes pleine largeur, « Objectif » et « Moyenne » plus gros, coucher conseillé mis en évidence ; la page utilise l'icône « calendrier » de Quotidien.

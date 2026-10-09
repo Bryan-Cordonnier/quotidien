@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Icon } from "@etabli/ui";
   // Les agences : un nom, leurs cotisations et leur rythme de paie. Le taux horaire, le panier et le déplacement changent à chaque mission.
   import type { Session } from "../../src/session.svelte";
 
@@ -16,7 +17,7 @@
 <section class="bloc">
   <div class="bloc-titre">
     <h3>Agences</h3>
-    <button class="btn" onclick={onajouter}>+ Agence</button>
+    <button class="btn" onclick={onajouter}><Icon name="plus" size={16} /> Agence</button>
   </div>
   {#if s.donnees && s.donnees.agences.length > 0}
     <div class="puces">

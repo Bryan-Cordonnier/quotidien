@@ -4,7 +4,7 @@
 import { connect } from "@etabli/sdk";
 import { ajouterJours, jourDeInstant, type Jour } from "@etabli/ui/civil";
 import { courbe, ecartDeRecalage, estime, precision, premierJourSousSeuil, prochainsPaiements, reglagesDepuis, roleDe, type Point } from "./calculs";
-import { avecRecalage, avecRole, lireDonnees } from "./donnees";
+import { avecCompteWidget, avecRecalage, avecRole, lireDonnees } from "./donnees";
 import { ErreurMesFinances, type Compte, type Donnees, type Prevision, type Role } from "./types";
 
 type Hote = Awaited<ReturnType<typeof connect<unknown>>>;
@@ -84,6 +84,14 @@ export class Session {
     this.charge = true;
   }
 
+  /** Choisit le compte que montre le widget « Un compte ». */
+  choisirCompteWidget(compteId: string | null): void {
+    if (!this.donnees || !this.#hote) return;
+    const suivant = avecCompteWidget(this.donnees, compteId);
+    this.#hote.settings.update(suivant);
+    this.donnees = suivant;
+  }
+
   /** Change le rôle d'un compte (enregistré avec les données du plugin). */
   definirRole(compteId: string, role: Role): void {
     if (!this.donnees || !this.#hote) return;
@@ -135,6 +143,11 @@ export class Session {
     this.donnees = suivant;
     await this.actualiser();
     return true;
+  }
+
+  /** Ouvre une page de ce plugin (depuis un widget de l'accueil). */
+  ouvrirPage(page: string): void {
+    this.#hote?.openPage(page);
   }
 
   ouvrirParametres(): void {

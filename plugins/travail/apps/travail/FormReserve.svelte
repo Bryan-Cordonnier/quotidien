@@ -1,6 +1,6 @@
 <script lang="ts">
   // Une période de réserve : les jours de réserve (payés au tarif) et le nombre de jours hors base (payés à l'indemnité).
-  import { Modal } from "@etabli/ui";
+  import { Modal, Icon } from "@etabli/ui";
   import { jourDeInstant } from "@etabli/ui/civil";
   import { formatEuros } from "@etabli/ui/money";
   import { detailReserve } from "../../src/calculs";
@@ -43,7 +43,7 @@
     </div>
   </div>
   <div class="puces" aria-label="Jours de réserve">
-    {#each jours as j (j)}<button class="btn sm" onclick={() => retirer(j)} aria-label="Retirer le {jourMois(j)}">{jourMois(j)} ×</button>{/each}
+    {#each jours as j (j)}<button class="btn sm" onclick={() => retirer(j)} aria-label="Retirer le {jourMois(j)}">{jourMois(j)} <Icon name="x" size={14} /></button>{/each}
     {#if jours.length === 0}<span class="petit">Aucun jour ajouté.</span>{/if}
   </div>
   <div class="groupe"><label for="r-hb">Jours hors base</label><input id="r-hb" class="saisie num" bind:value={horsBase} inputmode="numeric" autocomplete="off" /></div>

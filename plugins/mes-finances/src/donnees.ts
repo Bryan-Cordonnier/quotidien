@@ -3,7 +3,7 @@
 import { estJour } from "@etabli/ui/civil";
 import { ErreurMesFinances, RECALAGES_MAX, ROLES, SCHEMA, type Donnees, type Recalage, type Role } from "./types";
 
-export const donneesVides = (): Donnees => ({ schema: SCHEMA, roles: {}, recalages: [] });
+export const donneesVides = (): Donnees => ({ schema: SCHEMA, roles: {}, recalages: [], compteWidget: null });
 
 const illisible = (): never => {
   throw new ErreurMesFinances("illisible", "Les données de Mes finances sont illisibles.");
@@ -25,8 +25,12 @@ export function lireDonnees(enregistre: unknown): Donnees {
     return { jour: x.jour as string, ecartCents: x.ecartCents as number };
   });
   if (recalages.length > RECALAGES_MAX) return illisible();
-  return { schema: SCHEMA, roles, recalages };
+  // Ajouté après coup : absent des données plus anciennes, ce n'est pas une erreur.
+  const compteWidget = o.compteWidget === undefined || o.compteWidget === null ? null : typeof o.compteWidget === "string" && /^[A-Za-z0-9_-]{1,40}$/.test(o.compteWidget) ? o.compteWidget : illisible();
+  return { schema: SCHEMA, roles, recalages, compteWidget };
 }
+
+export const avecCompteWidget = (d: Donnees, compteId: string | null): Donnees => ({ ...d, compteWidget: compteId });
 
 export function avecRole(d: Donnees, compteId: string, role: Role): Donnees {
   return { ...d, roles: { ...d.roles, [compteId]: role } };

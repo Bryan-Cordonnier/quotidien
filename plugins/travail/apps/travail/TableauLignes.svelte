@@ -1,6 +1,6 @@
 <script lang="ts">
   // Les lignes d'un type de contrat : « Poste — Entreprise », période, statut, net estimé, net par mois, bulletin reçu.
-  import { Pastille } from "@etabli/ui";
+  import { Pastille, Icon } from "@etabli/ui";
   import { formatEuros } from "@etabli/ui/money";
   import { periodeCourte } from "../../src/affichage";
   import type { Ligne } from "../../src/vue";
@@ -53,7 +53,7 @@
             {:else if l.bulletin}
               <span class="num">{formatEuros(l.bulletin.netCents)}</span> <button class="btn sm" onclick={() => onbulletin(l.ref)}>Modifier</button>
             {:else}
-              <button class="btn sm" onclick={() => onbulletin(l.ref)}>+ Bulletin</button>
+              <button class="btn sm" onclick={() => onbulletin(l.ref)}><Icon name="plus" size={14} /> Bulletin</button>
             {/if}
           </td>
           <td class="droite actions-ligne">

@@ -7,5 +7,5 @@
   </g>
   <circle cx="490" cy="490" r="262" fill="none" stroke="#fff1dc" stroke-width="132"/>
   <path d="M350 560 A110 110 0 0 1 570 560 Z" fill="#ff8f5e"/>
-  <path d="M625 625 L810 810" stroke="#ff8f5e" stroke-width="132" stroke-linecap="round"/>
+  <rect x="500" y="630" width="380" height="124" rx="62" fill="#fff1dc" transform="rotate(45 690 692)"/>
 </svg>

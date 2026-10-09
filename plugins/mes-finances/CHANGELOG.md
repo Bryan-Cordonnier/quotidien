@@ -4,6 +4,10 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+### Ajouté
+
+- **Widgets** pour l'accueil : argent actuel, jusqu'à quand je tiens, un compte au choix, courbe, prochains paiements ; la date de fin de « Jusqu'à quand je tiens » est en grand ; boutons + et − plus petits.
+
 ### Modifié
 
 - **Mes finances** : « Ajout », « Recalage » et « Mes comptes » sur une même rangée de trois blocs ; boutons + et − plus petits ; icône « finances » de Quotidien.

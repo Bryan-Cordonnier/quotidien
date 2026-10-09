@@ -1,6 +1,6 @@
 <script lang="ts">
   // Les listes réglées : les trois dernières, « Voir tout l'historique », « Consulter » (lecture seule, la liste ne change plus).
-  import { Modal } from "@etabli/ui";
+  import { Modal, Icon } from "@etabli/ui";
   import { formatEuros } from "@etabli/ui/money";
   import { jourMois } from "../../src/affichage";
   import type { Session } from "../../src/session.svelte";
@@ -53,7 +53,7 @@
   {#if consultee?.reglement}
     <p class="petit num" style="margin: 0">Réglée le {jourMois(consultee.reglement.jour)} · {consultee.reglement.magasin} · {formatEuros(consultee.reglement.montantCents)} · {consultee.articles.length} articles. Elle n'est plus modifiable.</p>
     <ul class="articles">
-      {#each consultee.articles as a (a.id)}<li class:pris={a.pris}><span aria-hidden="true">{a.pris ? "✓" : "·"}</span>{a.nom}</li>{/each}
+      {#each consultee.articles as a (a.id)}<li class:pris={a.pris}><span class="puce" aria-hidden="true">{#if a.pris}<Icon name="check" size={14} />{:else}·{/if}</span>{a.nom}</li>{/each}
     </ul>
   {/if}
 </Modal>
@@ -73,5 +73,11 @@
   }
   .articles li.pris {
     color: var(--text);
+  }
+  .puce {
+    display: inline-grid;
+    place-items: center;
+    width: 16px;
+    color: var(--ok);
   }
 </style>

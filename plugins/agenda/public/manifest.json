@@ -5,7 +5,7 @@
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Votre temps : calendrier, événements qui se répètent, heures de départ, réveil et coucher calculées à rebours, alertes de repos légal, rappels sur le téléphone, export .ics.",
-  "color": "#7c3aed",
+  "color": "#6d55d6",
   "icon": "clock",
   "permissions": [
     "fichiers",
@@ -55,6 +55,12 @@
       "id": "rappels",
       "name": "Rappels",
       "entry": "apps/rappels/index.html",
+      "accepts": []
+    },
+    {
+      "id": "widgets",
+      "name": "Widgets",
+      "entry": "apps/widgets/index.html",
       "accepts": []
     }
   ],
@@ -190,6 +196,31 @@
       "default": true,
       "group": "Rappels",
       "hint": "« Pars dans X min », « Pars maintenant », « Coucher » (téléphone)."
+    }
+  ],
+  "widgets": [
+    {
+      "id": "aujourdhui",
+      "title": "Aujourd'hui",
+      "icon": "calendrier",
+      "app": "widgets",
+      "sizes": [
+        "2x2",
+        "2x1",
+        "1x2"
+      ],
+      "default": "2x2"
+    },
+    {
+      "id": "coucher",
+      "title": "Coucher conseillé",
+      "icon": "calendrier",
+      "app": "widgets",
+      "sizes": [
+        "1x1",
+        "2x1"
+      ],
+      "default": "1x1"
     }
   ]
 }

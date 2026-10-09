@@ -15,6 +15,7 @@ export default defineConfig({
     target: "chrome120",
     rollupOptions: {
       input: {
+        widgets: page("apps/widgets"),
         travail: page("apps/travail"),
       },
     },

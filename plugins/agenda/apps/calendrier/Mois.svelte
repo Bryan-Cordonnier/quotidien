@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Icon } from "@etabli/ui";
   // Le mois : le nom entre deux flèches, au centre ; chaque jour est un rond avec son chiffre, une bordure sur aujourd'hui et la couleur
   // du contrat du jour. La légende ne montre que les contrats que vous avez.
   import { ajouterJours, decomposer, dernierDuMois, differenceJours, lundiDe, premierDuMois, type Jour } from "@etabli/ui/civil";
@@ -35,9 +36,9 @@
 
 <section class="bloc">
   <div class="nav">
-    <button class="btn" onclick={() => onmois(-1)} aria-label="Mois précédent">‹</button>
+    <button class="btn" onclick={() => onmois(-1)} aria-label="Mois précédent"><Icon name="chevron-left" size={18} /></button>
     <h3>{libelleMois(reference)}</h3>
-    <button class="btn" onclick={() => onmois(1)} aria-label="Mois suivant">›</button>
+    <button class="btn" onclick={() => onmois(1)} aria-label="Mois suivant"><Icon name="chevron-right" size={18} /></button>
   </div>
   <div class="cal-zone">
   <div class="cal" role="grid" aria-label="Calendrier de {libelleMois(reference)}">

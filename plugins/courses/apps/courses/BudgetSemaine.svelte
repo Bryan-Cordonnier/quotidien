@@ -1,6 +1,6 @@
 <script lang="ts">
   // Le budget disponible cette semaine, la jauge, et l'ajout d'un ticket (le magasin d'abord, facultatif ; le montant tout près du « + »).
-  import { Jauge } from "@etabli/ui";
+  import { Jauge, Icon } from "@etabli/ui";
   import { parseEuros, formatEuros } from "@etabli/ui/money";
   import { budgetDisponible, magasinsConnus } from "../../src/calculs";
   import { ajouterTicket } from "../../src/donnees";
@@ -38,7 +38,7 @@
       <input class="saisie magasin" list="magasins" bind:value={magasin} placeholder="Magasin (facultatif)" aria-label="Magasin" autocomplete="off" />
       <datalist id="magasins">{#each magasins as m (m)}<option value={m}></option>{/each}</datalist>
       <input class="saisie num montant" bind:value={montant} placeholder="0,00 €" aria-label="Montant du ticket" inputmode="decimal" autocomplete="off" onkeydown={(e) => e.key === "Enter" && ajouter()} />
-      <button class="plus" onclick={ajouter} aria-label="Ajouter le ticket">+</button>
+      <button class="plus" onclick={ajouter} aria-label="Ajouter le ticket"><Icon name="plus" size={20} /></button>
     </div>
   {/if}
 </section>
@@ -82,8 +82,9 @@
     border-radius: 10px;
     background: var(--accent);
     color: var(--accent-text);
-    font-size: 22px;
-    font-weight: 700;
+    display: grid;
+    place-items: center;
+    padding: 0;
     cursor: pointer;
   }
 </style>

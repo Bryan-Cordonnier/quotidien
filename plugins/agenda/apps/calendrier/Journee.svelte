@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Icon } from "@etabli/ui";
   // La journée choisie, du lever au coucher estimé : un bloc par étape (préparation, trajet, travail, trajet retour, temps libre), son nom à
   // côté. Un bloc de travail montre le temps de travail du contrat, jamais la durée entre le début et la fin (la pause serait comptée).
   // Les flèches changent de jour ; un clic sur un événement saisi ici le modifie (ceux des autres plugins se modifient chez eux).
@@ -34,9 +35,9 @@
 <section class="bloc journee">
   <div class="interieur">
     <div class="nav">
-      <button class="btn" onclick={() => onjour(-1)} aria-label="Jour précédent">‹</button>
+      <button class="btn" onclick={() => onjour(-1)} aria-label="Jour précédent"><Icon name="chevron-left" size={18} /></button>
       <h3>{libelleJour(jour)}</h3>
-      <button class="btn" onclick={() => onjour(1)} aria-label="Jour suivant">›</button>
+      <button class="btn" onclick={() => onjour(1)} aria-label="Jour suivant"><Icon name="chevron-right" size={18} /></button>
     </div>
     {#if j}
       <div class="frise">

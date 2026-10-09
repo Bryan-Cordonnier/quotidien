@@ -1,7 +1,7 @@
 <script lang="ts">
   // La mission en cours : titre et net à droite, jours faits sur le total, le temps de la semaine en grand avec de quoi ajouter des
   // heures (flèches, puis « + » : autant de fois que l'on veut), et la date de la prochaine paie.
-  import { Jauge } from "@etabli/ui";
+  import { Jauge, Icon } from "@etabli/ui";
   import { formatEuros } from "@etabli/ui/money";
   import { heuresMinutes, jourLong } from "../../src/affichage";
   import { effacerSupplementaires, ajouterSupplementaires } from "../../src/donnees";
@@ -54,18 +54,18 @@
       </div>
       <div class="reglage" role="group" aria-label="Ajouter du temps à la semaine">
         <div class="colonne">
-          <button onclick={() => heures(1)} aria-label="Une heure de plus">▲</button>
+          <button onclick={() => heures(1)} aria-label="Une heure de plus"><Icon name="chevron-up" size={16} /></button>
           <output class="num">{h}</output>
-          <button onclick={() => heures(-1)} aria-label="Une heure de moins">▼</button>
+          <button onclick={() => heures(-1)} aria-label="Une heure de moins"><Icon name="chevron-down" size={16} /></button>
         </div>
         <span class="unite">h</span>
         <div class="colonne">
-          <button onclick={() => minutes(5)} aria-label="Cinq minutes de plus">▲</button>
+          <button onclick={() => minutes(5)} aria-label="Cinq minutes de plus"><Icon name="chevron-up" size={16} /></button>
           <output class="num">{pad(min)}</output>
-          <button onclick={() => minutes(-5)} aria-label="Cinq minutes de moins">▼</button>
+          <button onclick={() => minutes(-5)} aria-label="Cinq minutes de moins"><Icon name="chevron-down" size={16} /></button>
         </div>
         <span class="unite">min</span>
-        <button class="plus" onclick={ajouter} aria-label="Ajouter ce temps à la semaine">+</button>
+        <button class="plus" onclick={ajouter} aria-label="Ajouter ce temps à la semaine"><Icon name="plus" size={20} /></button>
       </div>
     </div>
     <p class="petit paie">Prochaine paie : <b class="num">{r.prochainePaie ? jourLong(r.prochainePaie.date) : "—"}</b></p>
@@ -130,8 +130,9 @@
     border-radius: 7px;
     background: var(--field);
     color: var(--muted);
-    font-size: 11px;
-    line-height: 1;
+    display: grid;
+    place-items: center;
+    padding: 0;
     cursor: pointer;
   }
   output {
@@ -154,8 +155,9 @@
     border-radius: 10px;
     background: var(--accent);
     color: var(--accent-text);
-    font-size: 22px;
-    font-weight: 700;
+    display: grid;
+    place-items: center;
+    padding: 0;
     cursor: pointer;
   }
   .paie {

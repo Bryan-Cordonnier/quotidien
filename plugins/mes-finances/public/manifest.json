@@ -5,7 +5,7 @@
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Ce que j'ai estimé sur mes comptes, jusqu'à quand je tiens, les prochains paiements, un ajustement rapide et un recalage sur le solde réel. S'appuie sur Finances et Budget, sans les remplacer.",
-  "color": "#0f766e",
+  "color": "#e8734a",
   "icon": "wallet",
   "permissions": [
     "appelle:finances:lecture",
@@ -47,6 +47,63 @@
         "2x2"
       ],
       "default": "2x1"
+    },
+    {
+      "id": "estime",
+      "title": "Argent actuel",
+      "icon": "finances",
+      "app": "resume",
+      "sizes": [
+        "1x1",
+        "2x1"
+      ],
+      "default": "1x1"
+    },
+    {
+      "id": "tient",
+      "title": "Jusqu'à quand je tiens",
+      "icon": "finances",
+      "app": "resume",
+      "sizes": [
+        "1x1",
+        "2x1"
+      ],
+      "default": "2x1"
+    },
+    {
+      "id": "compte",
+      "title": "Un compte",
+      "icon": "finances",
+      "app": "resume",
+      "sizes": [
+        "1x1",
+        "2x1"
+      ],
+      "default": "1x1"
+    },
+    {
+      "id": "courbe",
+      "title": "Courbe de l'argent",
+      "icon": "finances",
+      "app": "resume",
+      "sizes": [
+        "2x1",
+        "2x2",
+        "4x2"
+      ],
+      "default": "2x2"
+    },
+    {
+      "id": "paiements",
+      "title": "Prochains paiements",
+      "icon": "finances",
+      "app": "resume",
+      "sizes": [
+        "2x2",
+        "2x1",
+        "1x2"
+      ],
+      "default": "2x2"
     }
   ],
   "pages": [

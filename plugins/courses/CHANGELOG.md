@@ -4,6 +4,10 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+### Ajouté
+
+- **Widgets** « Budget des courses » et « Liste de courses » pour l'accueil ; la page Liste de courses : création à gauche, liste des listes à droite (ouverture en grand), listes réglées en bas.
+
 ### Modifié
 
 - **Liste de courses** : « Listes en cours » et « Nouvelle liste » côte à côte sur grand écran ; icônes « courses » et « liste » de Quotidien.

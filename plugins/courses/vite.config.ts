@@ -15,6 +15,7 @@ export default defineConfig({
     target: "chrome120",
     rollupOptions: {
       input: {
+        widgets: page("apps/widgets"),
         courses: page("apps/courses"),
         liste: page("apps/liste"),
       },

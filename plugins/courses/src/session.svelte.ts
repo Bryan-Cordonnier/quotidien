@@ -81,6 +81,11 @@ export class Session {
   }
 
   /** Ouvre l'onglet Courses des Paramètres du moteur. */
+  /** Ouvre une page de ce plugin (depuis un widget de l'accueil). */
+  ouvrirPage(page: string): void {
+    this.#hote?.openPage(page);
+  }
+
   ouvrirParametres(): void {
     this.#hote?.openSettings("courses");
   }

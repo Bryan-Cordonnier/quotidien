@@ -5,6 +5,22 @@ Chaque version a sa section ici avant d'être publiée : ce texte devient la Rel
 Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
+## [0.1.4] — 2026-10-09
+
+### Ajouté
+
+- **Des widgets pour presque toutes les pages** (Accueil → Modifier → Ajouter un widget) : l'argent actuel, jusqu'à quand je tiens, l'argent d'un compte au choix, la courbe de l'argent, les prochains paiements, le budget des courses, la liste de courses (un clic l'ouvre en grand), la journée du jour, le coucher conseillé et la mission en cours.
+- **L'accueil se modifie comme l'écran d'un téléphone** : on clique sur un widget pour le sélectionner, on le déplace à la souris, on tire ses bords ou son coin pour le redimensionner, on le retire avec sa croix.
+- **Un logo Quotidien dans l'application** : le même Q que l'icône, dans la colonne de gauche ; les icônes des pages et leurs couleurs reprennent la palette du logo (corail, violet, or).
+
+### Modifié
+
+- **Plus d'onglets** : une seule page à la fois ; la barre du haut montre le titre de la page, la recherche et les boutons de la fenêtre.
+- **Une icône d'application retravaillée** : la barre du Q est blanche, aux bouts arrondis, comme l'anneau.
+- **Des boutons cohérents** : les +, −, ✓, ×, flèches et triangles sont tous dessinés avec le même trait.
+- **Calendrier** : le bloc « Repos légal » est retiré.
+- **Mes finances** : « Jusqu'à quand je tiens » montre la date de fin en grand, en toutes lettres (« jusqu'au vendredi 17 octobre ») ; les boutons + et − de « Ajout » sont plus petits.
+- **Liste de courses** : à gauche on crée une liste ; à droite « Mes listes » ne contient que la liste des listes en cours, qu'on ouvre en grand pour la consulter, la modifier et la régler ; les listes réglées restent en bas.
 ## [0.1.3] — 2026-10-09
 
 ### Ajouté
@@ -49,7 +65,8 @@ Première version publiée : l'application se met à jour toute seule à partir 
 - **Catégories** : Paramètres → Apparence, « Ranger les pages par catégories » (Argent, Temps).
 - **Mises à jour automatiques** : Quotidien cherche une nouvelle version au démarrage et propose de l'installer ; rien ne s'installe sans votre clic.
 
-[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.3...HEAD
+[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.0...v0.1.1
