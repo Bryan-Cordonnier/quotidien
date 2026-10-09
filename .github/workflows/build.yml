@@ -59,9 +59,9 @@ jobs:
         run: cp -r icons/android/. etable/apps/desktop/src-tauri/gen/android/app/src/main/res/
       - name: Clé de signature Android
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > "$RUNNER_TEMP/quotidien.jks"
+          echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | tr -d '\r\n ' | base64 -d > "$RUNNER_TEMP/quotidien.jks"
           echo "ANDROID_KEYSTORE=$RUNNER_TEMP/quotidien.jks" >> "$GITHUB_ENV"
-          echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
+          printf 'ANDROID_KEYSTORE_PASSWORD=%s\n' "$(echo '${{ secrets.ANDROID_KEYSTORE_PASSWORD }}' | tr -d '\r\n')" >> "$GITHUB_ENV"
       - run: node scripts/signer-android.mjs
       - run: npm run android:build -- --target aarch64
       - uses: actions/upload-artifact@v7
