@@ -55,6 +55,8 @@ jobs:
           echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
       - run: npm ci
       - run: npm run android:init
+      - name: Icône de l'application (logo Quotidien)
+        run: cp -r icons/android/. etable/apps/desktop/src-tauri/gen/android/app/src/main/res/
       - run: npm run android:build -- --debug --target aarch64
       - uses: actions/upload-artifact@v7
         with:
