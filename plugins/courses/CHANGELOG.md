@@ -4,6 +4,10 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+### Modifié
+
+- **Widgets** : les petites tailles resserrent le texte.
+
 ### Ajouté
 
 - **Widgets** « Budget des courses » et « Liste de courses » pour l'accueil ; la page Liste de courses : création à gauche, liste des listes à droite (ouverture en grand), listes réglées en bas.

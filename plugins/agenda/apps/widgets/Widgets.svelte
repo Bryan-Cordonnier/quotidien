@@ -125,4 +125,19 @@
   .k-autre {
     --kc: var(--k-autre);
   }
+  /* Petites tailles (une case de haut ou de large) : on resserre et on garde l'essentiel. */
+  @media (max-height: 150px) {
+    .w {
+      padding: 10px 14px;
+      gap: 2px;
+    }
+    .grand {
+      font-size: 24px;
+    }
+  }
+  @media (max-width: 260px) {
+    .grand {
+      font-size: 22px;
+    }
+  }
 </style>

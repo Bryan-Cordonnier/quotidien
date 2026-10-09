@@ -5,6 +5,10 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ## [Non publié]
 
+### Modifié
+
+- **Widgets** : les petites tailles resserrent le texte.
+
 ### Ajouté
 
 - **Widgets** « Aujourd'hui » et « Coucher conseillé » pour l'accueil ; le bloc « Repos légal » est retiré de la page Calendrier ; boutons à pictogrammes cohérents.

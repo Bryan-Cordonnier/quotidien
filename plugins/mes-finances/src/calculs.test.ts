@@ -95,10 +95,14 @@ describe("données", () => {
   });
 
   it("garde le compte du widget, et accepte des données plus anciennes qui n'en ont pas", () => {
-    const d = avecCompteWidget(donneesVides(), "c2");
-    expect(lireDonnees(JSON.parse(JSON.stringify(d))).compteWidget).toBe("c2");
-    expect(lireDonnees({ schema: 1, roles: {}, recalages: [] }).compteWidget).toBeNull();
-    expect(() => lireDonnees({ schema: 1, roles: {}, recalages: [], compteWidget: "../x" })).toThrow(ErreurMesFinances);
+    const d = avecCompteWidget(avecCompteWidget(donneesVides(), 1, "c2"), 2, "c1");
+    expect(lireDonnees(JSON.parse(JSON.stringify(d))).comptesWidgets).toEqual({ "1": "c2", "2": "c1" });
+    expect(avecCompteWidget(d, 1, null).comptesWidgets).toEqual({ "2": "c1" });
+    expect(lireDonnees({ schema: 1, roles: {}, recalages: [] }).comptesWidgets).toEqual({});
+    // Données de la version précédente : le compte unique devient l'exemplaire 1.
+    expect(lireDonnees({ schema: 1, roles: {}, recalages: [], compteWidget: "c3" }).comptesWidgets).toEqual({ "1": "c3" });
+    expect(() => lireDonnees({ schema: 1, roles: {}, recalages: [], comptesWidgets: { "1": "../x" } })).toThrow(ErreurMesFinances);
+    expect(() => lireDonnees({ schema: 1, roles: {}, recalages: [], comptesWidgets: { x: "c1" } })).toThrow(ErreurMesFinances);
   });
 
   it("relit ce qu'il a écrit et borne l'historique", () => {

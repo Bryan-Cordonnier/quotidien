@@ -4,6 +4,10 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+### Modifié
+
+- **Widgets** : la courbe suit la taille de sa case ; « Un compte » garde un compte par exemplaire posé ; les petites tailles resserrent le texte.
+
 ### Ajouté
 
 - **Widgets** pour l'accueil : argent actuel, jusqu'à quand je tiens, un compte au choix, courbe, prochains paiements ; la date de fin de « Jusqu'à quand je tiens » est en grand ; boutons + et − plus petits.

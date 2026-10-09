@@ -5,7 +5,7 @@
     <circle cx="1010" cy="40" r="560" fill="#37296b"/>
     <circle cx="60" cy="1010" r="330" fill="#241b47"/>
   </g>
-  <circle cx="490" cy="490" r="262" fill="none" stroke="#fff1dc" stroke-width="132"/>
-  <path d="M350 560 A110 110 0 0 1 570 560 Z" fill="#ff8f5e"/>
-  <rect x="500" y="630" width="380" height="124" rx="62" fill="#fff1dc" transform="rotate(45 690 692)"/>
+  <circle cx="490" cy="490" r="262" fill="none" stroke="#ffffff" stroke-width="132"/>
+  <rect x="478" y="606" width="404" height="172" rx="86" fill="#2b2150" transform="rotate(45 690 692)"/>
+  <rect x="500" y="630" width="380" height="124" rx="62" fill="#ffffff" transform="rotate(45 690 692)"/>
 </svg>
