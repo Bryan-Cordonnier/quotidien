@@ -5,6 +5,11 @@ Chaque version a sa section ici avant d'être publiée : ce texte devient la Rel
 Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
+## [0.1.10] — 2026-10-09
+
+### Corrigé
+
+- **Le titre en haut de l'application était cassé** : l'icône de la page se plaçait au-dessus du titre et était coupée. Le titre et son icône sont de nouveau sur la même ligne, dans la barre.
 ## [0.1.9] — 2026-10-09
 
 ### Ajouté
@@ -100,7 +105,8 @@ Première version publiée : l'application se met à jour toute seule à partir 
 - **Catégories** : Paramètres → Apparence, « Ranger les pages par catégories » (Argent, Temps).
 - **Mises à jour automatiques** : Quotidien cherche une nouvelle version au démarrage et propose de l'installer ; rien ne s'installe sans votre clic.
 
-[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.9...HEAD
+[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.10...HEAD
+[0.1.10]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.6...v0.1.7
