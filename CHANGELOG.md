@@ -5,6 +5,11 @@ Chaque version a sa section ici avant d'être publiée : ce texte devient la Rel
 Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
+## [0.1.9] — 2026-10-09
+
+### Ajouté
+
+- **Proposer des repas avec l'IA** (Courses ou Liste de courses → « Proposer des repas (IA) ») : on indique le nombre de personnes, de repas, le budget (proposé : ce qu'il reste cette semaine) et ses envies. L'IA part d'abord de vos données (les articles et prix déjà vus sur vos tickets, hors budget compris), puis, si la case est cochée, cherche sur internet les recettes et les prix qui manquent. Elle propose des plats avec leurs ingrédients ; le total se compare au budget en direct, on retire les plats qu'on ne veut pas, « Autre proposition » en donne d'autres, « Moins cher » refait une proposition quand le budget est dépassé. « Créer la liste de courses » fusionne les ingrédients (un même ingrédient n'apparaît qu'une fois, ses quantités s'additionnent) dans une nouvelle liste.
 ## [0.1.8] — 2026-10-09
 
 ### Ajouté
@@ -95,7 +100,8 @@ Première version publiée : l'application se met à jour toute seule à partir 
 - **Catégories** : Paramètres → Apparence, « Ranger les pages par catégories » (Argent, Temps).
 - **Mises à jour automatiques** : Quotidien cherche une nouvelle version au démarrage et propose de l'installer ; rien ne s'installe sans votre clic.
 
-[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.8...HEAD
+[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.5...v0.1.6

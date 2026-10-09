@@ -7,6 +7,7 @@
   import { Session } from "../../src/session.svelte";
   import CarteListe from "./CarteListe.svelte";
   import ListesReglees from "./ListesReglees.svelte";
+  import ProposerRepas from "./ProposerRepas.svelte";
   import Regler from "./Regler.svelte";
 
   const s = new Session();
@@ -14,6 +15,7 @@
 
   let ouverte = $state<string | null>(null);
   let reglage = $state<string | null>(null);
+  let repas = $state(false);
   let nom = $state("");
   let article = $state("");
   let articles = $state<string[]>([]);
@@ -51,7 +53,9 @@
 </script>
 
 <div class="page-plugin">
-  <Entete titre="Liste de courses" />
+  <Entete titre="Liste de courses">
+    {#snippet actions()}<button class="btn primary" onclick={() => (repas = true)}><Icon name="plus" size={16} /> Proposer des repas (IA)</button>{/snippet}
+  </Entete>
 
   {#if s.illisible}
     <section class="bloc">
@@ -107,6 +111,8 @@
     </div>
 
     <ListesReglees {s} listes={reglees} />
+
+    {#if repas}<ProposerRepas {s} onclose={() => (repas = false)} />{/if}
 
     <Modal open={consultee !== undefined} titre={consultee?.nom ?? "Liste"} largeur={900} onclose={() => (ouverte = null)}>
       {#if consultee}
