@@ -5,6 +5,13 @@ Chaque version a sa section ici avant d'être publiée : ce texte devient la Rel
 Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
+## [0.1.6] — 2026-10-09
+
+### Ajouté
+
+- **Scanner un ticket de caisse** (Courses → Tickets → « Scanner un ticket ») : on prend le ticket en photo (ou on choisit un fichier), l'IA lit le magasin, la date, le total et les articles, puis vous vérifiez et corrigez avant d'enregistrer. Le ticket entre dans le budget de la semaine ; un avertissement signale quand le total ne correspond pas à la somme des lignes. Le bouton « Détail » d'un ticket montre ses articles. La photo n'est pas conservée.
+- **Intelligence artificielle** (Paramètres → Intelligence artificielle) : on colle sa clé Gemini (gratuite, créée sur aistudio.google.com), on choisit le modèle et on « Essaie » ; la clé reste sur ce poste. La page explique ce qui part chez Google.
+- **L'aperçu rapide montre vos widgets** au lieu des favoris : un clic sur un widget ouvre sa page dans Quotidien.
 ## [0.1.5] — 2026-10-09
 
 ### Ajouté
@@ -78,7 +85,8 @@ Première version publiée : l'application se met à jour toute seule à partir 
 - **Catégories** : Paramètres → Apparence, « Ranger les pages par catégories » (Argent, Temps).
 - **Mises à jour automatiques** : Quotidien cherche une nouvelle version au démarrage et propose de l'installer ; rien ne s'installe sans votre clic.
 
-[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.5...HEAD
+[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.2...v0.1.3

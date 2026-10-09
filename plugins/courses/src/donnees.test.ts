@@ -18,6 +18,17 @@ const avecListe = (): { id: string; d: Donnees } => {
 };
 
 describe("tickets", () => {
+  it("un ticket lu sur photo garde ses lignes, relues telles quelles ; un ancien ticket sans lignes reste lisible", () => {
+    const lignes = [{ nom: "Lait", quantite: 6, prixCents: 690 }, { nom: "Pâtes", quantite: 1, prixCents: 150 }];
+    const { donnees } = ajouterTicket(donneesVides(), { jour: "2026-10-08", montantCents: 840, magasin: "Lidl", articles: lignes });
+    expect(donnees.tickets[0]?.articles).toEqual(lignes);
+    expect(lireDonnees(JSON.parse(JSON.stringify(donnees))).tickets[0]?.articles).toEqual(lignes);
+    const ancien = { schema: 1, suivant: 2, tickets: [{ id: "t1", jour: "2026-10-01", magasin: "Aldi", montantCents: 500, listeId: null }], listes: [], transmis: {} };
+    expect(lireDonnees(ancien).tickets[0]?.articles).toEqual([]);
+    for (const articles of [[{ nom: "", quantite: 1, prixCents: 1 }], [{ nom: "A", quantite: 0, prixCents: 1 }], [{ nom: "A", quantite: 1, prixCents: -1 }], [{ nom: "A", quantite: 1, prixCents: 1, extra: 1 }], "oui"]) {
+      expect(refus(() => ajouterTicket(donneesVides(), { jour: "2026-10-08", montantCents: 100, articles })).code, JSON.stringify(articles)).toBe("argument_invalide");
+    }
+  });
   it("un ticket sans magasin devient « Sans magasin » ; le montant doit être positif", () => {
     const { donnees } = ajouterTicket(donneesVides(), { jour: "2026-10-08", montantCents: 1240 });
     expect(donnees.tickets[0]).toMatchObject({ id: "t1", magasin: "Sans magasin", montantCents: 1240, listeId: null });
@@ -68,7 +79,7 @@ describe("listes de courses", () => {
     let { id, d } = avecListe();
     d = basculerPris(d, id, d.listes[0]!.articles[0]!.id); // un seul article sur trois dans le caddie
     const r = reglerListe(d, id, { jour: "2026-10-10", montantCents: 5210, magasin: "Leclerc Drive" });
-    expect(r.donnees.tickets).toEqual([{ id: r.ticketId, jour: "2026-10-10", magasin: "Leclerc Drive", montantCents: 5210, listeId: id }]);
+    expect(r.donnees.tickets).toEqual([{ id: r.ticketId, jour: "2026-10-10", magasin: "Leclerc Drive", montantCents: 5210, listeId: id, articles: [] }]);
     expect(r.donnees.listes[0]?.reglement).toEqual({ jour: "2026-10-10", magasin: "Leclerc Drive", montantCents: 5210, ticketId: r.ticketId });
     expect(listesEnCours(r.donnees)).toEqual([]);
     expect(listesReglees(r.donnees)).toHaveLength(1);

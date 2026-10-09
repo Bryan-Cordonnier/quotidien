@@ -1,9 +1,10 @@
 // État des pages de Courses : les données (enregistrées par le moteur avec le plugin), les paramètres réglés dans Paramètres → Courses et
 // l'état de la transmission vers Budget. Règle de sécurité : des données illisibles ne sont JAMAIS remplacées par des données vides.
-import { connect } from "@etabli/sdk";
+import { connect, type AiImage } from "@etabli/sdk";
 import { jourDeInstant, type Jour } from "@etabli/ui/civil";
 import { lireDonnees } from "./donnees";
 import { reglagesDepuis, type Parametres } from "./parametres";
+import { INSTRUCTION, lireTicketIa, SCHEMA_TICKET, type Lecture } from "./scan";
 import { transmettre, type Appeler, type Rapport } from "./transmission";
 import { ErreurCourses, type Donnees, type Reglages } from "./types";
 
@@ -81,6 +82,13 @@ export class Session {
   }
 
   /** Ouvre l'onglet Courses des Paramètres du moteur. */
+  /** Demande à l'IA de l'utilisateur de lire un ticket photographié ; ne jette jamais, rend le ticket à vérifier ou un message clair. */
+  async lireTicketPhoto(image: AiImage): Promise<Lecture> {
+    if (!this.#hote) return { ok: false, message: "Pas encore connecté au moteur." };
+    const reponse = await this.#hote.ai.extraire({ instruction: INSTRUCTION, images: [image], schema: SCHEMA_TICKET });
+    return reponse.ok ? lireTicketIa(reponse.texte, this.aujourdhui) : { ok: false, message: reponse.message };
+  }
+
   /** Ouvre une page de ce plugin (depuis un widget de l'accueil). */
   ouvrirPage(page: string): void {
     this.#hote?.openPage(page);

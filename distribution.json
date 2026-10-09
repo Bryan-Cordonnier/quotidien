@@ -55,5 +55,7 @@
   "tabs": false,
   "logoPlein": true,
   "logoViewBox": "0 0 1024 1024",
-  "accueilCouleur": "#4d3d99"
+  "accueilCouleur": "#4d3d99",
+  "ia": true,
+  "apercu": "widgets"
 }

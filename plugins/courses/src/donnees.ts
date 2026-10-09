@@ -1,13 +1,14 @@
 // Données de Courses : lecture stricte, saisies validées, opérations. Même règle de sécurité que partout : « rien d'enregistré » donne des
 // données vides ; des données PRÉSENTES et illisibles sont une erreur, jamais des données vides (on écraserait les vrais tickets).
 import { comparerJours, type Jour } from "@etabli/ui/civil";
-import { ErreurCourses, SCHEMA, type Article, type Donnees, type Liste, type Reglement, type Ticket } from "./types";
+import { ErreurCourses, SCHEMA, type Article, type Donnees, type LigneTicket, type Liste, type Reglement, type Ticket } from "./types";
 import { entier, jourValide, liste as listeDe, montant, objet, texte } from "./validation";
 
 export const LIMITE_OCTETS = 3_500_000;
 export const TICKETS_MAX = 20_000;
 export const LISTES_MAX = 2_000;
 export const ARTICLES_MAX = 300;
+export const LIGNES_MAX = 150;
 export const SANS_MAGASIN = "Sans magasin";
 
 export const donneesVides = (): Donnees => ({ schema: SCHEMA, suivant: 1, tickets: [], listes: [], transmis: {} });
@@ -19,9 +20,25 @@ const identifiant = (prefixe: string, v: unknown, suivant: number): string => {
   return id;
 };
 
+/** Une ligne de ticket lu : nom, quantité (au plus 3 décimales, jusqu'à 999) et prix de la ligne en centimes. */
+export function lireLigne(brut: unknown): LigneTicket {
+  const o = objet(brut, ["nom", "quantite", "prixCents"]);
+  const q = o.quantite;
+  if (typeof q !== "number" || !Number.isFinite(q) || q <= 0 || q > 999) throw new ErreurCourses("argument_invalide", "La quantité d'une ligne doit être un nombre entre 0 et 999.");
+  return { nom: texte(o.nom, "nom", 120), quantite: Math.round(q * 1000) / 1000, prixCents: montant(o.prixCents, "prixCents", 0) };
+}
+
 function lireTicket(brut: unknown, suivant: number): Ticket {
-  const o = objet(brut, ["id", "jour", "magasin", "montantCents", "listeId"]);
-  return { id: identifiant("t", o.id, suivant), jour: jourValide(o.jour, "jour"), magasin: texte(o.magasin, "magasin", 80), montantCents: montant(o.montantCents, "montantCents", 1), listeId: o.listeId === null ? null : identifiant("l", o.listeId, suivant) };
+  const o = objet(brut, ["id", "jour", "magasin", "montantCents", "listeId"], ["articles"]);
+  return {
+    id: identifiant("t", o.id, suivant),
+    jour: jourValide(o.jour, "jour"),
+    magasin: texte(o.magasin, "magasin", 80),
+    montantCents: montant(o.montantCents, "montantCents", 1),
+    listeId: o.listeId === null ? null : identifiant("l", o.listeId, suivant),
+    // Les tickets enregistrés avant la lecture par photo n'ont pas de lignes : ce n'est pas une erreur.
+    articles: o.articles === undefined ? [] : listeDe(o.articles, "articles", lireLigne, LIGNES_MAX),
+  };
 }
 
 function lireArticle(brut: unknown, suivant: number): Article {
@@ -67,10 +84,10 @@ function verifier(d: Donnees): Donnees {
 /** Un ticket de caisse (le montant est positif : c'est une dépense). */
 export function ajouterTicket(d: Donnees, brut: unknown): { id: string; donnees: Donnees } {
   if (d.tickets.length >= TICKETS_MAX) throw new ErreurCourses("limite_atteinte", `Au plus ${TICKETS_MAX} tickets.`);
-  const o = objet(brut, ["jour", "montantCents"], ["magasin"]);
+  const o = objet(brut, ["jour", "montantCents"], ["magasin", "articles"]);
   const magasin = typeof o.magasin === "string" && o.magasin.trim() !== "" ? texte(o.magasin, "magasin", 80) : SANS_MAGASIN;
   const id = `t${d.suivant}`;
-  const ticket: Ticket = { id, jour: jourValide(o.jour, "jour"), magasin, montantCents: montant(o.montantCents, "montantCents", 1), listeId: null };
+  const ticket: Ticket = { id, jour: jourValide(o.jour, "jour"), magasin, montantCents: montant(o.montantCents, "montantCents", 1), listeId: null, articles: o.articles === undefined ? [] : listeDe(o.articles, "articles", lireLigne, LIGNES_MAX) };
   return { id, donnees: verifier({ ...d, suivant: d.suivant + 1, tickets: [...d.tickets, ticket] }) };
 }
 
@@ -156,7 +173,7 @@ export function basculerPris(d: Donnees, listeId: string, id: string): Donnees {
  */
 export function reglerListe(d: Donnees, listeId: string, brut: unknown): { ticketId: string; donnees: Donnees } {
   const l = modifiable(d, listeId);
-  const o = objet(brut, ["jour", "montantCents"], ["magasin"]);
+  const o = objet(brut, ["jour", "montantCents"], ["magasin", "articles"]);
   const magasin = typeof o.magasin === "string" && o.magasin.trim() !== "" ? texte(o.magasin, "magasin", 80) : SANS_MAGASIN;
   const { id: ticketId, donnees } = ajouterTicket(d, { jour: o.jour, montantCents: o.montantCents, magasin });
   const reglement: Reglement = { jour: jourValide(o.jour, "jour"), magasin, montantCents: montant(o.montantCents, "montantCents", 1), ticketId };

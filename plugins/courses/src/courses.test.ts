@@ -24,7 +24,7 @@ describe("manifeste et paramètres", () => {
   it("Courses n'a que Budget en dépendance facultative et la permission d'appel exacte", () => {
     expect(manifeste.dependencies).toBeUndefined();
     expect(Object.keys(manifeste.optionalDependencies)).toEqual(["budget"]);
-    expect([...manifeste.permissions].sort()).toEqual(["appelle:budget:ecriture", "reglages"]);
+    expect([...manifeste.permissions].sort()).toEqual(["appelle:budget:ecriture", "ia", "reglages"]);
   });
 });
 

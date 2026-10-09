@@ -9,7 +9,8 @@
   "icon": "store",
   "permissions": [
     "appelle:budget:ecriture",
-    "reglages"
+    "reglages",
+    "ia"
   ],
   "services": {
     "budget": "^1"
