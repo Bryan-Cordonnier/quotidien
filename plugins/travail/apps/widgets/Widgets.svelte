@@ -73,4 +73,11 @@
   .net {
     font-weight: 700;
   }
+  /* Petites tailles (une case de haut ou de large) : on resserre et on garde l'essentiel. */
+  @media (max-height: 150px) {
+    .w {
+      padding: 10px 14px;
+      gap: 2px;
+    }
+  }
 </style>

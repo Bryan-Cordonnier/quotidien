@@ -3,7 +3,7 @@
 import { estJour } from "@etabli/ui/civil";
 import { ErreurMesFinances, RECALAGES_MAX, ROLES, SCHEMA, type Donnees, type Recalage, type Role } from "./types";
 
-export const donneesVides = (): Donnees => ({ schema: SCHEMA, roles: {}, recalages: [], compteWidget: null });
+export const donneesVides = (): Donnees => ({ schema: SCHEMA, roles: {}, recalages: [], comptesWidgets: {} });
 
 const illisible = (): never => {
   throw new ErreurMesFinances("illisible", "Les données de Mes finances sont illisibles.");
@@ -25,12 +25,21 @@ export function lireDonnees(enregistre: unknown): Donnees {
     return { jour: x.jour as string, ecartCents: x.ecartCents as number };
   });
   if (recalages.length > RECALAGES_MAX) return illisible();
-  // Ajouté après coup : absent des données plus anciennes, ce n'est pas une erreur.
-  const compteWidget = o.compteWidget === undefined || o.compteWidget === null ? null : typeof o.compteWidget === "string" && /^[A-Za-z0-9_-]{1,40}$/.test(o.compteWidget) ? o.compteWidget : illisible();
-  return { schema: SCHEMA, roles, recalages, compteWidget };
+  // Ajouté après coup : absent des données plus anciennes, ce n'est pas une erreur. L'ancien champ « compteWidget » devient l'exemplaire 1.
+  const comptesWidgets: Record<string, string> = {};
+  const brutComptes = o.comptesWidgets ?? (typeof o.compteWidget === "string" ? { "1": o.compteWidget } : {});
+  if (typeof brutComptes !== "object" || brutComptes === null || Array.isArray(brutComptes)) return illisible();
+  for (const [n, id] of Object.entries(brutComptes)) {
+    if (!/^[1-9]\d{0,2}$/.test(n) || typeof id !== "string" || !/^[A-Za-z0-9_-]{1,40}$/.test(id)) return illisible();
+    comptesWidgets[n] = id;
+  }  return { schema: SCHEMA, roles, recalages, comptesWidgets };
 }
 
-export const avecCompteWidget = (d: Donnees, compteId: string | null): Donnees => ({ ...d, compteWidget: compteId });
+/** Choisit le compte d'un exemplaire du widget « Un compte » (`null` : aucun). */
+export function avecCompteWidget(d: Donnees, exemplaire: number, compteId: string | null): Donnees {
+  const { [String(exemplaire)]: _ancien, ...autres } = d.comptesWidgets;
+  return { ...d, comptesWidgets: compteId ? { ...autres, [String(exemplaire)]: compteId } : autres };
+}
 
 export function avecRole(d: Donnees, compteId: string, role: Role): Donnees {
   return { ...d, roles: { ...d.roles, [compteId]: role } };

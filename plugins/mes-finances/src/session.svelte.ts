@@ -85,9 +85,9 @@ export class Session {
   }
 
   /** Choisit le compte que montre le widget « Un compte ». */
-  choisirCompteWidget(compteId: string | null): void {
+  choisirCompteWidget(exemplaire: number, compteId: string | null): void {
     if (!this.donnees || !this.#hote) return;
-    const suivant = avecCompteWidget(this.donnees, compteId);
+    const suivant = avecCompteWidget(this.donnees, exemplaire, compteId);
     this.#hote.settings.update(suivant);
     this.donnees = suivant;
   }

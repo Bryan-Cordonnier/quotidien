@@ -7,6 +7,8 @@
   import { Session } from "../../src/session.svelte";
 
   const id = /^#widget=([a-z0-9-]+)/.exec(location.hash)?.[1] ?? "resume";
+  /** Numéro d'exemplaire : le même widget peut être posé plusieurs fois, chacun avec son compte. */
+  const exemplaire = Number(/[&?]i=(\d+)/.exec(location.hash)?.[1] ?? 1);
   const s = new Session();
   void s.demarrer();
 
@@ -19,8 +21,13 @@
   const euros = (c: number): string => `${c < 0 ? "− " : ""}${formatEuros(Math.abs(c))}`;
   const jours = $derived(s.tient ? differenceJours(s.aujourdhui, s.tient) : null);
   const points = $derived(s.courbe.map((p) => ({ label: court(p.jour), value: p.soldeCents / 100 })));
-  const compte = $derived(s.comptes.find((c) => c.id === s.donnees?.compteWidget) ?? null);
+  const compte = $derived(s.comptes.find((c) => c.id === s.donnees?.comptesWidgets[String(exemplaire)]) ?? null);
   const ouvrir = () => s.ouvrirPage("situation");
+
+  // La courbe occupe exactement la place que le widget lui laisse : sa hauteur suit celle de son conteneur (elle est dessinée sur 600 de large).
+  let largeurCourbe = $state(400);
+  let hauteurPlace = $state(120);
+  const hauteurCourbe = $derived(Math.max(60, Math.min(420, Math.round((600 * hauteurPlace) / Math.max(120, largeurCourbe)))));
 </script>
 
 {#snippet duree()}
@@ -42,7 +49,7 @@
 {:else if id === "compte"}
   <div class="w">
     <p class="etiquette">Un compte</p>
-    <select class="saisie choix" value={s.donnees?.compteWidget ?? ""} aria-label="Compte affiché" onchange={(e) => s.choisirCompteWidget(e.currentTarget.value || null)}>
+    <select class="saisie choix" value={s.donnees?.comptesWidgets[String(exemplaire)] ?? ""} aria-label="Compte affiché" onchange={(e) => s.choisirCompteWidget(exemplaire, e.currentTarget.value || null)}>
       <option value="">Choisir un compte…</option>
       {#each s.comptes as c (c.id)}<option value={c.id}>{c.nom}</option>{/each}
     </select>
@@ -60,7 +67,10 @@
 {:else if id === "courbe"}
   <button class="w lien" onclick={ouvrir} aria-label="Ouvrir Mes finances">
     <p class="etiquette">Courbe des {s.reglages.horizon} prochains jours</p>
-    <div class="courbe"><LineChart {points} title="Solde estimé de la vie courante" format={(v) => `${Math.round(v)} €`} height={150} /></div>
+    <div class="courbe" bind:clientWidth={largeurCourbe} bind:clientHeight={hauteurPlace}>
+      <!-- Posée à plat dans son conteneur : c'est le conteneur qui donne la taille, jamais le dessin. -->
+      <div class="dessin"><LineChart {points} title="Solde estimé de la vie courante" format={(v) => `${Math.round(v)} €`} height={hauteurCourbe} /></div>
+    </div>
   </button>
 {:else if id === "paiements"}
   <button class="w lien haut" onclick={ouvrir} aria-label="Ouvrir Mes finances">
@@ -77,13 +87,13 @@
   <button class="w lien" onclick={ouvrir} aria-label="Ouvrir Mes finances">
     <p class="etiquette">Argent actuel · vie courante</p>
     <div class="grand num" class:negatif={s.estime.vie < 0}>{euros(s.estime.vie)}</div>
-    {#if s.estime.secours !== 0}<p class="petit">Secours à part : {euros(s.estime.secours)}</p>{/if}
+    {#if s.estime.secours !== 0}<p class="petit secondaire">Secours à part : {euros(s.estime.secours)}</p>{/if}
   </button>
 {:else}
   <button class="w lien" onclick={ouvrir} aria-label="Ouvrir Mes finances">
     <p class="etiquette">Estimé · vie courante</p>
     <div class="grand num" class:negatif={s.estime.vie < 0}>{euros(s.estime.vie)}</div>
-    <p class="petit">
+    <p class="petit secondaire">
       {#if s.tient && jours !== null}Je tiens {jours} jour{jours > 1 ? "s" : ""} · jusqu'au {court(ajouterJours(s.tient, -1))}{:else}Au-dessus du seuil jusqu'au {court(s.courbe.at(-1)?.jour ?? s.aujourdhui)}{/if}
     </p>
   </button>
@@ -105,6 +115,8 @@
     color: var(--text);
     text-align: left;
     font: inherit;
+    position: relative;
+    overflow: hidden;
   }
   .w.haut {
     justify-content: flex-start;
@@ -129,9 +141,16 @@
     font-weight: 800;
   }
   .courbe {
-    flex: 1;
+    flex: 1 1 0;
     min-height: 0;
     width: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+  .dessin {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
   }
   .liste {
     list-style: none;
@@ -148,5 +167,27 @@
   }
   .choix {
     width: 100%;
+  }
+  /* Petites tailles (une case de haut ou de large) : on resserre et on garde l'essentiel. */
+  @media (max-height: 150px) {
+    .w {
+      padding: 10px 14px;
+      gap: 2px;
+    }
+    .grand {
+      font-size: 24px;
+    }
+    .date {
+      font-size: 14px;
+      margin-top: 2px;
+    }
+    .secondaire {
+      display: none;
+    }
+  }
+  @media (max-width: 260px) {
+    .grand {
+      font-size: 22px;
+    }
   }
 </style>

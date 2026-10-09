@@ -5,6 +5,19 @@ Chaque version a sa section ici avant d'être publiée : ce texte devient la Rel
 Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
+## [0.1.5] — 2026-10-09
+
+### Ajouté
+
+- **Une icône pour l'Accueil**, dans le même style que celles des autres pages, avec une pastille violette.
+- **L'accueil n'a plus de limite** : on peut ajouter autant de widgets qu'on veut (Accueil → Modifier → Ajouter un widget, ou la case « Ajouter un widget » au bout de la grille), et poser plusieurs fois le même ; le widget « Un compte » garde son propre compte pour chaque exemplaire.
+- **Chaque widget montre l'icône de son plugin** dans un coin.
+
+### Modifié
+
+- **Le logo et l'icône d'application** : un Q blanc seul sur le fond violet, dont la barre découpe l'anneau (plus de soleil orange).
+- **Déplacer un widget est plus naturel** : il suit la souris, les autres se serrent pour lui faire de la place, et l'accueil défile quand on approche du haut ou du bas ; les poignées des bords sont plus grandes.
+- **Les widgets ont été vérifiés dans chacune de leurs tailles** : la courbe de l'argent épouse maintenant exactement sa case (elle débordait dans les petites tailles) et les petits widgets resserrent leur texte.
 ## [0.1.4] — 2026-10-09
 
 ### Ajouté
@@ -65,7 +78,8 @@ Première version publiée : l'application se met à jour toute seule à partir 
 - **Catégories** : Paramètres → Apparence, « Ranger les pages par catégories » (Argent, Temps).
 - **Mises à jour automatiques** : Quotidien cherche une nouvelle version au démarrage et propose de l'installer ; rien ne s'installe sans votre clic.
 
-[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.4...HEAD
+[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.1...v0.1.2
