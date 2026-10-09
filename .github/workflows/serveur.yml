@@ -1,0 +1,78 @@
+# Fabrique le paquet du serveur facultatif de Quotidien (docs/17 du moteur) : le serveur Linux, la version web de Quotidien et ses plugins
+# signés (installables depuis l'administration du serveur). Le paquet est publié dans la Release « serveur » (remplacée à chaque fois) ;
+# le homelab le télécharge de là. Lancé à la main : Actions → Serveur → Run workflow.
+name: Serveur
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  serveur:
+    name: Paquet du serveur
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: etable
+
+      - run: npm ci
+
+      - name: Plugins
+        run: npm run build:plugins
+
+      - name: Version web de Quotidien
+        env:
+          ETABLE_PLUGINS_DIR: ${{ github.workspace }}/plugins
+          ETABLE_DISTRIBUTION: ${{ github.workspace }}/distribution.json
+        run: |
+          npm run build:web -w @etabli/desktop
+          node etable/scripts/construire-web.mjs
+
+      - name: Paquets de plugins signés
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          mkdir -p paquets
+          for dossier in plugins/*/; do
+            id=$(basename "$dossier")
+            if [ -f "plugins/$id/dist/manifest.json" ]; then
+              node etable/scripts/paquet-plugin.mjs --dossier "plugins/$id/dist" --sortie paquets
+            fi
+          done
+          ls -la paquets
+
+      - name: Serveur Linux
+        working-directory: etable
+        run: cargo build --release -p etabli-serveur
+
+      - name: Assembler le paquet
+        run: |
+          mkdir -p bundle
+          cp etable/target/release/etabli-serveur bundle/
+          cp -r etable/apps/desktop/dist-web bundle/web
+          cp -r paquets bundle/paquets
+          node -p "require('./quotidien.conf.json').plugins.updater.pubkey" > bundle/cle-publique.txt
+          tar -czf quotidien-serveur.tar.gz -C bundle .
+          ls -la quotidien-serveur.tar.gz
+
+      - name: Publier dans la Release « serveur »
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view serveur >/dev/null 2>&1 || gh release create serveur --prerelease --title "Serveur Quotidien" --notes "Paquet du serveur facultatif (serveur Linux, version web, plugins signés). Remplacé à chaque construction."
+          gh release upload serveur quotidien-serveur.tar.gz --clobber
