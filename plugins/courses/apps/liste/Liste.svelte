@@ -7,6 +7,8 @@
   import { Session } from "../../src/session.svelte";
   import CarteListe from "./CarteListe.svelte";
   import ListesReglees from "./ListesReglees.svelte";
+  import { formatEuros } from "@etabli/ui/money";
+  import { baseDePrix, estimerListe } from "../../src/prix";
   import ProposerRepas from "./ProposerRepas.svelte";
   import Regler from "./Regler.svelte";
 
@@ -24,6 +26,8 @@
   const enCours = $derived(s.donnees ? listesEnCours(s.donnees) : []);
   const reglees = $derived(s.donnees ? listesReglees(s.donnees) : []);
   const consultee = $derived(enCours.find((l) => l.id === ouverte));
+  const base = $derived(s.donnees ? baseDePrix(s.donnees) : []);
+  const estimeDe = (l: (typeof enCours)[number]) => estimerListe(l.articles.map((a) => a.nom), base).conseille;
 
   function ajouterBrouillon(): void {
     const a = article.trim();
@@ -100,6 +104,7 @@
               <li>
                 <button class="ligne" onclick={() => (ouverte = l.id)} aria-label="Ouvrir {l.nom}">
                   <span class="intitule">{l.nom}</span>
+                  {#if estimeDe(l)}{@const e = estimeDe(l)!}<span class="num petit estime" title="Magasin le moins cher d'après vos tickets">≈ {formatEuros(e.totalCents)} · {e.magasin}</span>{/if}
                   <span class="num petit">{pris}/{l.articles.length}</span>
                   <Icon name="expand" size={16} />
                 </button>
@@ -194,5 +199,8 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-weight: 700;
+  }
+  .estime {
+    white-space: nowrap;
   }
 </style>

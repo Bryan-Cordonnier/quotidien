@@ -6,6 +6,10 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ### Ajouté
 
+- **Magasin conseillé** : estimation d'une liste d'après les prix des tickets scannés, rapprochement des noms simples (`prix.ts`), prix par article, total par magasin.
+
+### Ajouté
+
 - **Proposer des repas (IA)** : plats et liste de courses dans le budget, d'abord d'après vos prix déjà vus, puis internet ; la liste fusionne les ingrédients.
 
 ### Ajouté

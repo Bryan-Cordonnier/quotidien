@@ -3,6 +3,7 @@
   import { Modal } from "@etabli/ui";
   import { parseEuros } from "@etabli/ui/money";
   import { magasinsConnus } from "../../src/calculs";
+  import { baseDePrix, estimerListe } from "../../src/prix";
   import { reglerListe } from "../../src/donnees";
   import type { Session } from "../../src/session.svelte";
 
@@ -11,7 +12,10 @@
   const liste = $derived(s.donnees?.listes.find((l) => l.id === listeId));
   const magasins = $derived(s.donnees ? magasinsConnus(s.donnees) : []);
   // svelte-ignore state_referenced_locally
-  let magasin = $state(s.donnees ? (magasinsConnus(s.donnees)[0] ?? "") : "");
+  // Le magasin proposé d'abord : le moins cher d'après nos tickets pour cette liste, sinon le plus fréquent.
+  const conseille = s.donnees && liste ? estimerListe(liste.articles.map((a) => a.nom), baseDePrix(s.donnees)).conseille?.magasin : undefined;
+  // svelte-ignore state_referenced_locally
+  let magasin = $state(conseille ?? (s.donnees ? (magasinsConnus(s.donnees)[0] ?? "") : ""));
   let montant = $state("");
   let erreur = $state("");
 
