@@ -5,6 +5,11 @@ Chaque version a sa section ici avant d'être publiée : ce texte devient la Rel
 Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
+## [0.1.11] — 2026-10-09
+
+### Ajouté
+
+- **Le magasin le moins cher pour votre liste** : écrivez des choses simples (« Lait cru 1L », « salade », « coca », « 2 pâtes ») ; Quotidien retrouve ces articles dans vos tickets scannés (hors budget compris), estime le prix de chaque ligne et conseille le magasin le moins cher pour toute la liste, avec le total estimé et celui des autres magasins. Le prix de chaque article s'affiche à côté (« ≈ 1,10 € »), la liste des listes montre le total estimé et le magasin, et « Régler la course » propose d'abord le magasin conseillé. Tout est calculé sur votre PC, sans IA ni internet ; un article jamais vu sur un ticket n'est pas chiffré.
 ## [0.1.10] — 2026-10-09
 
 ### Corrigé
@@ -105,7 +110,8 @@ Première version publiée : l'application se met à jour toute seule à partir 
 - **Catégories** : Paramètres → Apparence, « Ranger les pages par catégories » (Argent, Temps).
 - **Mises à jour automatiques** : Quotidien cherche une nouvelle version au démarrage et propose de l'installer ; rien ne s'installe sans votre clic.
 
-[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.10...HEAD
+[Non publié]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.11...HEAD
+[0.1.11]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.10...v0.1.11
 [0.1.10]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/Bryan-Cordonnier/quotidien/compare/v0.1.7...v0.1.8

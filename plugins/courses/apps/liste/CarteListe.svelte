@@ -3,6 +3,8 @@
   // Chaque article a un gros bouton ✓ (« dans le caddie ») et une petite croix pour le retirer. « Régler la course » est tout en bas ;
   // un article non coché n'empêche jamais de régler.
   import { Icon } from "@etabli/ui";
+  import { formatEuros } from "@etabli/ui/money";
+  import { baseDePrix, estimerListe } from "../../src/prix";
   import { ajouterArticle, basculerPris, renommerArticle, renommerListe, retirerArticle } from "../../src/donnees";
   import type { Session } from "../../src/session.svelte";
   import type { Liste } from "../../src/types";
@@ -22,6 +24,10 @@
   let edition = $state<{ article: string | null } | null>(null);
   let nouvelArticle = $state("");
   const pris = $derived(liste.articles.filter((a) => a.pris).length);
+  /** Le prix de chaque article d'après nos tickets, et le magasin le moins cher pour toute la liste. */
+  const base = $derived(s.donnees ? baseDePrix(s.donnees) : []);
+  const estimation = $derived(estimerListe(liste.articles.map((a) => a.nom), base));
+  const autres = $derived(estimation.magasins.slice(1, 4));
 
   /** Met le curseur dans le champ qui vient d'apparaître et sélectionne son texte. */
   function focaliser(noeud: HTMLInputElement): void {
@@ -69,15 +75,31 @@
   </div>
   {#if ouverte}
     <div class="corps">
-      {#each liste.articles as a (a.id)}
+      {#each liste.articles as a, i (a.id)}
         <div class="article" class:fait={a.pris}>
           <button class="coche" aria-pressed={a.pris} aria-label="{a.pris ? 'Pris' : 'Marquer comme pris'} : {a.nom}" onclick={() => s.appliquer((d) => basculerPris(d, liste.id, a.id))}><Icon name="check" size={22} strokeWidth={3} /></button>
           <span class="texte">{@render nom(a.nom, a.id)}</span>
+          {#if estimation.lignes[i]?.prixCents != null}<span class="est num petit" title="Estimé d'après « {estimation.lignes[i]?.connu} » dans {estimation.conseille?.magasin}">≈ {formatEuros(estimation.lignes[i]!.prixCents!)}</span>{/if}
           <button class="retrait" aria-label="Retirer {a.nom}" onclick={() => s.appliquer((d) => retirerArticle(d, liste.id, a.id))}><Icon name="x" size={16} /></button>
         </div>
       {:else}
         <span class="petit">Liste vide.</span>
       {/each}
+      {#if estimation.conseille}
+        <div class="conseil">
+          <div class="haut">
+            <span>Magasin conseillé</span>
+            <b>{estimation.conseille.magasin}</b>
+            <span class="num total">≈ {formatEuros(estimation.conseille.totalCents)}</span>
+          </div>
+          <p class="petit">
+            {estimation.connus} article{estimation.connus > 1 ? "s" : ""} sur {estimation.total} chiffré{estimation.connus > 1 ? "s" : ""} d'après vos tickets{estimation.conseille.vusIci < estimation.connus ? ` (${estimation.conseille.vusIci} vus dans ce magasin, les autres complétés)` : ""}.
+            {#each autres as m (m.magasin)}<span class="autre">{m.magasin} ≈ {formatEuros(m.totalCents)}</span>{/each}
+          </p>
+        </div>
+      {:else if base.length === 0 && liste.articles.length > 0}
+        <p class="petit conseil-vide">Scannez des tickets pour estimer cette liste et trouver le magasin le moins cher.</p>
+      {/if}
       <div class="ajout">
         <input class="saisie" bind:value={nouvelArticle} placeholder="Ajouter un article" aria-label="Nouvel article" autocomplete="off" onkeydown={(e) => e.key === "Enter" && ajouter()} />
         <button class="btn" onclick={ajouter}>Ajouter</button>
@@ -201,4 +223,36 @@
     align-self: flex-start;
     margin-top: 12px;
   }
-</style>
+  .est {
+    flex: none;
+    color: var(--muted);
+  }
+  .conseil {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+  }
+  .conseil .haut {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .conseil .haut b {
+    font-size: 15px;
+  }
+  .conseil .total {
+    margin-left: auto;
+    font-weight: 700;
+  }
+  .conseil p {
+    margin: 4px 0 0;
+  }
+  .autre {
+    margin-left: 10px;
+    white-space: nowrap;
+  }
+  .conseil-vide {
+    margin: 10px 0 0;
+  }</style>
