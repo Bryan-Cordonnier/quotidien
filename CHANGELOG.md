@@ -6,6 +6,12 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.18] — 2026-10-11
+
+### Corrigé
+
+- **Android : le bouton « Télécharger » de la mise à jour fonctionne** (l'application n'avait pas le droit d'ouvrir une adresse web) ; en cas d'échec, l'erreur s'affiche.
+
 ## [0.1.17] — 2026-10-10
 
 ### Corrigé
