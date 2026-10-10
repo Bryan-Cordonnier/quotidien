@@ -1,6 +1,6 @@
 {
   "productName": "Quotidien",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "identifier": "fr.cordonnier.quotidien",
   "app": {
     "windows": [
@@ -35,7 +35,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src http://plugins.localhost plugins:; connect-src 'self' ipc: http://ipc.localhost https://generativelanguage.googleapis.com https://*.ts.net:* https://github.com https://*.githubusercontent.com"
+      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src http://plugins.localhost plugins:; connect-src 'self' ipc: http://ipc.localhost https://generativelanguage.googleapis.com https://*.ts.net:* https://api.github.com"
     }
   },
   "plugins": {

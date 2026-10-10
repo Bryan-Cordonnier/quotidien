@@ -59,6 +59,6 @@
   "logoViewBox": "0 0 1024 1024",
   "accueilCouleur": "#4d3d99",
   "ia": true,
-  "androidUpdateUrl": "https://github.com/Bryan-Cordonnier/quotidien/releases/latest/download/latest.json",
+  "androidUpdateUrl": "https://api.github.com/repos/Bryan-Cordonnier/quotidien/releases/latest",
   "apercu": "widgets"
 }
