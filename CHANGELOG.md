@@ -6,6 +6,13 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.19] — 2026-10-11
+
+### Corrigé
+
+- **Icône Android** : le rond du Q est centré dans l'icône et le Q est plus petit.
+- **Accueil du téléphone** : logo et nom sur une seule ligne, cartes plus serrées, toutes les pages visibles sans défiler.
+
 ## [0.1.18] — 2026-10-11
 
 ### Corrigé
