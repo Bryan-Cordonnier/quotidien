@@ -6,6 +6,16 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.15] — 2026-10-10
+
+### Modifié
+
+- **Accueil du téléphone plus soigné** : le logo et le nom sont centrés, chaque page est une carte avec le nom de son plugin, la date du jour s'affiche.
+- **Paramètres sur téléphone** : d'abord la liste des sections, puis la section en plein écran.
+- **Icônes** : les dessins sont plus grands dans leur pastille, et les icônes Paramètres et Panneau latéral reprennent le style de Quotidien.
+- **Boutons du téléphone** : tous font au moins 44 px, et les fenêtres se ferment avec une croix ronde.
+- **Icône Android** : le Q est plus petit, sa barre n'est plus coupée et le fond se voit.
+
 ## [0.1.14] — 2026-10-10
 
 ### Ajouté
