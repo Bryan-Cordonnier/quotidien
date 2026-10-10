@@ -6,6 +6,14 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.20] — 2026-10-11
+
+### Modifié
+
+- **Scanner un ticket, c'est maintenant en réglant une liste de courses** : *Régler la course* propose *Scanner avec l'appareil photo*, *Scanner depuis la galerie* ou *Régler manuellement*. Le ticket lu (magasin, date, total, articles) est à vérifier, puis il règle la liste et entre dans le budget de la semaine.
+- **Plus de scan ni de « hors budget » dans Courses.** Les tickets hors budget se scannent à la chaîne dans *Paramètres → Courses → Tickets hors budget*.
+- **Courses** : la ligne de saisie d'un ticket (magasin, montant, bouton +) tient sur une seule ligne sur téléphone.
+
 ## [0.1.19] — 2026-10-11
 
 ### Corrigé

@@ -176,9 +176,9 @@ export function basculerPris(d: Donnees, listeId: string, id: string): Donnees {
  */
 export function reglerListe(d: Donnees, listeId: string, brut: unknown): { ticketId: string; donnees: Donnees } {
   const l = modifiable(d, listeId);
-  const o = objet(brut, ["jour", "montantCents"], ["magasin"]);
+  const o = objet(brut, ["jour", "montantCents"], ["magasin", "articles"]);
   const magasin = typeof o.magasin === "string" && o.magasin.trim() !== "" ? texte(o.magasin, "magasin", 80) : SANS_MAGASIN;
-  const { id: ticketId, donnees } = ajouterTicket(d, { jour: o.jour, montantCents: o.montantCents, magasin });
+  const { id: ticketId, donnees } = ajouterTicket(d, { jour: o.jour, montantCents: o.montantCents, magasin, ...(o.articles === undefined ? {} : { articles: o.articles }) });
   const reglement: Reglement = { jour: jourValide(o.jour, "jour"), magasin, montantCents: montant(o.montantCents, "montantCents", 1), ticketId };
   const avecLien: Donnees = { ...donnees, tickets: donnees.tickets.map((t) => (t.id === ticketId ? { ...t, listeId } : t)) };
   return { ticketId, donnees: remplacer(avecLien, { ...l, reglement }) };

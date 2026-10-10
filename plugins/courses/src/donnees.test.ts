@@ -127,3 +127,13 @@ describe("lecture des données", () => {
     expect(lireDonnees(JSON.parse(JSON.stringify(d)))).toEqual(d);
   });
 });
+describe("réglage par un ticket scanné", () => {
+  it("garde les articles du ticket qui règle la liste", () => {
+    const l = creerListe(donneesVides(), "Samedi", ["Lait"]);
+    const r = reglerListe(l.donnees, l.id, { jour: "2026-10-10", montantCents: 1250, magasin: "Leclerc", articles: [{ nom: "Lait demi-écrémé 1L", quantite: 6, prixCents: 120 }] });
+    const ticket = r.donnees.tickets.find((x) => x.id === r.ticketId)!;
+    expect(ticket.listeId).toBe(l.id);
+    expect(ticket.articles).toHaveLength(1);
+    expect(ticket.horsBudget).toBe(false);
+  });
+});

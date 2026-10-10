@@ -4,6 +4,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.2.0]
+
+### Modifié
+
+- **Le scan de ticket n'est plus dans Courses** : il se fait en réglant une liste de courses (*Régler la course* → appareil photo, galerie ou manuel). Le ticket lu règle la liste et entre dans le budget.
+- **Tickets hors budget** : déplacés dans les réglages du plugin (*Tickets hors budget*), pour scanner des tickets à la chaîne sans compter les dépenses.
+
 ### Ajouté
 
 - **Magasin conseillé** : estimation d'une liste d'après les prix des tickets scannés, rapprochement des noms simples (`prix.ts`), prix par article, total par magasin.
