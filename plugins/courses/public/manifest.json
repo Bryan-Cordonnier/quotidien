@@ -1,7 +1,7 @@
 {
   "id": "courses",
   "name": "Courses",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Un budget par semaine pour les courses : les tickets, ce qu'il reste à dépenser, la moyenne par semaine et par mois, et vos listes de courses à régler.",
@@ -58,6 +58,13 @@
         "type": "app",
         "app": "liste"
       }
+    }
+  ],
+  "settings": [
+    {
+      "id": "hors-budget",
+      "title": "Tickets hors budget",
+      "entry": "apps/horsbudget/index.html"
     }
   ],
   "parameters": [

@@ -18,6 +18,7 @@ export default defineConfig({
         widgets: page("apps/widgets"),
         courses: page("apps/courses"),
         liste: page("apps/liste"),
+        horsbudget: page("apps/horsbudget"),
       },
     },
   },

@@ -6,15 +6,11 @@
   import { supprimerTicket } from "../../src/donnees";
   import type { Session } from "../../src/session.svelte";
   import type { Ticket } from "../../src/types";
-  import ScanTicket from "./ScanTicket.svelte";
 
   let { s }: { s: Session } = $props();
 
   const tous = $derived<Ticket[]>(s.donnees ? [...s.donnees.tickets].sort((a, b) => (a.jour < b.jour ? 1 : a.jour > b.jour ? -1 : Number(b.id.slice(1)) - Number(a.id.slice(1)))) : []);
   let ouvert = $state(false);
-  let scan = $state<"budget" | "hors" | null>(null);
-  const horsBudget = $derived(s.donnees ? s.donnees.tickets.filter((t) => t.horsBudget) : []);
-  const lignesGardees = $derived(horsBudget.reduce((n, t) => n + t.articles.length, 0));
   let detail = $state<Ticket | null>(null);
   let aConfirmer = $state<string | null>(null);
   let minuteur: ReturnType<typeof setTimeout> | undefined;
@@ -58,8 +54,6 @@
   <div class="bloc-titre">
     <h3>Tickets</h3>
     <div class="outils">
-      <button class="btn primary" onclick={() => (scan = "budget")}><Icon name="plus" size={16} /> Scanner un ticket</button>
-      <button class="btn" onclick={() => (scan = "hors")} title="Garder les articles et les prix d'un ticket sans le compter dans les courses"><Icon name="plus" size={16} /> Hors budget</button>
       {#if tous.length > 4}<button class="btn" onclick={() => (ouvert = true)}>Voir tout</button>{/if}
     </div>
   </div>
@@ -68,14 +62,13 @@
   {:else}
     <div style="margin-top: 8px">{@render tableau(tous.slice(0, 4))}</div>
   {/if}
-  {#if horsBudget.length > 0}<p class="petit" style="margin: 8px 0 0">{horsBudget.length} ticket{horsBudget.length > 1 ? "s" : ""} hors budget · {lignesGardees} article{lignesGardees > 1 ? "s" : ""} gardé{lignesGardees > 1 ? "s" : ""} pour les prix.</p>{/if}
 </section>
 
 <Modal open={ouvert} titre="Tous les tickets" onclose={() => (ouvert = false)} largeur={720}>
   {@render tableau(tous)}
 </Modal>
 
-{#if scan}<ScanTicket {s} horsBudget={scan === "hors"} onclose={() => (scan = null)} />{/if}
+
 
 <Modal open={detail !== null} titre={detail ? `${detail.magasin} · ${jourMois(detail.jour)}` : "Ticket"} onclose={() => (detail = null)} largeur={560}>
   {#if detail}

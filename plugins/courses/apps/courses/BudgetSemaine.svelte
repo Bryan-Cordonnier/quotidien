@@ -63,21 +63,24 @@
   }
   .ajout {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 8px;
     align-items: center;
     margin-top: 14px;
   }
   .magasin {
-    flex: 1 1 140px;
+    flex: 1 1 0;
+    min-width: 0;
     width: auto;
   }
   .montant {
-    width: 110px;
+    width: 96px;
+    flex: none;
   }
   .plus {
-    width: 40px;
-    height: 40px;
+    flex: none;
+    width: 44px;
+    height: 44px;
     border: 0;
     border-radius: 10px;
     background: var(--accent);

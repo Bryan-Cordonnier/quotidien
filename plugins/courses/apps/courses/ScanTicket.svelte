@@ -4,13 +4,17 @@
   import { Icon, Modal } from "@etabli/ui";
   import { formatEuros, parseEuros } from "@etabli/ui/money";
   import { magasinsConnus } from "../../src/calculs";
-  import { ajouterTicket } from "../../src/donnees";
+  import { ajouterTicket, reglerListe } from "../../src/donnees";
   import { preparerPhoto } from "../../src/photo";
   import type { TicketLu } from "../../src/scan";
   import type { Session } from "../../src/session.svelte";
   import type { LigneTicket } from "../../src/types";
 
-  let { s, onclose, horsBudget = false }: { s: Session; onclose: () => void; horsBudget?: boolean } = $props();
+  /**
+   * listeId : le ticket règle cette liste de courses (il compte dans le budget). ichier : photo déjà choisie, lue tout de suite
+   * (le choix appareil photo / galerie se fait avant, au toucher d'un bouton). onenregistre : après l'enregistrement, au lieu de fermer.
+   */
+  let { s, onclose, horsBudget = false, listeId, fichier, onenregistre }: { s: Session; onclose: () => void; horsBudget?: boolean; listeId?: string; fichier?: File; onenregistre?: () => void } = $props();
 
   // Hors budget : le ticket sert seulement à garder les articles et leurs prix, sans compter dans les courses de la semaine.
   // svelte-ignore state_referenced_locally
@@ -35,12 +39,15 @@
 
   async function choisi(event: Event): Promise<void> {
     const entree = event.currentTarget as HTMLInputElement;
-    const fichier = entree.files?.[0];
+    const f = entree.files?.[0];
     entree.value = "";
-    if (!fichier) return;
+    if (f) await lire(f);
+  }
+
+  async function lire(photo: File): Promise<void> {
     etape = "lecture";
     try {
-      const image = await preparerPhoto(fichier);
+      const image = await preparerPhoto(photo);
       const r = await s.lireTicketPhoto(image);
       if (!r.ok) {
         message = r.message;
@@ -60,21 +67,26 @@
     }
   }
 
+  // Une photo déjà choisie (appareil photo ou galerie, depuis « Régler ») est lue dès l'ouverture.
+  $effect(() => {
+    if (fichier && etape === "choisir") void lire(fichier);
+  });
+
   function enregistrer(): void {
     erreurSaisie = "";
     if (totalCents === null || totalCents <= 0) {
       erreurSaisie = "Le total s'écrit comme 41,20.";
       return;
     }
-    const ok = s.appliquer((d) => ajouterTicket(d, { jour, montantCents: totalCents, magasin, articles: lignes, horsBudget: hors }).donnees);
-    if (ok) onclose();
+    const ok = s.appliquer((d) => (listeId ? reglerListe(d, listeId, { jour, montantCents: totalCents, magasin, articles: lignes }).donnees : ajouterTicket(d, { jour, montantCents: totalCents, magasin, articles: lignes, horsBudget: hors }).donnees));
+    if (ok) (onenregistre ?? onclose)();
     else erreurSaisie = s.message;
   }
 
   const retirer = (i: number): void => void (lignes = lignes.filter((_, k) => k !== i));
 </script>
 
-<Modal open titre={horsBudget ? "Scanner un ticket hors budget" : "Scanner un ticket"} {onclose} largeur={640}>
+<Modal open titre={listeId ? "Régler la course" : horsBudget ? "Ticket hors budget" : "Scanner un ticket"} {onclose} largeur={640}>
   {#if etape === "choisir"}
     <p class="petit" style="margin: 0 0 14px">Prenez le ticket en photo, bien à plat et bien cadré : l'IA lit le magasin, la date, le total et les articles. Vous vérifiez avant d'enregistrer.{horsBudget ? " Ce ticket ne comptera pas dans vos courses : il sert seulement à garder les articles et leurs prix." : ""}</p>
     <div class="actions">
@@ -83,7 +95,7 @@
         <input type="file" accept="image/*" capture="environment" onchange={choisi} hidden />
       </label>
       <label class="btn gros">
-        Choisir un fichier
+        Choisir dans la galerie
         <input type="file" accept="image/*" onchange={choisi} hidden />
       </label>
     </div>
@@ -111,7 +123,7 @@
       <label for="t-total">Total payé (€)</label>
       <input id="t-total" class="saisie num" bind:value={total} inputmode="decimal" autocomplete="off" />
     </div>
-    <label class="hors"><input type="checkbox" bind:checked={hors} /> Hors budget : garder les prix sans compter cette dépense dans les courses</label>
+    {#if !listeId && !horsBudget}<label class="hors"><input type="checkbox" bind:checked={hors} /> Hors budget : garder les prix sans compter cette dépense dans les courses</label>{/if}
     {#if ecart !== 0}
       <p class="alerte" role="status">Le total ne correspond pas à la somme des lignes ({formatEuros(somme)}), écart de {formatEuros(Math.abs(ecart))} : une ligne manque ou est fausse. Vous pouvez enregistrer quand même.</p>
     {/if}
@@ -134,7 +146,7 @@
   {#snippet pied()}
     {#if etape === "verifier"}
       <button class="btn" onclick={onclose}>Annuler</button>
-      <button class="btn primary" onclick={enregistrer}><Icon name="check" size={16} /> Enregistrer le ticket</button>
+      <button class="btn primary" onclick={enregistrer}><Icon name="check" size={16} /> {listeId ? "Régler la course" : "Enregistrer le ticket"}</button>
     {:else}
       <button class="btn" onclick={onclose}>Fermer</button>
     {/if}
