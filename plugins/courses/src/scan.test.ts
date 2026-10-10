@@ -83,3 +83,13 @@ describe("lireTicketIa", () => {
     expect(r.ok && r.ticket.articles.length).toBe(150);
   });
 });
+describe("prix unitaires donnés par l'IA", () => {
+  it("remet les lignes au total quand quantité × prix retombe sur le total", () => {
+    const r = lireTicketIa(JSON.stringify({ estTicket: true, magasin: "Lidl", date: "2026-10-10", total: 7.5, articles: [{ nom: "Lait", quantite: 6, prix: 1.0 }, { nom: "Pain", quantite: 1, prix: 1.5 }] }), "2026-10-11");
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.ticket.articles.map((a) => a.prixCents)).toEqual([600, 150]);
+      expect(r.ticket.ecartCents).toBe(0);
+    }
+  });
+});

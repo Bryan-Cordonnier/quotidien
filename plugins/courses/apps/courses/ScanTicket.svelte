@@ -83,6 +83,12 @@
     else erreurSaisie = s.message;
   }
 
+  const sansEuro = (cents: number): string => formatEuros(cents).replace(/\s?€/, "").replace(/\u202f|\u00a0/g, "");
+  /** Corrige le prix d'une ligne : un prix illisible est refusé et l'ancien reste. */
+  function majPrix(i: number, saisie: string): void {
+    const cents = parseEuros(saisie);
+    if (cents !== null && cents >= 0) lignes[i]!.prixCents = cents;
+  }
   const retirer = (i: number): void => void (lignes = lignes.filter((_, k) => k !== i));
 </script>
 
@@ -125,16 +131,16 @@
     </div>
     {#if !listeId && !horsBudget}<label class="hors"><input type="checkbox" bind:checked={hors} /> Hors budget : garder les prix sans compter cette dépense dans les courses</label>{/if}
     {#if ecart !== 0}
-      <p class="alerte" role="status">Le total ne correspond pas à la somme des lignes ({formatEuros(somme)}), écart de {formatEuros(Math.abs(ecart))} : une ligne manque ou est fausse. Vous pouvez enregistrer quand même.</p>
+      <p class="alerte" role="status">Les prix des lignes font {formatEuros(somme)} pour un total de {formatEuros(totalCents ?? 0)} (écart de {formatEuros(Math.abs(ecart))}) : corrigez un prix ou le total ci-dessous, ou enregistrez quand même si le ticket a des remises.</p>
     {/if}
     {#if lignes.length > 0}
       <p class="etiquette" style="margin: 14px 0 6px">Articles lus ({lignes.length})</p>
       <ul class="lignes">
         {#each lignes as l, i (i)}
           <li>
-            <span class="nom">{l.nom}</span>
+            <input class="saisie nom" bind:value={l.nom} aria-label="Nom de l'article" autocomplete="off" />
             <span class="num petit">{l.quantite !== 1 ? `× ${l.quantite}` : ""}</span>
-            <span class="num prix">{formatEuros(l.prixCents)}</span>
+            <input class="saisie num prix" value={sansEuro(l.prixCents)} aria-label="Prix de {l.nom}" inputmode="decimal" autocomplete="off" onchange={(e) => majPrix(i, e.currentTarget.value)} />
             <button class="retrait" onclick={() => retirer(i)} aria-label="Retirer {l.nom}"><Icon name="x" size={16} /></button>
           </li>
         {/each}
@@ -205,12 +211,10 @@
   .nom {
     flex: 1;
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
   .prix {
-    min-width: 64px;
+    flex: none;
+    width: 84px;
     text-align: right;
     font-weight: 700;
   }

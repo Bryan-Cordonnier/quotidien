@@ -6,6 +6,16 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.21] — 2026-10-11
+
+### Ajouté
+
+- **Supprimer une liste de courses** : bouton « Supprimer la liste » en bas d'une liste en cours (un second appui confirme). Une liste déjà réglée ne se supprime pas.
+
+### Corrigé
+
+- **Lecture des tickets** : quand l'IA donne le prix à l'unité au lieu du prix de la ligne, les lignes sont remises au bon total automatiquement. Dans la vérification, le nom et le prix de chaque ligne se corrigent à la main, et le message d'écart explique quoi faire.
+
 ## [0.1.20] — 2026-10-11
 
 ### Ajouté
