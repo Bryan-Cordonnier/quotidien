@@ -6,6 +6,15 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.17] — 2026-10-10
+
+### Corrigé
+
+- **Icône Android** : elle s'adapte à la forme choisie par le téléphone (ronde, carrée…) au lieu d'un carré dans un rond : le fond couvre toute l'icône et le Q blanc est au centre.
+- **Retour** : depuis une section des paramètres ou les réglages d'un plugin, le retour revient où l'on était, plus à l'accueil.
+- **Accueil du téléphone plus compact** : toutes les pages tiennent sans défiler.
+- **Plus de lueur bleue** au toucher d'un bouton, et les boutons des alarmes ont le style du thème.
+
 ## [0.1.16] — 2026-10-10
 
 ### Corrigé
