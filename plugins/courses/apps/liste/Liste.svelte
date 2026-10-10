@@ -96,7 +96,7 @@
           <span class="petit">{enCours.length} liste{enCours.length > 1 ? "s" : ""}</span>
         </div>
         {#if enCours.length === 0}
-          <p class="petit" style="margin-top: 10px">Aucune liste en cours. Créez-en une à gauche.</p>
+          <p class="petit" style="margin-top: 10px">Aucune liste en cours. Créez-en une pour commencer.</p>
         {:else}
           <ul class="listes">
             {#each enCours as l (l.id)}

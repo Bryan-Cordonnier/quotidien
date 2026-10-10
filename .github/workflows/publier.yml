@@ -76,3 +76,43 @@ jobs:
             "$RUNNER_TEMP/latest.json" \
             --title "Quotidien $GITHUB_REF_NAME" \
             --notes-file "$RUNNER_TEMP/notes-release.md"
+
+  android:
+    name: APK Android signé
+    needs: windows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: rustup target add aarch64-linux-android
+      - name: NDK Android (préinstallé sur l'image)
+        run: |
+          echo "NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+      - run: npm ci
+      - run: npm run android:init
+      - name: Icône de l'application (logo Quotidien)
+        run: cp -r icons/android/. etable/apps/desktop/src-tauri/gen/android/app/src/main/res/
+      - name: Clé de signature Android
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | tr -d '\r\n ' | base64 -d > "$RUNNER_TEMP/quotidien.jks"
+          echo "ANDROID_KEYSTORE=$RUNNER_TEMP/quotidien.jks" >> "$GITHUB_ENV"
+          printf 'ANDROID_KEYSTORE_PASSWORD=%s\n' "$(echo '${{ secrets.ANDROID_KEYSTORE_PASSWORD }}' | tr -d '\r\n')" >> "$GITHUB_ENV"
+      - run: node scripts/signer-android.mjs
+      - run: npm run android:build -- --target aarch64
+      - name: Publication de l'APK dans la Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          apk=$(ls etable/apps/desktop/src-tauri/gen/android/app/build/outputs/apk/*/release/*.apk | head -n 1)
+          cp "$apk" "Quotidien_${GITHUB_REF_NAME#v}_android.apk"
+          gh release upload "$GITHUB_REF_NAME" "Quotidien_${GITHUB_REF_NAME#v}_android.apk"

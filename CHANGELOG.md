@@ -6,6 +6,16 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.14] — 2026-10-10
+
+### Ajouté
+
+- **Mise à jour de l'application Android** : au démarrage (et dans *Paramètres → À propos*), Quotidien cherche une nouvelle version ; un bandeau propose de la télécharger, puis il suffit d'ouvrir le fichier pour installer par-dessus, sans perdre ses données. L'APK est désormais signé avec une clé fixe : **cette version-ci demande de désinstaller l'ancienne une dernière fois**.
+
+### Corrigé
+
+- Liste de courses : le message « Créez-en une à gauche » ne dépend plus de la disposition (téléphone).
+
 ## [0.1.13] — 2026-10-10
 
 ### Modifié
