@@ -8,6 +8,11 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [0.1.20] — 2026-10-11
 
+### Ajouté
+
+- **Actualisation en direct entre le PC et le téléphone** : quand vous enregistrez quelque chose sur un appareil (une liste créée, un ticket…), le serveur prévient les autres appareils connectés et la page ouverte se met à jour toute seule, sans la quitter.
+- **Mise à jour d'Android depuis l'application** : le bouton « Télécharger » télécharge l'APK par Android (progression dans la notification) puis ouvre l'installateur ; la première fois, Android demande d'autoriser Quotidien à installer ses mises à jour, puis il faut confirmer l'installation.
+
 ### Modifié
 
 - **Scanner un ticket, c'est maintenant en réglant une liste de courses** : *Régler la course* propose *Scanner avec l'appareil photo*, *Scanner depuis la galerie* ou *Régler manuellement*. Le ticket lu (magasin, date, total, articles) est à vérifier, puis il règle la liste et entre dans le budget de la semaine.
