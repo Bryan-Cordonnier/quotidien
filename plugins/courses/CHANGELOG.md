@@ -6,6 +6,11 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [0.2.0]
 
+### Ajouté
+
+- **Supprimer une liste de courses en cours** (bouton avec confirmation).
+- **Vérification d'un ticket scanné** : nom et prix de chaque ligne modifiables ; prix à l'unité remis au prix de la ligne quand le total le confirme.
+
 ### Modifié
 
 - **Le scan de ticket n'est plus dans Courses** : il se fait en réglant une liste de courses (*Régler la course* → appareil photo, galerie ou manuel). Le ticket lu règle la liste et entre dans le budget.

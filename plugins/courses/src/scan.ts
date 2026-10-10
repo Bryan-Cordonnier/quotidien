@@ -70,8 +70,16 @@ export function lireTicketIa(texte: string, aujourdhui: Jour): Lecture {
     const q = typeof a?.quantite === "number" && Number.isFinite(a.quantite) && a.quantite > 0 && a.quantite <= 999 ? Math.round(a.quantite * 1000) / 1000 : 1;
     articles.push({ nom, quantite: q, prixCents: prix });
   }
-  const somme = articles.reduce((s, a) => s + a.prixCents, 0);
+  let somme = articles.reduce((s, a) => s + a.prixCents, 0);
   const lu = euros(r.total);
+  // Souvent l'IA donne le prix à l'unité malgré la consigne : si « quantité × prix » retombe exactement sur le total, c'est ce qu'elle a fait.
+  if (lu !== null && lu > 0 && somme !== lu) {
+    const avecQuantites = articles.reduce((s, a) => s + Math.round(a.prixCents * a.quantite), 0);
+    if (avecQuantites === lu) {
+      for (const a of articles) a.prixCents = Math.round(a.prixCents * a.quantite);
+      somme = avecQuantites;
+    }
+  }
   const totalCents = lu !== null && lu > 0 ? lu : somme;
   if (totalCents <= 0) return { ok: false, message: "Le total du ticket n'a pas pu être lu : essayez une photo plus nette, bien cadrée." };
 

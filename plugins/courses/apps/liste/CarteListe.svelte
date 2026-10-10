@@ -5,7 +5,7 @@
   import { Icon } from "@etabli/ui";
   import { formatEuros } from "@etabli/ui/money";
   import { baseDePrix, estimerListe } from "../../src/prix";
-  import { ajouterArticle, basculerPris, renommerArticle, renommerListe, retirerArticle } from "../../src/donnees";
+  import { ajouterArticle, basculerPris, renommerArticle, renommerListe, retirerArticle, supprimerListe } from "../../src/donnees";
   import type { Session } from "../../src/session.svelte";
   import type { Liste } from "../../src/types";
 
@@ -40,6 +40,20 @@
     edition = null;
     if (!enregistrer || !courante || valeur.trim() === "") return;
     s.appliquer((d) => (courante.article ? renommerArticle(d, liste.id, courante.article, valeur) : renommerListe(d, liste.id, valeur)));
+  }
+
+  /** Supprimer la liste : un second appui confirme (4 secondes pour changer d'avis). Seule une liste en cours se supprime. */
+  let confirmeSuppression = $state(false);
+  let minuteur: ReturnType<typeof setTimeout> | undefined;
+  function supprimer(): void {
+    if (!confirmeSuppression) {
+      confirmeSuppression = true;
+      clearTimeout(minuteur);
+      minuteur = setTimeout(() => (confirmeSuppression = false), 4000);
+      return;
+    }
+    clearTimeout(minuteur);
+    s.appliquer((d) => supprimerListe(d, liste.id));
   }
 
   function ajouter(): void {
@@ -106,11 +120,17 @@
       </div>
       <p class="petit" style="margin: 8px 0 0">Un article non coché n'empêche pas de régler : vous ne l'avez peut-être pas pris ou pas trouvé.</p>
       <button class="btn primary regler" onclick={onregler}>Régler la course</button>
+      <button class="btn danger supprimer" onclick={supprimer}><Icon name="trash" size={16} /> {confirmeSuppression ? "Confirmer la suppression" : "Supprimer la liste"}</button>
     </div>
   {/if}
 </div>
 
 <style>
+  .supprimer {
+    margin-top: 8px;
+    width: 100%;
+    justify-content: center;
+  }
   .carte {
     padding: 10px 14px;
     border: 1px solid var(--border);
