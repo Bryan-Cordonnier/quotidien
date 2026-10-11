@@ -6,6 +6,13 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.22] — 2026-10-11
+
+### Corrigé
+
+- **Téléphone : on peut défiler dans les fenêtres plein écran** (la vérification d'un ticket scanné ne pouvait pas être descendue jusqu'au bouton), et la marge en haut ne double plus.
+- **Android : le bouton « Prendre une photo » ouvre l'appareil photo** (l'application déclare maintenant la permission de la caméra ; Android la demande la première fois).
+
 ## [0.1.21] — 2026-10-11
 
 ### Ajouté
