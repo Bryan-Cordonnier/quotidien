@@ -6,6 +6,12 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.24] — 2026-10-12
+
+### Corrigé
+
+- **Android : « impossible de joindre GitHub »** : la recherche de nouvelle version utilise une requête plus simple, que GitHub accepte depuis l'application. Si GitHub limite les recherches, le message le dit.
+
 ## [0.1.23] — 2026-10-12
 
 ### Corrigé
