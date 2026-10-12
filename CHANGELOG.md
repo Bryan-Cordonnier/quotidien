@@ -6,6 +6,13 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.33] — 2026-10-13
+
+### Corrigé
+
+- **Widgets Android bloqués sur « Ouvrez l'application »** : un texte trop long est maintenant raccourci au lieu de bloquer le widget, et chaque widget affiche un message clair quand une donnée manque (pas de budget, Finances indisponible, données illisibles).
+- **Widget « Un compte » sur le téléphone** : affiche le premier compte quand aucun n'a été choisi.
+
 ## [0.1.32] — 2026-10-13
 
 ### Ajouté

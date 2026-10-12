@@ -24,7 +24,10 @@
 
   // Résumé pour l'écran d'accueil du téléphone.
   $effect(() => {
-    if (!s.carnet) return;
+    if (!s.carnet) {
+      if (s.illisible) s.hote?.widgets.resume({ titre: "Agenda", lignes: ["Agenda illisible : ouvrez Quotidien."], page: "calendrier" });
+      return;
+    }
     if (id === "coucher") s.hote?.widgets.resume({ titre: "Coucher conseillé ce soir", valeur: heure(coucher % 1440), page: "calendrier" });
     else s.hote?.widgets.resume({ titre: "Aujourd'hui", lignes: utiles.length ? utiles.slice(0, 5).map((seg) => `${hhmm(seg.debutMin)}  ${seg.titre}`) : ["Rien de prévu aujourd'hui."], page: "calendrier" });
   });
