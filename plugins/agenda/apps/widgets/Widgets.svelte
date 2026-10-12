@@ -21,6 +21,13 @@
   const classe = (seg: Segment): string =>
     seg.genre === "evenement" ? `k-${seg.occurrence?.contrat ?? (seg.occurrence && (seg.occurrence.type === "travail" || seg.occurrence.type === "retux") ? "interim" : seg.occurrence?.type === "rdv" ? "rdv" : "autre")}` : "";
   const ouvrir = () => s.hote?.openPage("calendrier");
+
+  // Résumé pour l'écran d'accueil du téléphone.
+  $effect(() => {
+    if (!s.carnet) return;
+    if (id === "coucher") s.hote?.widgets.resume({ titre: "Coucher conseillé ce soir", valeur: heure(coucher % 1440), page: "calendrier" });
+    else s.hote?.widgets.resume({ titre: "Aujourd'hui", lignes: utiles.length ? utiles.slice(0, 5).map((seg) => `${hhmm(seg.debutMin)}  ${seg.titre}`) : ["Rien de prévu aujourd'hui."], page: "calendrier" });
+  });
 </script>
 
 {#if s.illisible}

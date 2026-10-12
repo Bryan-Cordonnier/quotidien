@@ -12,6 +12,16 @@
 
   const b = $derived(s.donnees ? budgetDisponible(s.donnees, s.reglages, s.aujourdhui) : null);
   const listes = $derived(s.donnees ? listesEnCours(s.donnees) : []);
+
+  // Résumé pour l'écran d'accueil du téléphone.
+  $effect(() => {
+    if (!s.donnees) return;
+    if (id === "liste") {
+      s.resumerWidget({ titre: "Liste de courses", lignes: listes.length ? listes.slice(0, 5).map((l) => `${l.nom} · ${l.articles.filter((a) => a.pris).length}/${l.articles.length}`) : ["Aucune liste en cours."], page: "liste" });
+    } else if (b) {
+      s.resumerWidget({ titre: "Courses · budget disponible", valeur: `${b.disponibleCents < 0 ? "− " : ""}${formatEuros(Math.abs(b.disponibleCents))}`, lignes: [`${formatEuros(b.depenseCents)} dépensés · ${Math.round(b.pourcent)} %`], page: "courses" });
+    }
+  });
 </script>
 
 {#if s.illisible}

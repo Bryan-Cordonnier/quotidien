@@ -135,4 +135,9 @@ export class Session {
   enregistrerFichier(nom: string, contenu: string, extension: string, description: string): void {
     this.#hote?.saveFile({ name: nom, content: contenu, extension, description });
   }
+
+  /** Résumé du widget affiché, pour l'écran d'accueil du téléphone (widget Android). */
+  resumerWidget(resume: { titre: string; valeur?: string; lignes?: string[]; page?: string }): void {
+    this.#hote?.widgets.resume(resume);
+  }
 }
