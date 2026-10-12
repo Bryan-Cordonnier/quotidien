@@ -6,6 +6,23 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.28] — 2026-10-12
+
+### Modifié
+
+- **Paramètres plus simples** : *Application* (Général, Apparence, Intelligence artificielle, Raccourcis, Serveur, Alarmes, À propos en dernier), puis *Plugins* avec les réglages de chaque plugin.
+- **Accueil du téléphone** : le logo s'aligne sur les icônes, la date du jour en gras sur les noms des pages ; « Modifier l'ordre » permet de ranger les pages.
+- **Chargement** : une page reste cachée tant qu'elle n'est pas prête, avec une roue de chargement, au lieu d'un fond blanc aux boutons bleus.
+- **Pages plus rapides quand le serveur est lent** : elles s'affichent depuis la copie de l'appareil et se mettent à jour quand le serveur répond.
+
+### Corrigé
+
+- **Téléphone : plus de grande marge en haut** de chaque page.
+- **Textes manquants** dans les paramètres (démarrage avec Windows, fermeture de la fenêtre) et ailleurs.
+- **Raccourci de l'aperçu rapide (Ctrl + Maj + Q)** : il marche maintenant sur un clavier AZERTY.
+- **Session du serveur expirée** : l'application affiche l'écran de connexion au lieu de se déconnecter sans rien dire.
+- **Un bouton seul dans un bloc est centré** sur téléphone.
+
 ## [0.1.27] — 2026-10-12
 
 ### Modifié
