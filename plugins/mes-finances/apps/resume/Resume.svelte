@@ -24,6 +24,22 @@
   const compte = $derived(s.comptes.find((c) => c.id === s.donnees?.comptesWidgets[String(exemplaire)]) ?? null);
   const ouvrir = () => s.ouvrirPage("situation");
 
+  // Résumé pour l'écran d'accueil du téléphone : la courbe devient un résumé en texte.
+  const jusquau = (): string => (s.tient && jours !== null ? (jours === 0 ? `Sous le seuil dès le ${dateLongue(s.tient)}` : `Jusqu'au ${dateLongue(ajouterJours(s.tient, -1))}`) : "Au-dessus du seuil sur tout l'horizon");
+  $effect(() => {
+    if (!s.charge || s.sansFinances) return;
+    const page = "situation";
+    if (id === "tient") s.resumerWidget({ titre: "Jusqu'à quand je tiens", valeur: s.tient && jours !== null ? (jours === 0 ? "Aujourd'hui" : `${jours} jour${jours > 1 ? "s" : ""}`) : "Tout l'horizon", lignes: [jusquau()], page });
+    else if (id === "compte") s.resumerWidget(compte ? { titre: compte.nom, valeur: euros(s.soldes[compte.id] ?? 0), page } : { titre: "Un compte", lignes: ["Choisissez le compte sur l'accueil du PC."], page });
+    else if (id === "courbe") {
+      const fin = s.courbe.at(-1);
+      const bas = s.courbe.reduce((m, p) => (p.soldeCents < m.soldeCents ? p : m), s.courbe[0] ?? { jour: s.aujourdhui, soldeCents: 0 });
+      s.resumerWidget({ titre: `Dans ${s.reglages.horizon} jours`, valeur: euros(fin?.soldeCents ?? 0), lignes: [`Point bas : ${euros(bas.soldeCents)} le ${court(bas.jour)}`], page });
+    } else if (id === "paiements") s.resumerWidget({ titre: "Prochains paiements", lignes: s.paiements.length ? s.paiements.slice(0, 5).map((p) => `${court(p.jour)} · ${p.libelle} · ${euros(p.montantCents)}`) : ["Rien de prévu."], page });
+    else if (id === "estime") s.resumerWidget({ titre: "Argent actuel", valeur: euros(s.estime.vie), page });
+    else s.resumerWidget({ titre: "Estimé · vie courante", valeur: euros(s.estime.vie), lignes: [jusquau()], page });
+  });
+
   // La courbe occupe exactement la place que le widget lui laisse : sa hauteur suit celle de son conteneur (elle est dessinée sur 600 de large).
   let largeurCourbe = $state(400);
   let hauteurPlace = $state(120);

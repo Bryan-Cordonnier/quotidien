@@ -13,6 +13,16 @@
   const suivante = $derived(s.donnees ? missionProchaine(s.donnees, s.aujourdhui) : undefined);
   const m = $derived(encours ?? suivante);
   const r = $derived(s.donnees && m ? resume(s.donnees, s.reglages, m, s.aujourdhui) : null);
+
+  // Résumé pour l'écran d'accueil du téléphone.
+  $effect(() => {
+    if (!s.donnees) return;
+    s.resumerWidget(
+      m && r
+        ? { titre: encours ? "Mission en cours" : "Prochaine mission", valeur: formatEuros(r.netCents), lignes: [r.titre, encours ? `${r.faits}/${r.total} jours` : dans(s.aujourdhui, m.debut)], page: "travail" }
+        : { titre: "Travail", lignes: ["Aucune mission pour l'instant."], page: "travail" },
+    );
+  });
 </script>
 
 {#if s.illisible}

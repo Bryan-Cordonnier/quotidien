@@ -6,6 +6,12 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.31] — 2026-10-13
+
+### Ajouté
+
+- **Widgets sur l'écran d'accueil du téléphone** : appui long sur l'écran d'accueil → *Widgets* → *Quotidien*, puis choisis lequel afficher (Aujourd'hui, Coucher conseillé, Budget des courses, Liste de courses, Estimé, Argent actuel, Jusqu'à quand je tiens, Un compte, Courbe en résumé, Prochains paiements, Mission). Ils suivent le thème clair ou sombre du téléphone, se mettent à jour quand l'application est ouverte ou se synchronise, et un toucher ouvre la bonne page.
+
 ## [0.1.30] — 2026-10-13
 
 ### Ajouté
