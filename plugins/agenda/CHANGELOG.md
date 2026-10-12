@@ -5,6 +5,10 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ## [Non publié]
 
+### Ajouté
+
+- **Calculer le trajet** d'un événement d'après son adresse, avec la circulation prévue (clé TomTom dans Paramètres → Trajets), et **Ouvrir dans Waze**.
+
 ### Modifié
 
 - **Widgets** : les petites tailles resserrent le texte.

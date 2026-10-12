@@ -29,6 +29,17 @@
   const jours = $derived(s.tient ? differenceJours(s.aujourdhui, s.tient) : null);
   const points = $derived(s.courbe.map((p) => ({ label: court(p.jour), value: p.soldeCents / 100 })));
 
+  /** Montant corrigé avant confirmation, par prévision (en euros, sans signe). */
+  let montants = $state<Record<string, string>>({});
+  const montantDe = (p: { id: string; montantCents: number }): string => montants[p.id] ?? formatEuros(Math.abs(p.montantCents)).replace(/\s?€/, "").replace(/\u202f|\u00a0/g, "");
+  async function confirmer(p: { id: string; montantCents: number; jour: string; libelle: string; compteId: string | null }): Promise<void> {
+    const cents = parseEuros(montantDe(p));
+    if (cents === null || cents <= 0) {
+      s.message = "Le montant s'écrit comme 12,40.";
+      return;
+    }
+    await s.confirmerPrevision(p, Math.sign(p.montantCents || 1) * cents);
+  }
   let ajustement = $state("");
   let libelle = $state("");
   let reel = $state("");
@@ -80,6 +91,33 @@
       </p>
     </section>
   {:else}
+    {#if s.aConfirmer.length > 0}
+      <section class="bloc a-confirmer">
+        <p class="etiquette">À confirmer</p>
+        <p class="petit" style="margin: 0 0 8px">Ces paiements prévus sont passés : l'argent est-il vraiment passé ? Corrigez le montant si besoin.</p>
+        <ul class="confirmer">
+          {#each s.aConfirmer as p (p.id)}
+            <li>
+              <span class="quoi"><b>{p.libelle || "Paiement prévu"}</b><span class="petit">{court(p.jour)} · {p.montantCents < 0 ? "sortie" : "entrée"}</span></span>
+              <input class="saisie num" value={montantDe(p)} oninput={(e) => (montants[p.id] = e.currentTarget.value)} inputmode="decimal" aria-label="Montant de {p.libelle}" />
+              <span class="choix">
+                <button class="btn primary sm" onclick={() => confirmer(p)}>Confirmer</button>
+                <button class="btn sm" onclick={() => void s.ecarterPrevision(p)}>Pas passé</button>
+              </span>
+            </li>
+          {/each}
+        </ul>
+      </section>
+    {/if}
+    {#if s.finRevenus}
+      <section class="bloc alerte-revenu" role="status">
+        <p class="etiquette">Plus de revenu prévu</p>
+        <p style="margin: 0">
+          Aucun revenu n'est prévu après le <b>{dateLongue(s.finRevenus)}</b>.
+          {s.tient ? `Avec ce qui est prévu, tu tiens jusqu'au ${dateLongue(s.tient)}.` : "Ton argent reste au-dessus du seuil sur toute la période affichée."}
+        </p>
+      </section>
+    {/if}
     <div class="grille-2">
       <section class="bloc">
         <p class="etiquette">Estimé · vie courante</p>
@@ -172,6 +210,39 @@
 </div>
 
 <style>
+  .alerte-revenu {
+    border-color: color-mix(in srgb, var(--warn) 45%, var(--border));
+    background: color-mix(in srgb, var(--warn) 10%, var(--surface));
+  }
+  .confirmer {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .confirmer li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .confirmer .quoi {
+    flex: 1 1 160px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .confirmer .saisie {
+    width: 100px;
+  }
+  .confirmer .choix {
+    display: flex;
+    gap: 6px;
+  }
   .grand {
     margin-top: 6px;
     font-size: 34px;

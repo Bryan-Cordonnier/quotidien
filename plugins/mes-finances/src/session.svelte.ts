@@ -3,7 +3,7 @@
 // Règle de sécurité : des données illisibles ne sont JAMAIS remplacées par des données vides.
 import { connect } from "@etabli/sdk";
 import { ajouterJours, jourDeInstant, type Jour } from "@etabli/ui/civil";
-import { courbe, ecartDeRecalage, estime, precision, premierJourSousSeuil, prochainsPaiements, reglagesDepuis, roleDe, type Point } from "./calculs";
+import { courbe, ecartDeRecalage, estime, precision, premierJourSousSeuil, prochainsPaiements, reglagesDepuis, roleDe, type Point, finDesRevenus } from "./calculs";
 import { avecCompteWidget, avecRecalage, avecRole, lireDonnees } from "./donnees";
 import { ErreurMesFinances, type Compte, type Donnees, type Prevision, type Role } from "./types";
 
@@ -23,6 +23,8 @@ export class Session {
   comptes = $state<Compte[]>([]);
   soldes = $state<Record<string, number>>({});
   previsions = $state<Prevision[]>([]);
+  /** Prévisions dont le jour est passé et qui attendent encore : l'utilisateur dit si l'argent est vraiment passé. */
+  aConfirmer = $state<Prevision[]>([]);
   /** Problème de lecture de Finances / Budget (null : tout va bien). */
   sansFinances = $state<string | null>(null);
   sansBudget = $state<string | null>(null);
@@ -33,6 +35,8 @@ export class Session {
   courbe = $derived<Point[]>(courbe(this.estime.vie, this.aujourdhui, this.reglages.horizon, this.previsions, this.comptes, this.donnees?.roles ?? {}));
   tient = $derived(premierJourSousSeuil(this.courbe, this.reglages.seuilCents));
   paiements = $derived(prochainsPaiements(this.previsions, this.aujourdhui, 6));
+  /** Dernier revenu prévu, s'il arrive bientôt sans suite (fin de mission sans mission suivante). */
+  finRevenus = $derived(finDesRevenus(this.previsions, this.aujourdhui));
   precision = $derived(precision(this.donnees?.recalages ?? [], this.reglages.recalagesRetenus));
   /** Compte qui reçoit les ajustements et les recalages : le premier de la vie courante. */
   compteParDefaut = $derived(this.comptes.find((c) => roleDe(c, this.donnees?.roles ?? {}) === "vie") ?? null);
@@ -69,11 +73,13 @@ export class Session {
   async actualiser(): Promise<void> {
     this.aujourdhui = jourDeInstant(Date.now());
     const fin = ajouterJours(this.aujourdhui, this.reglages.horizon);
-    const [comptes, soldes, previsions] = await Promise.all([
+    const [comptes, soldes, previsions, passees] = await Promise.all([
       this.#appeler("finances", "comptes.liste", {}),
       this.#appeler("finances", "soldes.aLaDate", { jour: this.aujourdhui }),
       this.#appeler("budget", "previsions.liste", { du: this.aujourdhui, au: fin, statut: "attendue" }),
+      this.#appeler("budget", "previsions.liste", { du: ajouterJours(this.aujourdhui, -120), au: ajouterJours(this.aujourdhui, -1), statut: "attendue" }),
     ]);
+    this.aConfirmer = passees.ok ? ((passees.valeur as { previsions: Prevision[] }).previsions ?? []) : [];
     this.sansFinances = absent(comptes) ?? absent(soldes);
     if (comptes.ok && soldes.ok) {
       this.comptes = (comptes.valeur as Compte[]).filter((c) => !(c as Compte & { archive?: boolean }).archive);
@@ -98,6 +104,43 @@ export class Session {
     const suivant = avecRole(this.donnees, compteId, role);
     this.#hote.settings.update(suivant);
     this.donnees = suivant;
+  }
+
+  /**
+   * Le jour J passé : l'argent est vraiment passé. L'écriture entre dans Finances (à la date prévue, sur le compte de la prévision
+   * ou celui de la vie courante), puis Budget marque la prévision réalisée. La clé évite un doublon si l'on appuie deux fois.
+   */
+  async confirmerPrevision(p: Prevision, montantCents: number): Promise<boolean> {
+    this.message = "";
+    const compteId = p.compteId ?? this.compteParDefaut?.id ?? null;
+    if (!compteId) {
+      this.message = "Aucun compte de la vie courante : choisissez-en un dans « Mes comptes ».";
+      return false;
+    }
+    const r = await this.#appeler("finances", "ecritures.ajouter", {
+      compteId,
+      montantCents,
+      quand: new Date(`${p.jour}T12:00:00`).getTime(),
+      libelle: p.libelle || "Paiement prévu",
+      cle: `mf-prevision-${p.id}`,
+    });
+    if (!r.ok) {
+      this.message = `Finances a refusé : ${r.message}`;
+      return false;
+    }
+    const ecritureId = (r.valeur as { id?: unknown } | null)?.id;
+    const b = await this.#appeler("budget", "previsions.confirmer", { id: p.id, ...(typeof ecritureId === "string" ? { ecritureId } : {}) });
+    if (!b.ok) this.message = `L'écriture est ajoutée, mais Budget n'a pas pu marquer le paiement : ${b.message}`;
+    await this.actualiser();
+    return true;
+  }
+
+  /** Le paiement prévu n'a pas eu lieu : il sort de la liste sans rien écrire dans Finances. */
+  async ecarterPrevision(p: Prevision): Promise<void> {
+    this.message = "";
+    const b = await this.#appeler("budget", "previsions.abandonner", { id: p.id });
+    if (!b.ok) this.message = `Budget a refusé : ${b.message}`;
+    await this.actualiser();
   }
 
   async #ecrire(montantCents: number, libelle: string): Promise<boolean> {

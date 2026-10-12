@@ -4,6 +4,11 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+### Ajouté
+
+- **À confirmer** : les paiements prévus dont la date est passée ; *Confirmer* (montant corrigeable) les ajoute dans Finances, *Pas passé* les écarte.
+- **Plus de revenu prévu** : alerte quand le dernier revenu prévu arrive bientôt sans suite (fin de mission), avec la date jusqu'à laquelle on tient.
+
 ### Modifié
 
 - **Widgets** : la courbe suit la taille de sa case ; « Un compte » garde un compte par exemplaire posé ; les petites tailles resserrent le texte.

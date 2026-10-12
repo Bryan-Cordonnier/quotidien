@@ -3,7 +3,7 @@
 // Un fournisseur ne peut pas appeler un autre service (profondeur 1) : ces fonctions ne touchent qu'au plan de Budget.
 import { differenceJours } from "@etabli/ui/civil";
 import { FENETRE_MAX_JOURS } from "./calculs";
-import { PREVISIONS_PAR_APPEL_MAX, realiserPrevisions, remplacerPrevisions, supprimerPrevisions } from "./operations";
+import { abandonner, PREVISIONS_PAR_APPEL_MAX, realiser, realiserPrevisions, remplacerPrevisions, supprimerPrevisions } from "./operations";
 import { lireBrouillonPrevision, lirePlan } from "./plan";
 import { ErreurBudget, STATUTS, type Plan, type Prevision } from "./types";
 import { choix, cle, identifiant, jourValide, liste, objet, reference, texte } from "./validation";
@@ -14,6 +14,8 @@ export const FONCTIONS: Record<string, "lecture" | "ecriture"> = {
   "previsions.remplacer": "ecriture",
   "previsions.supprimer": "ecriture",
   "previsions.realiser": "ecriture",
+  "previsions.confirmer": "ecriture",
+  "previsions.abandonner": "ecriture",
 };
 
 /** Prévisions rendues par page. */
@@ -74,6 +76,17 @@ export function executer(enregistre: unknown, fonction: string, args: unknown, a
       const a = objet(args, ["ref"], ["jour", "ecritureId"]);
       const r = realiserPrevisions(plan, qui, reference(a.ref, "ref"), a.jour === undefined ? null : jourValide(a.jour, "jour"), a.ecritureId === undefined ? null : identifiant(a.ecritureId, "ecritureId"));
       return { valeur: r.valeur, plan: r.plan === plan ? null : r.plan };
+    }
+    // Le jour J passé, l'utilisateur confirme (ou écarte) une prévision, quelle que soit sa source (paie, courses, saisie) :
+    // c'est lui qui décide que l'argent est vraiment passé. `ecritureId` : l'écriture ajoutée dans Finances.
+    case "previsions.confirmer": {
+      const a = objet(args, ["id"], ["ecritureId"]);
+      const suivant = realiser(plan, identifiant(a.id, "id"), a.ecritureId === undefined ? null : identifiant(a.ecritureId, "ecritureId"));
+      return { valeur: { confirmee: true }, plan: suivant };
+    }
+    case "previsions.abandonner": {
+      const a = objet(args, ["id"]);
+      return { valeur: { abandonnee: true }, plan: abandonner(plan, identifiant(a.id, "id")) };
     }
   }
   throw new ErreurBudget("introuvable", `Fonction inconnue : « ${fonction} ».`);

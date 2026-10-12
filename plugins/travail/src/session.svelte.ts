@@ -130,4 +130,9 @@ export class Session {
     const voulues = projections(d, this.reglages, this.aujourdhui);
     return { a: this.rapport ? this.rapport.aJour + this.rapport.envoyees : 0, sur: voulues.length };
   }
+
+  /** Enregistre un fichier produit par Travail (bulletin estimé en PDF) : boîte « Enregistrer sous » du moteur. */
+  enregistrerFichier(nom: string, contenu: string, extension: string, description: string): void {
+    this.#hote?.saveFile({ name: nom, content: contenu, extension, description });
+  }
 }

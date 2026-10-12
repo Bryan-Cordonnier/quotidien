@@ -228,3 +228,22 @@ describe("Finances", () => {
     expect(await confirmer(async () => ({ ok: false, code: "introuvable", message: "Compte introuvable." }), prevision, midi)).toEqual({ ok: false, code: "introuvable", message: "Compte introuvable." });
   });
 });
+
+describe("confirmer ou écarter une prévision passée (Mes finances)", () => {
+  const avecPaie = () => {
+    const r = executer(planVide(), "previsions.remplacer", { ref: "m1", cle: "c1", previsions: [{ jour: "2026-10-10", montantCents: 120000, compteId: null, categorieId: null, libelle: "Paie" }] }, "travail");
+    return r.plan!;
+  };
+  it("confirme une prévision d'un autre plugin et garde l'écriture", () => {
+    const plan = avecPaie();
+    const id = plan.previsions[0]!.id;
+    const r = executer(plan, "previsions.confirmer", { id, ecritureId: "e42" }, "mes-finances");
+    expect(r.plan!.previsions[0]).toMatchObject({ statut: "realisee", ecritureId: "e42" });
+    expect(() => executer(r.plan, "previsions.confirmer", { id }, "mes-finances")).toThrow();
+  });
+  it("écarte une prévision qui n'a pas eu lieu", () => {
+    const plan = avecPaie();
+    const r = executer(plan, "previsions.abandonner", { id: plan.previsions[0]!.id }, "mes-finances");
+    expect(r.plan!.previsions[0]!.statut).toBe("abandonnee");
+  });
+});

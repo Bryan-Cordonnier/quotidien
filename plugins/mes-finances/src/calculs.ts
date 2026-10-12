@@ -1,5 +1,5 @@
 // Calculs de Mes finances, purs et testés : estimé, courbe de prévision, « jusqu'à quand je tiens », prochains paiements, précision.
-import { ajouterJours, comparerJours, plage, type Jour } from "@etabli/ui/civil";
+import { ajouterJours, comparerJours, differenceJours, plage, type Jour } from "@etabli/ui/civil";
 import type { Compte, Donnees, Prevision, Recalage, Reglages, Role } from "./types";
 
 export const REGLAGES_DEFAUT: Reglages = { seuilCents: 0, horizon: 60, recalagesRetenus: 6 };
@@ -78,3 +78,14 @@ export function precision(recalages: Recalage[], retenus: number): number | null
 
 /** Écart entre le solde réel saisi et l'estimé : c'est l'écriture de recalage à passer (0 : rien à faire). */
 export const ecartDeRecalage = (reelCents: number, estimeCents: number): number => reelCents - estimeCents;
+
+/**
+ * Fin des revenus prévus : le jour du dernier revenu attendu (une entrée d'argent prévue), s'il tombe dans les 45 prochains jours.
+ * Sert à prévenir quand une mission se termine sans suite. `null` : un revenu est prévu plus loin, ou aucun revenu n'est prévu du tout.
+ */
+export function finDesRevenus(previsions: readonly { jour: Jour; montantCents: number }[], aujourdhui: Jour): Jour | null {
+  const revenus = previsions.filter((p) => p.montantCents > 0 && p.jour >= aujourdhui).map((p) => p.jour).sort();
+  const dernier = revenus.at(-1);
+  if (!dernier) return null;
+  return differenceJours(aujourdhui, dernier) <= 45 ? dernier : null;
+}
