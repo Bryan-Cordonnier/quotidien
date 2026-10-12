@@ -6,6 +6,22 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.27] — 2026-10-12
+
+### Modifié
+
+- **Nouvelle identité, plus douce** : thème clair crème et beige, thème sombre noir chaud, gris et beige, couleurs pastel.
+- **Icônes en couleurs**, façon émoji, sans pastille derrière.
+- **Logo** : le Q sur fond beige, avec son rond exactement centré (application, téléphone, icône Android).
+- **Formes arrondies** : boutons en pilule, champs, cartes et blocs plus ronds.
+- **Un seul titre par page**, collé en haut : le contenu commence plus haut sur téléphone.
+- **Accueil du téléphone** : le nom Quotidien est exactement centré.
+- **Téléphone** : un bouton seul dans un bloc est centré.
+
+### Corrigé
+
+- **Plus de bouton « Fermer » ou « Annuler » en double de la croix** (scan de ticket, proposition de repas).
+
 ## [0.1.26] — 2026-10-12
 
 ### Corrigé

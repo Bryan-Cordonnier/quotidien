@@ -151,10 +151,7 @@
 
   {#snippet pied()}
     {#if etape === "verifier"}
-      <button class="btn" onclick={onclose}>Annuler</button>
       <button class="btn primary" onclick={enregistrer}><Icon name="check" size={16} /> {listeId ? "Régler la course" : "Enregistrer le ticket"}</button>
-    {:else}
-      <button class="btn" onclick={onclose}>Fermer</button>
     {/if}
   {/snippet}
 </Modal>
