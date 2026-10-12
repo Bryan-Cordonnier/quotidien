@@ -27,15 +27,18 @@
   // Résumé pour l'écran d'accueil du téléphone : la courbe devient un résumé en texte.
   const jusquau = (): string => (s.tient && jours !== null ? (jours === 0 ? `Sous le seuil dès le ${dateLongue(s.tient)}` : `Jusqu'au ${dateLongue(ajouterJours(s.tient, -1))}`) : "Au-dessus du seuil sur tout l'horizon");
   $effect(() => {
-    if (!s.charge || s.sansFinances) return;
+    if (!s.charge) return;
     const page = "situation";
+    if (s.sansFinances) return s.resumerWidget({ titre: "Mes finances", lignes: ["Finances indisponible : ouvrez Quotidien."], page });
+    // Sur le téléphone, pas de choix de compte : le premier compte à défaut.
+    const c = compte ?? s.comptes[0];
     if (id === "tient") s.resumerWidget({ titre: "Jusqu'à quand je tiens", valeur: s.tient && jours !== null ? (jours === 0 ? "Aujourd'hui" : `${jours} jour${jours > 1 ? "s" : ""}`) : "Tout l'horizon", lignes: [jusquau()], page });
-    else if (id === "compte") s.resumerWidget(compte ? { titre: compte.nom, valeur: euros(s.soldes[compte.id] ?? 0), page } : { titre: "Un compte", lignes: ["Choisissez le compte sur l'accueil du PC."], page });
+    else if (id === "compte") s.resumerWidget(c ? { titre: c.nom, valeur: euros(s.soldes[c.id] ?? 0), page } : { titre: "Un compte", lignes: ["Aucun compte pour l'instant."], page });
     else if (id === "courbe") {
       const fin = s.courbe.at(-1);
       const bas = s.courbe.reduce((m, p) => (p.soldeCents < m.soldeCents ? p : m), s.courbe[0] ?? { jour: s.aujourdhui, soldeCents: 0 });
       s.resumerWidget({ titre: `Dans ${s.reglages.horizon} jours`, valeur: euros(fin?.soldeCents ?? 0), lignes: [`Point bas : ${euros(bas.soldeCents)} le ${court(bas.jour)}`], page });
-    } else if (id === "paiements") s.resumerWidget({ titre: "Prochains paiements", lignes: s.paiements.length ? s.paiements.slice(0, 5).map((p) => `${court(p.jour)} · ${p.libelle} · ${euros(p.montantCents)}`) : ["Rien de prévu."], page });
+    } else if (id === "paiements") s.resumerWidget({ titre: "Prochains paiements", lignes: s.paiements.length ? s.paiements.slice(0, 5).map((p) => `${court(p.jour)} · ${euros(p.montantCents)} · ${p.libelle}`) : ["Rien de prévu."], page });
     else if (id === "estime") s.resumerWidget({ titre: "Argent actuel", valeur: euros(s.estime.vie), page });
     else s.resumerWidget({ titre: "Estimé · vie courante", valeur: euros(s.estime.vie), lignes: [jusquau()], page });
   });
