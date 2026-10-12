@@ -6,6 +6,20 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.32] — 2026-10-13
+
+### Ajouté
+
+- **Trajets sans péage** : case *Éviter les péages* dans *Paramètres → Trajets*.
+
+### Modifié
+
+- **Accueil du téléphone** : seulement le nom de chaque page, et un petit bouton crayon pour modifier l'ordre.
+
+### Corrigé
+
+- **Clé TomTom refusée au collage** : les espaces, retours à la ligne, caractères invisibles et guillemets copiés avec la clé sont retirés.
+
 ## [0.1.31] — 2026-10-13
 
 ### Ajouté
