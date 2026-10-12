@@ -143,10 +143,7 @@
       {#if depassement > 0}<button class="btn" onclick={() => proposer(true)}>Moins cher</button>{/if}
       <button class="btn primary" onclick={creer}><Icon name="check" size={16} /> Créer la liste de courses</button>
     {:else if etape === "formulaire"}
-      <button class="btn" onclick={onclose}>Annuler</button>
       <button class="btn primary" onclick={() => proposer(false)}>Proposer des repas</button>
-    {:else}
-      <button class="btn" onclick={onclose}>Fermer</button>
     {/if}
   {/snippet}
 </Modal>
