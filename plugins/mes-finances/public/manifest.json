@@ -11,6 +11,7 @@
     "appelle:finances:lecture",
     "appelle:finances:ecriture",
     "appelle:budget:lecture",
+    "appelle:budget:ecriture",
     "reglages"
   ],
   "services": {

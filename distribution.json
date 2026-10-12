@@ -61,5 +61,6 @@
   "ia": true,
   "androidUpdateUrl": "https://api.github.com/repos/Bryan-Cordonnier/quotidien/releases/latest",
   "apercu": "widgets",
-  "tuilesNues": true
+  "tuilesNues": true,
+  "trajets": true
 }

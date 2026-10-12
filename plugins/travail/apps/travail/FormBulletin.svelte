@@ -5,6 +5,8 @@
   import { jourDeInstant } from "@etabli/ui/civil";
   import { formatEuros, parseEuros } from "@etabli/ui/money";
   import { jourPrevuPaie, lignes } from "../../src/vue";
+  import { lignesBulletin, pdfBulletin } from "../../src/bulletin";
+  import { reglagesDeMission } from "../../src/calculs";
   import type { Session } from "../../src/session.svelte";
 
   let { s, ref, onclose }: { s: Session; ref: string; onclose: () => void } = $props();
@@ -19,6 +21,15 @@
   let compteId = $state("");
   let erreur = $state("");
 
+  /** Mission d'intérim : le bulletin estimé ligne à ligne, pour le comparer au vrai bulletin. */
+  const mission = $derived(ref.startsWith("mission:") && s.donnees ? s.donnees.missions.find((m) => `mission:${m.id}` === ref) : undefined);
+  const estime = $derived(mission && s.donnees ? lignesBulletin(mission, reglagesDeMission(mission, s.donnees.agences, s.reglages)) : []);
+  function enregistrerPdf(): void {
+    if (!ligne || estime.length === 0) return;
+    const pdf = pdfBulletin("Bulletin estimé", ligne.titre, estime, "Estimation calculée par Quotidien d'après les taux de Paramètres → Travail : à comparer au vrai bulletin.");
+    const nom = `bulletin-estime-${ligne.titre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "mission"}.pdf`;
+    s.enregistrerFichier(nom, pdf, "pdf", "Bulletin estimé (PDF)");
+  }
   const recu = $derived(parseEuros(net));
   const ecart = $derived(ligne && ligne.netCents && recu !== null && recu > 0 ? recu - ligne.netCents : null);
 
@@ -34,10 +45,21 @@
   }
 </script>
 
-<Modal open titre="Bulletin de paie" {onclose} largeur={480}>
+<Modal open titre="Bulletin de paie" {onclose} largeur={560}>
   {#if ligne}
     <b>{ligne.titre}</b>
-    <div class="estime"><span>Net estimé</span><span class="num">{ligne.netCents === null ? "—" : formatEuros(ligne.netCents)}</span></div>
+    {#if estime.length > 0}
+      <table class="detail">
+        <tbody>
+          {#each estime as l, i (i)}
+            <tr class:total={l.total}><td>{l.libelle}{#if l.detail}<span class="petit"> · {l.detail}</span>{/if}</td><td class="num droite">{l.montantCents === null ? "" : `${l.montantCents < 0 ? "− " : ""}${formatEuros(Math.abs(l.montantCents))}`}</td></tr>
+          {/each}
+        </tbody>
+      </table>
+      <button class="btn" onclick={enregistrerPdf}>Enregistrer le bulletin estimé en PDF</button>
+    {:else}
+      <div class="estime"><span>Net estimé</span><span class="num">{ligne.netCents === null ? "—" : formatEuros(ligne.netCents)}</span></div>
+    {/if}
     <div class="groupe"><label for="b-net">Net reçu sur le bulletin (€)</label><input id="b-net" class="saisie num" bind:value={net} inputmode="decimal" autocomplete="off" /></div>
     <div class="deux">
       <div class="groupe"><label for="b-jour">Jour où il est arrivé</label><input id="b-jour" class="saisie" type="date" bind:value={jour} /></div>
@@ -63,6 +85,22 @@
 </Modal>
 
 <style>
+  .detail {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .detail td {
+    padding: 5px 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .detail .droite {
+    text-align: right;
+    white-space: nowrap;
+  }
+  .detail tr.total td {
+    font-weight: 800;
+  }
   .estime {
     display: flex;
     justify-content: space-between;

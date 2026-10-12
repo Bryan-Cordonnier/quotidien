@@ -36,6 +36,24 @@
   // svelte-ignore state_referenced_locally
   let jusquau = $state<Jour>(existant?.repetition?.jusquau ?? ajouterMois(existant?.jour ?? jour, 1));
   let erreur = $state("");
+  let infoTrajet = $state("");
+  let calcul = $state(false);
+
+  /** Temps de trajet d'après l'adresse, avec la circulation prévue pour arriver à l'heure (clé TomTom dans Paramètres → Trajets). */
+  async function calculerTrajet(): Promise<void> {
+    infoTrajet = "";
+    const debut = parseHeure(de);
+    if (!s.hote || lieu.trim() === "" || debut === null) return;
+    calcul = true;
+    const [an, mo, jo] = jourSaisi.split("-").map(Number);
+    const arrivee = new Date(an!, mo! - 1, jo!, Math.floor(debut / 60), debut % 60).getTime();
+    const r = await s.hote.trajets.calculer({ vers: lieu.trim(), arriveeAvant: arrivee });
+    calcul = false;
+    if (r.ok) {
+      trajet = String(r.minutes);
+      infoTrajet = `${r.minutes} min avec la circulation prévue, ${r.distanceKm.toLocaleString("fr-FR")} km.`;
+    } else infoTrajet = r.message;
+  }
 
   function enregistrer(): void {
     erreur = "";
@@ -96,10 +114,23 @@
     </div>
     <div class="groupe"><label for="e-ju">Jusqu'au</label><input id="e-ju" class="saisie" type="date" bind:value={jusquau} disabled={repetition === "aucune"} /></div>
   </div>
-  <p class="petit" style="margin: 0">Le trajet retour est le même. Le calcul automatique du trajet d'après l'adresse viendra avec un service de cartes ; en attendant, indiquez les minutes.</p>
+  {#if lieu.trim() !== ""}
+    <div class="trajet-actions">
+      <button class="btn" onclick={calculerTrajet} disabled={calcul}>{calcul ? "Calcul…" : "Calculer le trajet"}</button>
+      <button class="btn" onclick={() => s.hote?.trajets.ouvrirWaze(lieu.trim())}>Ouvrir dans Waze</button>
+    </div>
+  {/if}
+  <p class="petit" style="margin: 0">{infoTrajet || "Le trajet retour est le même. Avec une adresse, « Calculer le trajet » le trouve d'après la circulation prévue."}</p>
   {#if erreur}<p class="negatif" role="alert">{erreur}</p>{/if}
   {#snippet pied()}
     <button class="btn primary" onclick={enregistrer}>{id ? "Enregistrer" : "Ajouter l'événement"}</button>
     {#if id}<button class="btn danger" onclick={retirer}>Supprimer</button>{/if}
   {/snippet}
 </Modal>
+<style>
+  .trajet-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+</style>

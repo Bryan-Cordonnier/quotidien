@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { courbe, ecartDeRecalage, estime, precision, premierJourSousSeuil, prochainsPaiements, reglagesDepuis, roleDe } from "./calculs";
+import { courbe, ecartDeRecalage, estime, precision, premierJourSousSeuil, prochainsPaiements, reglagesDepuis, roleDe, finDesRevenus } from "./calculs";
 import { avecCompteWidget, avecRecalage, avecRole, donneesVides, lireDonnees } from "./donnees";
 import { ErreurMesFinances, RECALAGES_MAX, type Compte, type Prevision } from "./types";
 
@@ -111,5 +111,16 @@ describe("données", () => {
     expect(d.recalages).toHaveLength(RECALAGES_MAX);
     expect(d.recalages.at(-1)?.ecartCents).toBe(RECALAGES_MAX + 4);
     expect(lireDonnees(JSON.parse(JSON.stringify(d)))).toEqual(d);
+  });
+});
+
+describe("finDesRevenus", () => {
+  const p = (jour: string, montantCents: number) => ({ jour, montantCents });
+  it("prévient quand le dernier revenu arrive bientôt sans suite", () => {
+    expect(finDesRevenus([p("2026-10-20", 150000), p("2026-10-25", -7000)], "2026-10-12")).toBe("2026-10-20");
+  });
+  it("se tait quand un revenu est prévu plus loin, ou quand il n'y en a aucun", () => {
+    expect(finDesRevenus([p("2026-10-20", 150000), p("2027-01-05", 150000)], "2026-10-12")).toBeNull();
+    expect(finDesRevenus([p("2026-10-25", -7000)], "2026-10-12")).toBeNull();
   });
 });

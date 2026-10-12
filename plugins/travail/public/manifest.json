@@ -12,7 +12,8 @@
     "appelle:agenda:ecriture",
     "appelle:finances:lecture",
     "appelle:finances:ecriture",
-    "reglages"
+    "reglages",
+    "fichiers"
   ],
   "services": {
     "budget": "^1",

@@ -6,6 +6,10 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ### Ajouté
 
+- **Bulletin estimé** dans la fenêtre du bulletin : heures, majorations, IFM, congés, cotisations, net, à comparer au vrai bulletin, et à enregistrer en PDF.
+
+### Ajouté
+
 - **Widget « Mission »** pour l'accueil ; flèches de réglage du temps dessinées avec les pictogrammes du kit.
 
 ### Modifié

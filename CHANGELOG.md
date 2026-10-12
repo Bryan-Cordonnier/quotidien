@@ -6,6 +6,15 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.29] — 2026-10-13
+
+### Ajouté
+
+- **À confirmer (Mes finances)** : quand la date d'un paiement prévu (paie, courses, prévision) est passée, il apparaît en haut de Mes finances. *Confirmer* l'ajoute dans Finances (montant corrigeable), *Pas passé* l'écarte. Rien n'entre sans toi.
+- **Fin de mission** : quand le dernier revenu prévu arrive bientôt sans suite, Mes finances prévient : « Aucun revenu n'est prévu après le … » et jusqu'à quand tu tiens.
+- **Bulletin estimé (Travail)** : dans la fenêtre du bulletin, le détail ligne à ligne (heures, majorations, fin de mission, congés, cotisations, net) à côté de ton net reçu, et *Enregistrer en PDF* pour le comparer au vrai bulletin.
+- **Trajets (Agenda)** : pour un événement avec une adresse, *Calculer le trajet* trouve le temps avec la circulation prévue pour arriver à l'heure, et *Ouvrir dans Waze* lance la navigation. Le calcul demande ta clé TomTom gratuite et ton adresse de départ dans *Paramètres → Trajets*.
+
 ## [0.1.28] — 2026-10-12
 
 ### Modifié

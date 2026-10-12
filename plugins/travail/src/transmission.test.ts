@@ -38,7 +38,7 @@ describe("manifeste", () => {
     const m = JSON.parse(readFileSync(new URL("../public/manifest.json", import.meta.url), "utf8"));
     expect(m.dependencies).toBeUndefined();
     expect(Object.keys(m.optionalDependencies).sort()).toEqual(["agenda", "budget", "finances"]);
-    expect([...m.permissions].sort()).toEqual(["appelle:agenda:ecriture", "appelle:budget:ecriture", "appelle:finances:ecriture", "appelle:finances:lecture", "reglages"]);
+    expect([...m.permissions].sort()).toEqual(["appelle:agenda:ecriture", "appelle:budget:ecriture", "appelle:finances:ecriture", "appelle:finances:lecture", "fichiers", "reglages"]);
     expect(m.provides).toBeUndefined();
   });
 });
