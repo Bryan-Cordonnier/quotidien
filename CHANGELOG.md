@@ -6,6 +6,12 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.25] — 2026-10-12
+
+### Ajouté
+
+- **La version installée s'affiche en bas de l'accueil du téléphone** (« Quotidien 0.1.25 »), pour savoir tout de suite si une mise à jour a bien été installée.
+
 ## [0.1.24] — 2026-10-12
 
 ### Corrigé
