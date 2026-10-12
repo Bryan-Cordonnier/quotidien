@@ -6,6 +6,12 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.23] — 2026-10-12
+
+### Corrigé
+
+- **Android : « Scanner avec l'appareil photo » ouvre vraiment l'appareil photo** (Android 11 et plus cachaient l'appli photo à Quotidien, qui retombait sur la galerie).
+
 ## [0.1.22] — 2026-10-11
 
 ### Corrigé
