@@ -6,6 +6,12 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.26] — 2026-10-12
+
+### Corrigé
+
+- **Android : l'application peut de nouveau joindre internet.** Depuis la 0.1.22, l'appli n'avait plus la permission réseau (une erreur de ma part en ajoutant l'appareil photo) : plus de synchronisation avec le serveur, plus de recherche de mise à jour, plus de lecture de ticket par l'IA, et l'avertissement « hors ligne » permanent. Tout est rétabli.
+
 ## [0.1.25] — 2026-10-12
 
 ### Ajouté
