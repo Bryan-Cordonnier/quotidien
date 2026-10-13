@@ -29,6 +29,8 @@
   $effect(() => {
     if (!s.charge) return;
     const page = "situation";
+    // Finances trop lent (téléphone qui démarre) : on réessaie au lieu d'afficher « indisponible ».
+    if (s.sansFinances && s.sansFinances !== "absent" && s.sansFinances !== "refuse") return void setTimeout(() => void s.actualiser(), 10_000);
     if (s.sansFinances) return s.resumerWidget({ titre: "Mes finances", lignes: ["Finances indisponible : ouvrez Quotidien."], page });
     // Sur le téléphone, pas de choix de compte : le premier compte à défaut.
     const c = compte ?? s.comptes[0];
@@ -43,10 +45,9 @@
     else s.resumerWidget({ titre: "Estimé · vie courante", valeur: euros(s.estime.vie), lignes: [jusquau()], page });
   });
 
-  // La courbe occupe exactement la place que le widget lui laisse : sa hauteur suit celle de son conteneur (elle est dessinée sur 600 de large).
-  let largeurCourbe = $state(400);
+  // La courbe occupe exactement la place que le widget lui laisse : sa hauteur suit celle de son conteneur.
   let hauteurPlace = $state(120);
-  const hauteurCourbe = $derived(Math.max(60, Math.min(420, Math.round((600 * hauteurPlace) / Math.max(120, largeurCourbe)))));
+  const hauteurCourbe = $derived(Math.max(60, Math.min(420, hauteurPlace)));
 </script>
 
 {#snippet duree()}
@@ -86,7 +87,7 @@
 {:else if id === "courbe"}
   <button class="w lien" onclick={ouvrir} aria-label="Ouvrir Mes finances">
     <p class="etiquette">Courbe des {s.reglages.horizon} prochains jours</p>
-    <div class="courbe" bind:clientWidth={largeurCourbe} bind:clientHeight={hauteurPlace}>
+    <div class="courbe" bind:clientHeight={hauteurPlace}>
       <!-- Posée à plat dans son conteneur : c'est le conteneur qui donne la taille, jamais le dessin. -->
       <div class="dessin"><LineChart {points} title="Solde estimé de la vie courante" format={(v) => `${Math.round(v)} €`} height={hauteurCourbe} /></div>
     </div>

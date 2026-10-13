@@ -6,6 +6,14 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.34] — 2026-10-13
+
+### Corrigé
+
+- **Widgets Mes finances sur « Finances indisponible »** : les widgets du téléphone se calculent un par un et réessaient si Finances tarde à répondre.
+- **Courbes sur téléphone** : plus grandes, avec un texte de taille normale.
+- **Paramètres → Trajets** : champs au style de l'application, et Trajets rangé avec les plugins.
+
 ## [0.1.33] — 2026-10-13
 
 ### Corrigé
