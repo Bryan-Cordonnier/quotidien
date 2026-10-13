@@ -6,6 +6,16 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.36] — 2026-10-13
+
+### Corrigé
+
+- **Plus de modifications perdues entre le PC et le téléphone** : avant d'enregistrer, l'application regarde si les données ont changé ailleurs (autre appareil, widget) et fusionne les deux. Seule une modification de la même chose des deux côtés se contredit, et c'est alors la dernière qui gagne.
+
+### Modifié
+
+- **Serveur** : son paquet ne contient plus la version web (stockage et synchronisation seulement).
+
 ## [0.1.35] — 2026-10-13
 
 ### Ajouté
