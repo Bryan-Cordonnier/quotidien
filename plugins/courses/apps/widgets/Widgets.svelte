@@ -20,7 +20,15 @@
       return;
     }
     if (id === "liste") {
-      s.resumerWidget({ titre: "Liste de courses", lignes: listes.length ? listes.slice(0, 5).map((l) => `${l.nom} · ${l.articles.filter((a) => a.pris).length}/${l.articles.length}`) : ["Aucune liste en cours."], page: "liste" });
+      // Liste à cocher sur l'écran d'accueil du téléphone : les articles des listes en cours, cochés directement sur le serveur.
+      const cases = {
+        chemin: ["listes", { reglement: null }, "articles"],
+        id: "id",
+        texte: "nom",
+        coche: "pris",
+        elements: listes.flatMap((l) => l.articles.map((a) => ({ id: a.id, texte: a.nom, coche: a.pris }))),
+      };
+      s.resumerWidget({ titre: listes.length === 1 ? listes[0]!.nom : "Liste de courses", cases, page: "liste" });
     } else if (b) {
       s.resumerWidget({ titre: "Courses · budget disponible", valeur: `${b.disponibleCents < 0 ? "− " : ""}${formatEuros(Math.abs(b.disponibleCents))}`, lignes: [`${formatEuros(b.depenseCents)} dépensés · ${Math.round(b.pourcent)} %`], page: "courses" });
     } else {
