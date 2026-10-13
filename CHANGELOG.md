@@ -6,6 +6,12 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.35] — 2026-10-13
+
+### Ajouté
+
+- **Widget Android « Liste de courses » à cocher** : les articles des listes en cours s'affichent sur l'écran d'accueil ; un toucher coche ou décoche l'article directement sur le serveur, même appli fermée. Les articles déjà pris passent en bas, barrés. La liste se remet à jour toute seule toutes les 30 minutes (et à chaque ouverture de l'appli).
+
 ## [0.1.34] — 2026-10-13
 
 ### Corrigé

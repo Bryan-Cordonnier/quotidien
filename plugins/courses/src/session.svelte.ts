@@ -1,6 +1,6 @@
 // État des pages de Courses : les données (enregistrées par le moteur avec le plugin), les paramètres réglés dans Paramètres → Courses et
 // l'état de la transmission vers Budget. Règle de sécurité : des données illisibles ne sont JAMAIS remplacées par des données vides.
-import { connect, type AiImage } from "@etabli/sdk";
+import { connect, type AiImage, type WidgetSummary } from "@etabli/sdk";
 import { jourDeInstant, type Jour } from "@etabli/ui/civil";
 import { lireDonnees } from "./donnees";
 import { reglagesDepuis, type Parametres } from "./parametres";
@@ -113,7 +113,7 @@ export class Session {
   }
 
   /** Résumé du widget affiché, pour l'écran d'accueil du téléphone (widget Android). */
-  resumerWidget(resume: { titre: string; valeur?: string; lignes?: string[]; page?: string }): void {
+  resumerWidget(resume: WidgetSummary): void {
     this.#hote?.widgets.resume(resume);
   }
 }
