@@ -6,6 +6,16 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.37] — 2026-10-15
+
+### Ajouté
+
+- **Clés d'accès** (Paramètres → Serveur) : tu peux coller la clé d'un programme de confiance (ton assistant personnel) pour qu'il lise et modifie tes données sans ton mot de passe. Une clé n'a jamais les droits d'administration, ne peut ni gérer les clés ni changer le mot de passe, montre son dernier usage et se retire d'un clic.
+
+### Modifié
+
+- **Serveur** : une écriture de données peut refuser d'écraser une copie plus récente (l'assistant s'en sert pour ne jamais effacer ce que tu as saisi). Les applications installées ne changent pas sur ce point.
+
 ## [0.1.36] — 2026-10-13
 
 ### Corrigé
