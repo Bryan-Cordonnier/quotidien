@@ -5,8 +5,11 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ## [Non publié]
 
+## [0.2.1] — 2026-10-15
+
 ### Ajouté
 
+- **Supprimer n'importe quel événement** depuis la journée : un bouton ✕ (puis « Supprimer ? ») sur chaque événement, y compris ceux posés par un autre plugin ou par l'assistant. Un événement qui vient de Travail revient tant qu'il n'est pas supprimé dans Travail.
 - **Calculer le trajet** d'un événement d'après son adresse, avec la circulation prévue (clé TomTom dans Paramètres → Trajets), et **Ouvrir dans Waze**.
 
 ### Modifié
