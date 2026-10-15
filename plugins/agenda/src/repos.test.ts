@@ -22,6 +22,11 @@ describe("repos légal de la semaine", () => {
     expect(resumeRepos(l, "2026-10-08")).toEqual({ totalMin: 0, plusLongueJourneeMin: 0, reposMinMin: null });
   });
 
+  it("la réserve (jour et nuit à la base) ne compte pas pour le repos légal", () => {
+    const reserve = ["2026-10-05", "2026-10-06", "2026-10-07"].map((j) => ({ ...evt(j, 0, 1439), contrat: "reserve" as const }));
+    expect(resumeRepos(reserve, "2026-10-06")).toEqual({ totalMin: 0, plusLongueJourneeMin: 0, reposMinMin: null });
+  });
+
   it("deux plages le même jour s'additionnent dans la journée", () => {
     expect(resumeRepos([evt("2026-10-05", 480, 720), evt("2026-10-05", 780, 1020)], "2026-10-05")).toMatchObject({ totalMin: 480, plusLongueJourneeMin: 480, reposMinMin: null });
   });

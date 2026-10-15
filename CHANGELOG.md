@@ -6,6 +6,13 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.42] — 2026-10-16
+
+### Modifié
+
+- **Travail : la réserve est une seule mission** du premier au dernier jour (arrivée à la base le premier jour, départ le dernier, à la base jour et nuit entre les deux), payée par jour quelle que soit l'heure : solde imposable + indemnité non imposable à la base, solde de la grille du soldat hors base, tous réglables. La base (nom et adresse) se règle dans Paramètres → Travail.
+- **Agenda** : les jours de réserve ne comptent plus dans le repos légal.
+
 ## [0.1.41] — 2026-10-15
 
 ### Modifié

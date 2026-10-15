@@ -14,7 +14,7 @@ function jeu(): Donnees {
   d = ajouterMission(d, { ...base, agenceId: a.id }).donnees; // m2 : en cours le 8 octobre
   d = ajouterMission(d, { ...base, libelle: "Cariste", entreprise: "Dupont", debut: "2026-12-07", fin: "2026-12-11" }).donnees; // prévue
   d = ajouterMission(d, { ...base, libelle: "Manutention", entreprise: "", debut: "2026-08-03", fin: "2026-08-07" }).donnees; // terminée
-  d = ajouterReserve(d, { libelle: "Réserve de septembre", jours: ["2026-09-09", "2026-09-10"], horsBase: 1 }).donnees;
+  d = ajouterReserve(d, { libelle: "Réserve de septembre", debut: "2026-09-09", fin: "2026-09-10", arriveeMin: 480, departMin: 1020, joursHorsBase: ["2026-09-10"] }).donnees;
   d = ajouterContrat(d, { libelle: "Opérateur", entreprise: "Verallia", type: "cdd", brutMensuelCents: 200_000, debut: "2026-10-01", fin: "2026-11-30", jourDePaie: 28 }).donnees;
   d = ajouterContrat(d, { libelle: "Chef d'équipe", type: "cdi", brutMensuelCents: 300_000, debut: "2026-10-15", jourDePaie: 28 }).donnees;
   return d;
@@ -36,8 +36,8 @@ describe("lignes des onglets", () => {
   it("réserve : une ligne par période, entre son premier et son dernier jour", () => {
     const [p] = lignes(jeu(), R, "reserve", AUJ);
     expect(p).toMatchObject({ titre: "Réserve de septembre", debut: "2026-09-09", fin: "2026-09-10", statut: "termine" });
-    // 2 jours à 100 € moins 22 % + 1 jour hors base à 38 €
-    expect(p?.netCents).toBe(15_600 + 3_800);
+    // 1 jour à la base : 100 € moins 22 % + 38 € non imposables ; 1 jour hors base : 0 € (grille non réglée)
+    expect(p?.netCents).toBe(7_800 + 3_800);
   });
 
   it("CDD : net de tout le contrat ; CDI sans fin : seulement le net par mois", () => {
@@ -77,8 +77,8 @@ describe("précision moyenne", () => {
     let d = jeu();
     d = enregistrerBulletin(d, "mission:m2", { netCents: 42_943, jour: "2026-10-16", ecritureId: null }); // exact
     expect(precisionMoyenne(d, R)).toBe(1);
-    d = enregistrerBulletin(d, "reserve:m5".replace("m5", "r5"), { netCents: 19_400 + 1_940, jour: "2026-09-20", ecritureId: null }); // +10 %
-    // exact : écart 0 ; réserve : 1 940 / 19 400 = 10 % → moyenne des écarts 5 % → précision 95 %
+    d = enregistrerBulletin(d, "reserve:m5".replace("m5", "r5"), { netCents: 11_600 + 1_160, jour: "2026-09-20", ecritureId: null }); // +10 %
+    // exact : écart 0 ; réserve : 1 160 / 11 600 = 10 % → moyenne des écarts 5 % → précision 95 %
     expect(precisionMoyenne(d, R)).toBeCloseTo(0.95, 5);
   });
 });

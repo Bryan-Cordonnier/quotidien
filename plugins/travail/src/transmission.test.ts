@@ -54,7 +54,7 @@ describe("données", () => {
 
   it("des données écrites se relisent à l'identique", () => {
     let d = avecMission();
-    d = ajouterReserve(d, { libelle: "Réserve", jours: ["2026-10-07"], horsBase: 1 }).donnees;
+    d = ajouterReserve(d, { libelle: "Réserve", debut: "2026-10-07", fin: "2026-10-07", arriveeMin: 480, departMin: 1020, joursHorsBase: [] }).donnees;
     d = ajouterContrat(d, { libelle: "CDI", type: "cdi", brutMensuelCents: 300_000, debut: "2026-10-15", jourDePaie: 28 }).donnees;
     expect(lireDonnees(JSON.parse(JSON.stringify(d)))).toEqual(d);
   });
@@ -106,33 +106,48 @@ describe("données", () => {
     expect(refus(() => ajouterSupplementaires(d, "m1", "2026-11-08", 30)).code).toBe("argument_invalide");
   });
 
-  it("un jour de réserve de minuit à minuit devient un jour entier dans l'agenda (l'agenda refuse une durée nulle)", () => {
-    const d = ajouterReserve(donneesVides(), { libelle: "Formation", jours: ["2026-10-17"], horsBase: 0 }).donnees;
-    const agenda = (reglages: typeof R) => projections(d, reglages, "2026-10-01").find((p) => p.service === "agenda")?.contenu[0] as { debutMin: number; finMin: number };
-    expect(agenda({ ...R, reserveDebutMin: 0, reserveFinMin: 0 })).toMatchObject({ debutMin: 0, finMin: 1439 });
-    expect(agenda({ ...R, reserveDebutMin: 480, reserveFinMin: 480 })).toMatchObject({ debutMin: 480, finMin: 479 });
-    expect(agenda(R)).toMatchObject({ debutMin: 480, finMin: 1020 });
+  const mission = (reste: object = {}) => ({ libelle: "Formation réserviste", debut: "2026-10-17", fin: "2026-10-30", arriveeMin: 450, departMin: 1140, joursHorsBase: [], ...reste });
+  const evenements = (d: Donnees, reglages = R) => projections(d, reglages, "2026-10-01").find((p) => p.service === "agenda")?.contenu as { titre: string; lieu: string | null; jour: string; debutMin: number; finMin: number; tempsContratMin: number | null; contrat: string }[];
+
+  it("une mission de réserviste : arrivée à la base le premier jour, journée entière entre les deux, départ le dernier jour", () => {
+    const d = ajouterReserve(donneesVides(), mission()).donnees;
+    const e = evenements(d, { ...R, baseLieu: "Camp de Souge" });
+    expect(e).toHaveLength(14);
+    expect(e[0]).toMatchObject({ jour: "2026-10-17", debutMin: 450, finMin: 1439, titre: "Formation réserviste (arrivée à la base)", lieu: "Camp de Souge", contrat: "reserve", tempsContratMin: null });
+    expect(e[6]).toMatchObject({ jour: "2026-10-23", debutMin: 0, finMin: 1439, titre: "Formation réserviste (à la base)" });
+    expect(e[13]).toMatchObject({ jour: "2026-10-30", debutMin: 0, finMin: 1140, titre: "Formation réserviste (départ de la base)" });
   });
 
-  it("une période de réserve a ses propres heures d'arrivée et de départ (emploi du temps seulement : la paie ne change pas)", () => {
-    const sans = ajouterReserve(donneesVides(), { libelle: "Formation", jours: ["2026-10-17", "2026-10-18"], horsBase: 0 });
-    const avec = ajouterReserve(donneesVides(), { libelle: "Formation", jours: ["2026-10-17", "2026-10-18"], horsBase: 0, debutMin: 11 * 60, finMin: 16 * 60 });
-    const reglages = { ...R, tarifReserveCents: 6000 };
-    const premier = (d: Donnees) => projections(d, reglages, "2026-10-01").find((p) => p.service === "agenda")?.contenu[0] as { debutMin: number; finMin: number };
-    expect(premier(sans.donnees)).toMatchObject({ debutMin: 480, finMin: 1020 });
-    expect(premier(avec.donnees)).toMatchObject({ debutMin: 660, finMin: 960 });
-    const budget = (d: Donnees) => JSON.stringify(projections(d, reglages, "2026-10-01").find((p) => p.service === "budget")?.contenu);
-    expect(budget(avec.donnees)).toBe(budget(sans.donnees));
-    expect(refus(() => ajouterReserve(donneesVides(), { libelle: "x", jours: ["2026-10-17"], horsBase: 0, debutMin: 600 })).code).toBe("argument_invalide");
-    expect(refus(() => ajouterReserve(donneesVides(), { libelle: "x", jours: ["2026-10-17"], horsBase: 0, debutMin: 600, finMin: 2000 })).code).toBe("argument_invalide");
+  it("un jour hors base n'a pas le lieu de la base ; une mission d'un seul jour va de l'arrivée au départ", () => {
+    const d = ajouterReserve(donneesVides(), mission({ joursHorsBase: ["2026-10-20"] })).donnees;
+    const e = evenements(d, { ...R, baseLieu: "Camp de Souge" });
+    expect(e.find((x) => x.jour === "2026-10-20")).toMatchObject({ titre: "Formation réserviste (hors base)", lieu: null });
+    const un = ajouterReserve(donneesVides(), mission({ debut: "2026-10-17", fin: "2026-10-17" })).donnees;
+    expect(evenements(un)).toEqual([expect.objectContaining({ debutMin: 450, finMin: 1140, titre: "Formation réserviste" })]);
   });
 
-  it("une période de réserve et un contrat se modifient", () => {
-    let d = ajouterReserve(donneesVides(), { libelle: "Formation", jours: ["2026-10-17"], horsBase: 0 }).donnees;
-    d = modifierReserve(d, "r1", { libelle: "Formation réserviste", jours: ["2026-10-17", "2026-10-18", "2026-10-19"], horsBase: 1, debutMin: 600, finMin: 1020 });
-    expect(d.reserves[0]).toMatchObject({ id: "r1", libelle: "Formation réserviste", horsBase: 1, debutMin: 600 });
-    expect(d.reserves[0]?.jours).toHaveLength(3);
-    expect(refus(() => modifierReserve(d, "r9", { libelle: "x", jours: ["2026-10-17"], horsBase: 0 })).code).toBe("introuvable");
+  it("la paie ne dépend pas des heures, et le budget non plus", () => {
+    const tot = (reste: object) => JSON.stringify(projections(ajouterReserve(donneesVides(), mission(reste)).donnees, R, "2026-10-01").find((p) => p.service === "budget")?.contenu);
+    expect(tot({ arriveeMin: 11 * 60, departMin: 15 * 60 })).toBe(tot({}));
+  });
+
+  it("une mission refuse : fin avant début, heure absente, jour hors base hors de la mission, plus d'un an", () => {
+    expect(refus(() => ajouterReserve(donneesVides(), mission({ fin: "2026-10-01" }))).code).toBe("argument_invalide");
+    expect(refus(() => ajouterReserve(donneesVides(), { libelle: "x", debut: "2026-10-17", fin: "2026-10-18" })).code).toBe("argument_invalide");
+    expect(refus(() => ajouterReserve(donneesVides(), mission({ joursHorsBase: ["2026-11-02"] }))).code).toBe("argument_invalide");
+    expect(refus(() => ajouterReserve(donneesVides(), mission({ fin: "2028-10-17" }))).code).toBe("limite_atteinte");
+  });
+
+  it("l'ancienne forme (une liste de jours et un nombre de jours hors base) se relit comme une mission", () => {
+    const d = ajouterReserve(donneesVides(), { libelle: "Ancienne", jours: ["2026-10-09", "2026-10-07", "2026-10-08"], horsBase: 1, debutMin: 600, finMin: 960 }).donnees;
+    expect(d.reserves[0]).toMatchObject({ debut: "2026-10-07", fin: "2026-10-09", arriveeMin: 600, departMin: 960, joursHorsBase: ["2026-10-09"] });
+  });
+
+  it("une mission de réserviste et un contrat se modifient", () => {
+    let d = ajouterReserve(donneesVides(), mission()).donnees;
+    d = modifierReserve(d, "r1", mission({ fin: "2026-10-31", departMin: 1200, joursHorsBase: ["2026-10-31"] }));
+    expect(d.reserves[0]).toMatchObject({ id: "r1", fin: "2026-10-31", departMin: 1200, joursHorsBase: ["2026-10-31"] });
+    expect(refus(() => modifierReserve(d, "r9", mission())).code).toBe("introuvable");
     d = ajouterContrat(d, { libelle: "Vendeur", type: "cdi", brutMensuelCents: 180_000, debut: "2026-12-01", jourDePaie: 5 }).donnees;
     d = modifierContrat(d, "c2", { libelle: "Vendeur", type: "cdi", brutMensuelCents: 200_000, debut: "2026-12-01", jourDePaie: 10 });
     expect(d.contrats[0]).toMatchObject({ id: "c2", brutMensuelCents: 200_000, jourDePaie: 10 });

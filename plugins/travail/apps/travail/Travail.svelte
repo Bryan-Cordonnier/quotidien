@@ -32,7 +32,7 @@
   const fermer = () => (fenetre = null);
 
   const precision = $derived(s.donnees ? precisionMoyenne(s.donnees, s.reglages) : null);
-  const titreBouton = $derived(onglet === "interim" ? "+ Nouvelle mission" : onglet === "reserve" ? "+ Jours de réserve" : `+ Nouveau ${onglet.toUpperCase()}`);
+  const titreBouton = $derived(onglet === "interim" ? "+ Nouvelle mission" : onglet === "reserve" ? "+ Mission de réserviste" : `+ Nouveau ${onglet.toUpperCase()}`);
   /** Ouvre la fiche d'une ligne de la liste, d'après sa référence (« mission:m1 », « reserve:r2 », « contrat:c3 »). */
   function modifier(ref: string): void {
     const [genre, id] = ref.split(":");
