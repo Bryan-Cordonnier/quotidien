@@ -45,7 +45,7 @@
     {#if j}
       <div class="frise">
         {#each j.segments as seg, i (i)}
-          {@const modifiable = seg.genre === "evenement" && seg.occurrence?.source === UTILISATEUR}
+          {@const modifiable = seg.genre === "evenement" && (seg.occurrence?.source === UTILISATEUR || seg.occurrence?.source === "cerveau")}
           <div class="seg {seg.genre} {classe(seg)}" style="--m: {Math.max(0, seg.finMin - seg.debutMin)}">
             <span class="h num">{hhmm(seg.debutMin)}</span>
             {#if modifiable}

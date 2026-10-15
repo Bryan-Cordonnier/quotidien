@@ -6,6 +6,12 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.39] — 2026-10-15
+
+### Modifié
+
+- **Agenda** : les événements posés par l'assistant s'ouvrent et se modifient comme les tiens.
+
 ## [0.1.38] — 2026-10-15
 
 ### Ajouté
