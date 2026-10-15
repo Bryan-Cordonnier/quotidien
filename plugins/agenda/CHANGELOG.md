@@ -5,6 +5,12 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ## [Non publié]
 
+## [0.2.3] — 2026-10-16
+
+### Modifié
+
+- **Repos légal** : les jours de réserve (à la base jour et nuit) ne comptent plus dans le repos légal de la semaine.
+
 ## [0.2.2] — 2026-10-15
 
 ### Modifié

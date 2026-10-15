@@ -85,18 +85,45 @@ export function lireMission(brut: unknown, avecId: boolean): Omit<Mission, "id">
   };
 }
 
+/** Une mission de réserviste ne dure pas plus de 366 jours. */
+export const RESERVE_MAX_JOURS = 366;
+const ARRIVEE_PAR_DEFAUT = 8 * 60;
+const DEPART_PAR_DEFAUT = 17 * 60;
+
 export function lireReserve(brut: unknown, avecId: boolean): Omit<PeriodeReserve, "id"> & { id?: string } {
-  const o = objet(brut, ["libelle", "jours", "horsBase"], avecId ? ["id", "debutMin", "finMin"] : ["debutMin", "finMin"]);
-  const heureFacultative = (v: unknown, nom: string): number | null => (v === undefined || v === null ? null : entier(v, nom, 0, 1439));
-  const debutMin = heureFacultative(o.debutMin, "debutMin");
-  const finMin = heureFacultative(o.finMin, "finMin");
-  if ((debutMin === null) !== (finMin === null)) throw new ErreurTravail("argument_invalide", "Donnez l'heure de début ET l'heure d'arrivée, ou aucune des deux.");
+  // Forme d'avant (une liste de jours + un nombre de jours hors base) : relue comme une mission du premier au dernier jour, les derniers jours hors base.
+  if (brut !== null && typeof brut === "object" && "jours" in brut) {
+    const a = objet(brut, ["libelle", "jours", "horsBase"], avecId ? ["id", "debutMin", "finMin"] : ["debutMin", "finMin"]);
+    const jours = joursUniques(a.jours, "jours", RESERVE_MAX_JOURS)
+      .slice()
+      .sort(comparerJours);
+    if (jours.length === 0) throw new ErreurTravail("argument_invalide", "Une période de réserve a au moins un jour.");
+    const horsBase = entier(a.horsBase, "horsBase", 0, RESERVE_MAX_JOURS);
+    return {
+      ...(avecId ? { id: String(a.id) } : {}),
+      libelle: texte(a.libelle, "libelle", 120),
+      debut: jours[0]!,
+      fin: jours[jours.length - 1]!,
+      arriveeMin: a.debutMin === undefined || a.debutMin === null ? ARRIVEE_PAR_DEFAUT : entier(a.debutMin, "debutMin", 0, 1439),
+      departMin: a.finMin === undefined || a.finMin === null ? DEPART_PAR_DEFAUT : entier(a.finMin, "finMin", 0, 1439),
+      joursHorsBase: horsBase === 0 ? [] : jours.slice(-horsBase),
+    };
+  }
+  const o = objet(brut, ["libelle", "debut", "fin", "arriveeMin", "departMin"], avecId ? ["id", "joursHorsBase"] : ["joursHorsBase"]);
+  const debut = jourValide(o.debut, "debut");
+  const fin = jourValide(o.fin, "fin");
+  if (comparerJours(fin, debut) < 0) throw new ErreurTravail("argument_invalide", "La mission ne peut pas finir avant de commencer.");
+  if (differenceJours(debut, fin) + 1 > RESERVE_MAX_JOURS) throw new ErreurTravail("limite_atteinte", `Une mission de réserviste dure ${RESERVE_MAX_JOURS} jours au plus.`);
+  const joursHorsBase = joursUniques(o.joursHorsBase ?? [], "joursHorsBase", RESERVE_MAX_JOURS).slice().sort(comparerJours);
+  for (const j of joursHorsBase) if (comparerJours(j, debut) < 0 || comparerJours(j, fin) > 0) throw new ErreurTravail("argument_invalide", `Le jour hors base ${j} est hors de la mission.`);
   return {
     ...(avecId ? { id: String(o.id) } : {}),
     libelle: texte(o.libelle, "libelle", 120),
-    jours: joursUniques(o.jours, "jours", 366),
-    horsBase: entier(o.horsBase, "horsBase", 0, 366),
-    ...(debutMin === null ? {} : { debutMin, finMin }),
+    debut,
+    fin,
+    arriveeMin: entier(o.arriveeMin, "arriveeMin", 0, 1439),
+    departMin: entier(o.departMin, "departMin", 0, 1439),
+    joursHorsBase,
   };
 }
 

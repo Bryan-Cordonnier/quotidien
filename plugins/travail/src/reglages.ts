@@ -15,15 +15,18 @@ export const PARAMETRES_DEFAUT = {
   majoration2: 50,
   seuilMajoration1: 8,
   delaiPaie: 7,
-  tarifReserve: 0,
-  indemniteHorsBase: 38,
+  tarifReserve: 60,
+  indemniteReserve: 38,
+  tarifHorsBase: 0,
   precarite: 10,
   cpCdd: 10,
   reserveDebut: "08:00",
   reserveFin: "17:00",
-  reserveTravail: 8,
+  baseNom: "",
+  baseAdresse: "",
 } as const;
 
+const texte = (v: unknown): string => (typeof v === "string" ? v.trim().slice(0, 200) : "");
 const nombre = (v: unknown, repli: number): number => (typeof v === "number" && Number.isFinite(v) ? v : repli);
 const heure = (v: unknown, repli: string): number => {
   const m = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(typeof v === "string" ? v : repli) ?? /^(\d\d):(\d\d)$/.exec(repli)!;
@@ -45,11 +48,12 @@ export function reglagesDepuis(p: Parametres | null | undefined): Reglages {
     seuilSup1Min: Math.round(nombre(v.seuilMajoration1, d.seuilMajoration1) * 60),
     delaiPaieJours: Math.round(nombre(v.delaiPaie, d.delaiPaie)),
     tarifReserveCents: Math.round(nombre(v.tarifReserve, d.tarifReserve) * 100),
-    indemniteHorsBaseCents: Math.round(nombre(v.indemniteHorsBase, d.indemniteHorsBase) * 100),
+    indemniteReserveCents: Math.round(nombre(v.indemniteReserve, d.indemniteReserve) * 100),
+    tarifHorsBaseCents: Math.round(nombre(v.tarifHorsBase, d.tarifHorsBase) * 100),
     precariteBp: Math.round(nombre(v.precarite, d.precarite) * 100),
     cpCddBp: Math.round(nombre(v.cpCdd, d.cpCdd) * 100),
     reserveDebutMin: heure(v.reserveDebut, d.reserveDebut),
     reserveFinMin: heure(v.reserveFin, d.reserveFin),
-    reserveTravailMin: Math.round(nombre(v.reserveTravail, d.reserveTravail) * 60),
+    baseLieu: texte(v.baseAdresse) || texte(v.baseNom),
   };
 }

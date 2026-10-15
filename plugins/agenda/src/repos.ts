@@ -15,7 +15,8 @@ export interface ResumeRepos {
 
 export function resumeRepos(evenements: readonly Evenement[], jour: Jour): ResumeRepos {
   const lundi = lundiDe(jour);
-  const occ = occurrences(evenements, lundi, ajouterJours(lundi, 6), TYPES_TRAVAIL);
+  // la réserve (jour et nuit à la base, payée au jour) ne compte pas pour le repos légal : sinon elle déclencherait de fausses alertes
+  const occ = occurrences(evenements, lundi, ajouterJours(lundi, 6), TYPES_TRAVAIL).filter((o) => o.contrat !== "reserve");
   const parJour = new Map<Jour, { debut: number; fin: number; total: number }>();
   for (const o of occ) {
     const j = parJour.get(o.jour) ?? { debut: o.debutMin, fin: finDe(o), total: 0 };

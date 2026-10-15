@@ -1,7 +1,7 @@
 // Vecteurs d'or de la paie. Les chiffres viennent de paie.rs (gestion-budget-perso) ou ont été recalculés à la main ; les taux sont ceux des
 // réglages par défaut (hypothèses à confirmer sur un bulletin, voir types.ts).
 import { describe, expect, it } from "vitest";
-import { avancement, datePaiement, detailMission, detailReserve, joursDeLaSemaine, joursDeMission, minutesDeLaSemaine, minutesDuJour, paiesContrat, paiesMission, reglagesDeMission, statutContrat, titreContrat } from "./calculs";
+import { avancement, datePaiement, detailMission, detailReserve, joursDeReserve, joursDeLaSemaine, joursDeMission, minutesDeLaSemaine, minutesDuJour, paiesContrat, paiesMission, reglagesDeMission, statutContrat, titreContrat } from "./calculs";
 import { REGLAGES_DEFAUT, type Agence, type Contrat, type Mission, type PeriodeReserve } from "./types";
 
 const R = REGLAGES_DEFAUT;
@@ -84,15 +84,28 @@ describe("intérim", () => {
 });
 
 describe("réserve", () => {
-  const periode: PeriodeReserve = { id: "r1", libelle: "Réserve", jours: ["2026-10-07", "2026-10-08", "2026-10-09"], horsBase: 2 };
+  // du 7 au 9 octobre : 2 jours à la base, le dernier jour hors base
+  const periode: PeriodeReserve = { id: "r1", libelle: "Réserve", debut: "2026-10-07", fin: "2026-10-09", arriveeMin: 450, departMin: 1140, joursHorsBase: ["2026-10-09"] };
 
-  it("3 jours à 100 € moins 22 % + 2 jours hors base à 38 € → 310 €", () => {
-    const d = detailReserve(periode, { ...R, tarifReserveCents: 10_000 });
-    expect(d).toMatchObject({ brutCents: 30_000, netJoursCents: 23_400, indemniteCents: 7_600, netCents: 31_000, dernierJour: "2026-10-09", datePaiement: "2026-10-16" });
+  it("2 jours à la base (100 € imposables + 38 € non imposables) et 1 jour hors base (70 €) → 286,60 €", () => {
+    const d = detailReserve(periode, { ...R, tarifReserveCents: 10_000, tarifHorsBaseCents: 7_000 });
+    // brut imposable 2 × 100 + 70 = 270 € → 210,60 € après 22 % ; indemnité 2 × 38 = 76 €
+    expect(d).toMatchObject({ brutCents: 27_000, netJoursCents: 21_060, indemniteCents: 7_600, netCents: 28_660, jours: 3, joursABase: 2, joursHorsBase: 1, dernierJour: "2026-10-09", datePaiement: "2026-10-16" });
   });
 
-  it("sans tarif réglé, seuls les jours hors base rapportent", () => {
-    expect(detailReserve(periode, R).netCents).toBe(7_600);
+  it("les réglages par défaut : 60 € imposables + 38 € non imposables par jour à la base, rien hors base tant que sa grille n'est pas réglée", () => {
+    // 2 jours à la base : 120 € → 93,60 € ; 76 € d'indemnité
+    expect(detailReserve(periode, R).netCents).toBe(9_360 + 7_600);
+  });
+
+  it("la paie ne dépend jamais des heures : arriver à 7 h 30 ou à 11 h, c'est le même jour", () => {
+    const tard = { ...periode, arriveeMin: 11 * 60, departMin: 15 * 60 };
+    expect(detailReserve(tard, R)).toEqual(detailReserve(periode, R));
+  });
+
+  it("une mission de réserviste couvre tous les jours du premier au dernier, nuits comprises", () => {
+    expect(joursDeReserve({ ...periode, debut: "2026-10-17", fin: "2026-10-30" })).toHaveLength(14);
+    expect(joursDeReserve({ ...periode, debut: "2026-10-17", fin: "2026-10-17" })).toEqual(["2026-10-17"]);
   });
 });
 

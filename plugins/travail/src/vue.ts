@@ -42,10 +42,7 @@ export function lignes(d: Donnees, r: Reglages, onglet: Onglet, aujourdhui: Jour
     }
   } else if (onglet === "reserve") {
     for (const p of d.reserves) {
-      if (p.jours.length === 0) continue;
-      const jours = [...p.jours].sort(comparerJours);
-      const debut = jours[0]!;
-      const fin = jours[jours.length - 1]!;
+      const { debut, fin } = p;
       const net = detailReserve(p, r).netCents;
       const ref = `reserve:${p.id}`;
       sortie.push({ ref, titre: p.libelle, debut, fin, statut: statutContrat(debut, fin, aujourdhui), netCents: net, parMoisCents: Math.round(net / moisDe(debut, fin)), bulletin: d.bulletins[ref] ?? null });

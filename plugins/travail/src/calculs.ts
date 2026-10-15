@@ -193,22 +193,49 @@ export const datePaiement = (jour: Jour, delai: number): Jour => prochainOuvre(a
 // ——— Réserve ———
 
 export interface DetailReserve {
-  /** Brut des jours de réserve (nombre de jours × tarif). */
+  /** Brut imposable : jours à la base × solde de base + jours hors base × solde hors base. */
   brutCents: number;
+  /** Net du brut imposable (cotisations déduites). */
   netJoursCents: number;
+  /** Indemnité non imposable : jours à la base × indemnité de base (pas de cotisations). */
   indemniteCents: number;
   netCents: number;
+  /** Nombre de jours de la mission, dont à la base et hors base. */
+  jours: number;
+  joursABase: number;
+  joursHorsBase: number;
   dernierJour: Jour | null;
   datePaiement: Jour | null;
 }
 
-/** Réserve : `net = jours × tarif × (1 − cotisations) + hors base × indemnité` (l'indemnité n'est pas soumise aux cotisations ici : hypothèse de `paie.rs`). */
+/** Tous les jours d'une mission de réserviste, du premier au dernier (inclus) : on est à la base jour et nuit, un jour payé chacun. */
+export const joursDeReserve = (p: PeriodeReserve): Jour[] => plage(p.debut, p.fin, 400);
+
+/**
+ * Réserve, payée PAR JOUR (jamais d'après les heures : arriver à 11 h reste un jour) :
+ * jour à la base = solde imposable + indemnité non imposable ; jour hors base = solde hors base (grille de solde du soldat), imposable.
+ * `net = (bases × solde + hors base × solde hors base) × (1 − cotisations) + bases × indemnité`.
+ */
 export function detailReserve(p: PeriodeReserve, r: Reglages): DetailReserve {
-  const brutCents = mulDiv(r.tarifReserveCents, p.jours.length, 1);
+  const jours = joursDeReserve(p);
+  const horsBase = new Set(p.joursHorsBase);
+  const nbHorsBase = jours.filter((j) => horsBase.has(j)).length;
+  const nbABase = jours.length - nbHorsBase;
+  const brutCents = ajouter(mulDiv(r.tarifReserveCents, nbABase, 1), mulDiv(r.tarifHorsBaseCents, nbHorsBase, 1));
   const netJoursCents = apresPrelevement(brutCents, r.cotisationsBp);
-  const indemniteCents = mulDiv(r.indemniteHorsBaseCents, p.horsBase, 1);
-  const dernierJour = p.jours.length > 0 ? [...p.jours].sort(comparerJours).at(-1)! : null;
-  return { brutCents, netJoursCents, indemniteCents, netCents: ajouter(netJoursCents, indemniteCents), dernierJour, datePaiement: dernierJour ? datePaiement(dernierJour, r.delaiPaieJours) : null };
+  const indemniteCents = mulDiv(r.indemniteReserveCents, nbABase, 1);
+  const dernierJour = jours.length > 0 ? p.fin : null;
+  return {
+    brutCents,
+    netJoursCents,
+    indemniteCents,
+    netCents: ajouter(netJoursCents, indemniteCents),
+    jours: jours.length,
+    joursABase: nbABase,
+    joursHorsBase: nbHorsBase,
+    dernierJour,
+    datePaiement: dernierJour ? datePaiement(dernierJour, r.delaiPaieJours) : null,
+  };
 }
 
 // ——— CDI et CDD ———

@@ -4,6 +4,16 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.3.0] — 2026-10-16
+
+### Modifié
+
+- **Réserve refaite : une seule « mission de réserviste »** du premier au dernier jour. Tu arrives à la base le premier jour (heure d'arrivée), tu en pars le dernier jour (heure de départ) et tu y restes jour et nuit entre les deux. Chaque jour est un jour payé, quelle que soit l'heure : les heures servent uniquement à l'emploi du temps. Tu choisis, jour par jour, ceux passés à la base ou hors base.
+- **Paie de réserve par jour** : un jour à la base vaut un solde imposable (60 € par défaut) plus une indemnité non imposable (38 € par défaut) ; un jour hors base vaut le solde de la grille du soldat (à régler). Les trois montants se règlent dans Paramètres → Travail.
+- **Ma base** : son nom et son adresse se règlent dans Paramètres → Travail ; l'adresse devient le lieu des jours à la base dans l'agenda.
+- **Agenda** : la mission donne un événement par jour (arrivée, jours à la base, départ). Les anciennes périodes se relisent comme des missions.
+- Les réglages « temps de travail d'un jour de réserve » et « indemnité hors base » disparaissent (remplacés par les montants ci-dessus).
+
 ## [0.2.2] — 2026-10-15
 
 ### Modifié

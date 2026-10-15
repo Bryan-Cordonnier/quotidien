@@ -1,7 +1,7 @@
 {
   "id": "travail",
   "name": "Travail",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Vos contrats et vos paies : missions d'intérim avec leurs agences, jours de réserve, CDD et CDI. Dit combien vous serez payé et quand ; l'argent réel et le budget restent dans d'autres plugins. Les taux se règlent dans Paramètres.",
@@ -149,54 +149,71 @@
     },
     {
       "id": "tarifReserve",
-      "label": "Tarif d'un jour de réserve (brut)",
+      "label": "Solde d'un jour de réserve à la base (imposable)",
       "type": "number",
-      "default": 0,
+      "default": 60,
       "group": "Réserve",
       "step": 1,
       "min": 0,
-      "hint": "À régler : aucune valeur par défaut.",
+      "hint": "Brut ; les cotisations sont déduites.",
       "unit": "€",
       "max": 10000
     },
     {
-      "id": "indemniteHorsBase",
-      "label": "Indemnité d'un jour hors base",
+      "id": "indemniteReserve",
+      "label": "Indemnité d'un jour de réserve à la base (non imposable)",
       "type": "number",
       "default": 38,
       "group": "Réserve",
       "step": 1,
       "min": 0,
-      "hint": "hypothèse à confirmer",
+      "hint": "Pas de cotisations.",
       "unit": "€",
       "max": 10000
     },
     {
+      "id": "tarifHorsBase",
+      "label": "Solde d'un jour hors base (grille de solde du soldat, imposable)",
+      "type": "number",
+      "default": 0,
+      "group": "Réserve",
+      "step": 1,
+      "min": 0,
+      "hint": "À régler d'après ta grille de solde.",
+      "unit": "€",
+      "max": 10000
+    },
+    {
+      "id": "baseNom",
+      "label": "Nom de ma base",
+      "type": "text",
+      "default": "",
+      "group": "Réserve",
+      "hint": "Affiché dans l'agenda."
+    },
+    {
+      "id": "baseAdresse",
+      "label": "Adresse de ma base",
+      "type": "text",
+      "default": "",
+      "group": "Réserve",
+      "hint": "Lieu des jours à la base dans l'agenda, pour calculer le trajet."
+    },
+    {
       "id": "reserveDebut",
-      "label": "Heure d'arrivée à la base (jour de réserve, par défaut)",
-      "hint": "00:00 au début ET à la fin = toute la journée",
+      "label": "Heure d'arrivée habituelle à la base (nouvelle mission)",
+      "hint": "Proposée à chaque nouvelle mission de réserviste ; elle ne change jamais la paie.",
       "type": "time",
       "default": "08:00",
       "group": "Réserve"
     },
     {
       "id": "reserveFin",
-      "label": "Heure de départ de la base (jour de réserve, par défaut)",
-      "hint": "00:00 au début ET à la fin = toute la journée",
+      "label": "Heure de départ habituelle (nouvelle mission)",
+      "hint": "Proposée à chaque nouvelle mission ; elle ne change jamais la paie.",
       "type": "time",
       "default": "17:00",
       "group": "Réserve"
-    },
-    {
-      "id": "reserveTravail",
-      "label": "Temps de travail d'un jour de réserve",
-      "type": "number",
-      "default": 8,
-      "group": "Réserve",
-      "step": 0.5,
-      "min": 0,
-      "unit": "h",
-      "max": 24
     },
     {
       "id": "precarite",

@@ -25,18 +25,21 @@ export interface Reglages {
   seuilSup1Min: number;
   /** Délai entre la fin d'une mission ou d'une période de réserve et le paiement, en jours (jamais un week-end ni un jour férié). */
   delaiPaieJours: number;
-  /** Tarif d'un jour de réserve, brut (à régler : aucune valeur par défaut). */
+  /** Réserve : solde d'un jour À LA BASE, imposable (brut, cotisations déduites ensuite). */
   tarifReserveCents: Centimes;
-  /** Indemnité d'un jour hors base de réserve (hypothèse : 38 €, à confirmer). */
-  indemniteHorsBaseCents: Centimes;
+  /** Réserve : indemnité d'un jour à la base, NON imposable (pas de cotisations). */
+  indemniteReserveCents: Centimes;
+  /** Réserve : solde d'un jour HORS BASE, imposable (grille de solde du soldat ; à régler). */
+  tarifHorsBaseCents: Centimes;
   /** CDD : prime de précarité sur le brut total du contrat (légal : 10 %). */
   precariteBp: PointsDeBase;
   /** CDD : indemnité de congés payés non pris sur le brut total (légal : 10 %). */
   cpCddBp: PointsDeBase;
-  /** Horaires d'un jour de réserve dans l'agenda (début, fin en minutes depuis minuit) et temps de travail du contrat pour ce jour. */
+  /** Heures proposées pour une nouvelle période de réserve : arrivée à la base le premier jour, départ le dernier jour (minutes depuis minuit). */
   reserveDebutMin: number;
   reserveFinMin: number;
-  reserveTravailMin: number;
+  /** La base de réserve (nom et adresse) : le lieu des jours de réserve dans l'agenda, pour le trajet. Vide : pas de lieu. */
+  baseLieu: string;
 }
 
 export const REGLAGES_DEFAUT: Reglages = {
@@ -48,13 +51,14 @@ export const REGLAGES_DEFAUT: Reglages = {
   majorationSup2Bp: 5000,
   seuilSup1Min: 8 * 60,
   delaiPaieJours: 7,
-  tarifReserveCents: 0,
-  indemniteHorsBaseCents: 3800,
+  tarifReserveCents: 6000,
+  indemniteReserveCents: 3800,
+  tarifHorsBaseCents: 0,
   precariteBp: 1000,
   cpCddBp: 1000,
   reserveDebutMin: 8 * 60,
   reserveFinMin: 17 * 60,
-  reserveTravailMin: 8 * 60,
+  baseLieu: "",
 };
 
 /** Quand une agence paie : une fois à la fin de la mission, chaque mois ou chaque semaine. */
@@ -101,19 +105,21 @@ export interface Mission {
   supplementaires: { jour: Jour; minutes: number }[];
 }
 
+/**
+ * Une mission de réserviste : on arrive à la base le premier jour et on la quitte le dernier, entre les deux on y reste jour et nuit.
+ * Chaque jour compte pour un jour payé, que l'on arrive à 7 h 30 ou à 11 h : les heures servent uniquement à l'emploi du temps.
+ */
 export interface PeriodeReserve {
   id: string;
   libelle: string;
-  /** Jours de réserve payés au tarif. */
-  jours: Jour[];
-  /** Nombre de jours hors base, payés à l'indemnité. */
-  horsBase: number;
-  /**
-   * Heure de début et heure d'arrivée (minutes depuis minuit), pour l'emploi du temps seulement : un jour de réserve est payé au tarif du jour,
-   * jamais d'après ces heures. Absentes : celles des paramètres.
-   */
-  debutMin?: number | null;
-  finMin?: number | null;
+  /** Premier et dernier jour de la mission (inclus). */
+  debut: Jour;
+  fin: Jour;
+  /** Heure d'arrivée à la base le premier jour, et heure de départ le dernier jour (minutes depuis minuit). */
+  arriveeMin: number;
+  departMin: number;
+  /** Jours de la mission passés HORS BASE (payés au solde hors base) ; tous les autres jours sont à la base. */
+  joursHorsBase: Jour[];
 }
 
 export type TypeContrat = "cdi" | "cdd";

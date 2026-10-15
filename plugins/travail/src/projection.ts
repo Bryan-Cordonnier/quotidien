@@ -1,7 +1,7 @@
 // Ce que Travail transmet aux autres plugins (docs/24, A.1.6) : des PROJECTIONS qu'on peut régénérer, jamais la vérité. La vérité reste ici
 // (missions, réserve, contrats). Chaque projection est un « remplacer » complet d'un groupe `ref` chez Budget ou chez l'Agenda.
 import { ajouterJours, type Jour } from "@etabli/ui/civil";
-import { RETARD_JOURS_PAIE, detailReserve, joursDeMission, minutesDuJour, paiesContrat, paiesMission, reglagesDeMission } from "./calculs";
+import { RETARD_JOURS_PAIE, detailReserve, joursDeMission, joursDeReserve, minutesDuJour, paiesContrat, paiesMission, reglagesDeMission } from "./calculs";
 import type { Donnees, Reglages } from "./types";
 
 export type ServiceCible = "budget" | "agenda";
@@ -76,18 +76,25 @@ export function projections(d: Donnees, r: Reglages, aujourdhui: Jour): Projecti
     sortie.push({
       service: "agenda",
       ref,
-      contenu: p.jours.map((jour) => ({
-        type: "travail",
-        contrat: "reserve",
-        titre: p.libelle,
-        lieu: null,
-        jour,
-        // même heure au début et à la fin (ex. 00:00 → 00:00) : le jour entier ; l'agenda refuse une durée nulle
-        debutMin: p.debutMin ?? r.reserveDebutMin,
-        finMin: finAgenda(p.debutMin ?? r.reserveDebutMin, p.finMin ?? r.reserveFinMin),
-        tempsContratMin: r.reserveTravailMin,
-        trajetMin: null,
-      })),
+      // un événement par jour : arrivée à la base le premier jour, journée entière entre les deux, départ le dernier jour
+      contenu: joursDeReserve(p).map((jour) => {
+        const premier = jour === p.debut;
+        const dernier = jour === p.fin;
+        const horsBase = p.joursHorsBase.includes(jour);
+        const precision = horsBase ? "hors base" : premier && dernier ? "" : premier ? "arrivée à la base" : dernier ? "départ de la base" : "à la base";
+        return {
+          type: "travail",
+          contrat: "reserve",
+          titre: precision ? `${p.libelle} (${precision})` : p.libelle,
+          lieu: horsBase || !r.baseLieu ? null : r.baseLieu,
+          jour,
+          debutMin: premier ? p.arriveeMin : 0,
+          finMin: finAgenda(premier ? p.arriveeMin : 0, dernier ? p.departMin : 1439),
+          // aucune durée de travail : la réserve est payée au jour, pas à l'heure
+          tempsContratMin: null,
+          trajetMin: null,
+        };
+      }),
     });
   }
   for (const c of d.contrats) {
