@@ -19,6 +19,7 @@ export default defineConfig({
         courses: page("apps/courses"),
         liste: page("apps/liste"),
         horsbudget: page("apps/horsbudget"),
+        service: page("service"),
       },
     },
   },

@@ -1,7 +1,7 @@
 {
   "id": "courses",
   "name": "Courses",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Un budget par semaine pour les courses : les tickets, ce qu'il reste à dépenser, la moyenne par semaine et par mois, et vos listes de courses à régler.",
@@ -17,6 +17,20 @@
   },
   "optionalDependencies": {
     "budget": "^1"
+  },
+  "provides": {
+    "courses": "1"
+  },
+  "serviceEntry": "service/index.html",
+  "functions": {
+    "courses": {
+      "contexte.lire": {
+        "acces": "lecture"
+      },
+      "listes.ajouter": {
+        "acces": "ecriture"
+      }
+    }
   },
   "apps": [
     {

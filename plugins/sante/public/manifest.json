@@ -1,0 +1,36 @@
+{
+  "id": "sante",
+  "name": "Santé",
+  "version": "0.1.0",
+  "apiVersion": "^3",
+  "author": "Bryan Cordonnier",
+  "description": "Vos objectifs pour l'alimentation (calories, protéines, régime, allergies, goûts), pris en compte par Repas et recettes.",
+  "color": "#e06a5f",
+  "icon": "shield",
+  "permissions": [
+    "reglages"
+  ],
+  "provides": {
+    "sante": "1"
+  },
+  "apps": [
+    {
+      "id": "sante",
+      "name": "Santé",
+      "entry": "apps/sante/index.html",
+      "accepts": []
+    }
+  ],
+  "pages": [
+    {
+      "id": "sante",
+      "title": "Santé",
+      "icon": "sante",
+      "category": "Maison",
+      "layout": {
+        "type": "app",
+        "app": "sante"
+      }
+    }
+  ]
+}
