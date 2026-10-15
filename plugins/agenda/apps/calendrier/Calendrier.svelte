@@ -6,7 +6,9 @@
   import { ajouterJours, ajouterMois, premierDuMois, type Jour } from "@etabli/ui/civil";
   import { occurrences } from "../../src/calculs";
   import { genererIcs } from "../../src/ics";
+  import { supprimer } from "../../src/operations";
   import { Session } from "../../src/session.svelte";
+  import { UTILISATEUR } from "../../src/types";
   import "./couleurs.css";
   import FormEvenement from "./FormEvenement.svelte";
   import Journee from "./Journee.svelte";
@@ -26,6 +28,11 @@
   function aller(jour: Jour): void {
     choisi = jour;
     reference = jour;
+  }
+
+  /** Supprime n'importe quel événement du jour (le propriétaire a tous les droits), même un événement posé par un plugin ou par l'assistant. */
+  function supprimerEvenement(id: string): void {
+    s.appliquer((c) => supprimer(c, id, { appelant: UTILISATEUR, proprietaire: true }).carnet);
   }
 
   function exporter(): void {
@@ -54,7 +61,7 @@
   {:else if s.carnet}
     <div class="haut">
       <Mois {s} {choisi} {reference} onchoisir={aller} onmois={(delta) => (reference = ajouterMois(reference, delta))} />
-      <Journee {s} jour={choisi} onjour={(delta) => aller(ajouterJours(choisi, delta))} onmodifier={(id) => (fenetre = { id })} />
+      <Journee {s} jour={choisi} onjour={(delta) => aller(ajouterJours(choisi, delta))} onmodifier={(id) => (fenetre = { id })} onsupprimer={supprimerEvenement} />
     </div>
     <div class="bas">
       <Sommeil {s} />

@@ -6,6 +6,12 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.38] — 2026-10-15
+
+### Ajouté
+
+- **Supprimer un événement de l'agenda, quel qu'il soit** : un bouton ✕ sur chaque événement de la journée, même ceux posés par Travail ou par l'assistant.
+
 ## [0.1.37] — 2026-10-15
 
 ### Ajouté

@@ -15,9 +15,12 @@
     jour: Jour;
     onjour: (delta: number) => void;
     onmodifier: (id: string) => void;
+    onsupprimer: (id: string) => void;
   }
 
-  let { s, jour, onjour, onmodifier }: Props = $props();
+  let { s, jour, onjour, onmodifier, onsupprimer }: Props = $props();
+  /** L'événement d'un autre plugin dont la suppression attend une confirmation (deux clics, sans fenêtre : le plugin est isolé). */
+  let aSupprimer = $state<string | null>(null);
 
   const j = $derived(s.carnet ? journee(occurrences(s.carnet.evenements, jour, jour), occurrences(s.carnet.evenements, ajouterJours(jour, 1), ajouterJours(jour, 1)), s.reglages.journee) : null);
   const hhmm = (min: number) => heure(((min % 1440) + 1440) % 1440);
@@ -49,6 +52,21 @@
               <button class="carte nom" onclick={() => onmodifier(seg.occurrence!.evenementId)} title="Modifier cet événement"><b>{seg.titre}</b><small>{detail(seg)}</small></button>
             {:else}
               <span class="carte nom"><b>{seg.titre}</b>{#if seg.genre !== "coucher"}<small>{detail(seg)}</small>{/if}</span>
+              {#if seg.genre === "evenement" && seg.occurrence}
+                {@const eid = seg.occurrence.evenementId}
+                {#if aSupprimer === eid}
+                  <button
+                    class="btn danger"
+                    onclick={() => {
+                      onsupprimer(eid);
+                      aSupprimer = null;
+                    }}
+                    title={seg.occurrence.source === "cerveau" ? "" : `Cet événement vient de « ${seg.occurrence.source} » : il peut revenir tant qu'il n'est pas supprimé là-bas.`}>Supprimer ?</button
+                  >
+                {:else}
+                  <button class="btn" onclick={() => (aSupprimer = eid)} aria-label="Supprimer cet événement" title="Supprimer cet événement">✕</button>
+                {/if}
+              {/if}
             {/if}
           </div>
         {/each}
