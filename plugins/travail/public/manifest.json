@@ -1,7 +1,7 @@
 {
   "id": "travail",
   "name": "Travail",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Vos contrats et vos paies : missions d'intérim avec leurs agences, jours de réserve, CDD et CDI. Dit combien vous serez payé et quand ; l'argent réel et le budget restent dans d'autres plugins. Les taux se règlent dans Paramètres.",
@@ -173,7 +173,7 @@
     },
     {
       "id": "reserveDebut",
-      "label": "Début d'un jour de réserve dans le calendrier",
+      "label": "Heure d'arrivée à la base (jour de réserve, par défaut)",
       "hint": "00:00 au début ET à la fin = toute la journée",
       "type": "time",
       "default": "08:00",
@@ -181,7 +181,7 @@
     },
     {
       "id": "reserveFin",
-      "label": "Fin d'un jour de réserve dans le calendrier",
+      "label": "Heure de départ de la base (jour de réserve, par défaut)",
       "hint": "00:00 au début ET à la fin = toute la journée",
       "type": "time",
       "default": "17:00",

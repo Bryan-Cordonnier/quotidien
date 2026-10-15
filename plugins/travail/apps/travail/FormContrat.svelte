@@ -3,18 +3,20 @@
   import { Modal } from "@etabli/ui";
   import { ajouterJours, jourDeInstant } from "@etabli/ui/civil";
   import { apresPrelevement, formatEuros, parseEuros } from "@etabli/ui/money";
-  import { ajouterContrat } from "../../src/donnees";
+  import { ajouterContrat, modifierContrat } from "../../src/donnees";
   import type { Session } from "../../src/session.svelte";
 
-  let { s, type, onclose }: { s: Session; type: "cdd" | "cdi"; onclose: () => void } = $props();
+  let { s, type, id, onclose }: { s: Session; type: "cdd" | "cdi"; id?: string; onclose: () => void } = $props();
 
   const aujourdhui = jourDeInstant(Date.now());
-  let poste = $state("");
-  let entreprise = $state("");
-  let brut = $state("");
-  let debut = $state(aujourdhui);
-  let fin = $state(ajouterJours(aujourdhui, 180));
-  let jourDePaie = $state("28");
+  // svelte-ignore state_referenced_locally
+  const existant = id ? s.donnees?.contrats.find((c) => c.id === id) : undefined;
+  let poste = $state(existant?.libelle ?? "");
+  let entreprise = $state(existant?.entreprise ?? "");
+  let brut = $state(existant ? String(existant.brutMensuelCents / 100).replace(".", ",") : "");
+  let debut = $state(existant?.debut ?? aujourdhui);
+  let fin = $state(existant?.fin ?? ajouterJours(aujourdhui, 180));
+  let jourDePaie = $state(String(existant?.jourDePaie ?? 28));
   let erreur = $state("");
 
   const mensuel = $derived.by(() => {
@@ -30,12 +32,13 @@
       return;
     }
     const donnees = { libelle: poste, entreprise, type, brutMensuelCents: b, debut, jourDePaie: Number(jourDePaie) || 28, ...(type === "cdd" ? { fin } : {}) };
-    if (s.appliquer((d) => ajouterContrat(d, donnees).donnees)) onclose();
+    const ok = id ? s.appliquer((d) => modifierContrat(d, id, donnees)) : s.appliquer((d) => ajouterContrat(d, donnees).donnees);
+    if (ok) onclose();
     else erreur = s.message;
   }
 </script>
 
-<Modal open titre="Nouveau {type.toUpperCase()}" {onclose} largeur={520}>
+<Modal open titre={id ? `Modifier le ${type.toUpperCase()}` : `Nouveau ${type.toUpperCase()}`} {onclose} largeur={520}>
   <div class="deux">
     <div class="groupe"><label for="c-poste">Poste</label><input id="c-poste" class="saisie" bind:value={poste} autocomplete="off" /></div>
     <div class="groupe"><label for="c-ent">Entreprise</label><input id="c-ent" class="saisie" bind:value={entreprise} autocomplete="off" /></div>
@@ -50,5 +53,5 @@
   </div>
   {#if mensuel !== null}<p style="margin: 0">Net estimé par mois : <b class="num">{formatEuros(mensuel)}</b></p>{/if}
   {#if erreur}<p class="negatif" role="alert">{erreur}</p>{/if}
-  {#snippet pied()}<button class="btn primary" onclick={enregistrer}>Ajouter le contrat</button>{/snippet}
+  {#snippet pied()}<button class="btn primary" onclick={enregistrer}>{id ? "Enregistrer" : "Ajouter le contrat"}</button>{/snippet}
 </Modal>

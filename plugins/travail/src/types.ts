@@ -108,6 +108,12 @@ export interface PeriodeReserve {
   jours: Jour[];
   /** Nombre de jours hors base, payés à l'indemnité. */
   horsBase: number;
+  /**
+   * Heure de début et heure d'arrivée (minutes depuis minuit), pour l'emploi du temps seulement : un jour de réserve est payé au tarif du jour,
+   * jamais d'après ces heures. Absentes : celles des paramètres.
+   */
+  debutMin?: number | null;
+  finMin?: number | null;
 }
 
 export type TypeContrat = "cdi" | "cdd";

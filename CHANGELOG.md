@@ -6,6 +6,12 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.41] — 2026-10-15
+
+### Modifié
+
+- **Travail** : une période de réserve a son premier et son dernier jour, l'heure d'arrivée à la base et l'heure de départ (emploi du temps seulement, la paie reste au jour). Les périodes de réserve et les contrats se modifient.
+
 ## [0.1.40] — 2026-10-15
 
 ### Corrigé

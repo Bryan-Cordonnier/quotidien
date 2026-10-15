@@ -57,7 +57,7 @@
             {/if}
           </td>
           <td class="droite actions-ligne">
-            {#if l.ref.startsWith("mission:")}<button class="btn sm" onclick={() => onmodifier(l.ref.slice(8))} aria-label="Modifier {l.titre}">Modifier</button>{/if}
+            <button class="btn sm" onclick={() => onmodifier(l.ref)} aria-label="Modifier {l.titre}">Modifier</button>
             <button class="btn sm danger" onclick={() => supprimer(l.ref)} aria-label="Supprimer {l.titre}">{aConfirmer === l.ref ? "Confirmer ?" : "Supprimer"}</button>
           </td>
         </tr>
