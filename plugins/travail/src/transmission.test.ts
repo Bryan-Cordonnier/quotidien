@@ -106,6 +106,14 @@ describe("données", () => {
     expect(refus(() => ajouterSupplementaires(d, "m1", "2026-11-08", 30)).code).toBe("argument_invalide");
   });
 
+  it("un jour de réserve de minuit à minuit devient un jour entier dans l'agenda (l'agenda refuse une durée nulle)", () => {
+    const d = ajouterReserve(donneesVides(), { libelle: "Formation", jours: ["2026-10-17"], horsBase: 0 }).donnees;
+    const agenda = (reglages: typeof R) => projections(d, reglages, "2026-10-01").find((p) => p.service === "agenda")?.contenu[0] as { debutMin: number; finMin: number };
+    expect(agenda({ ...R, reserveDebutMin: 0, reserveFinMin: 0 })).toMatchObject({ debutMin: 0, finMin: 1439 });
+    expect(agenda({ ...R, reserveDebutMin: 480, reserveFinMin: 480 })).toMatchObject({ debutMin: 480, finMin: 479 });
+    expect(agenda(R)).toMatchObject({ debutMin: 480, finMin: 1020 });
+  });
+
   it("des données de la version 1 (Paie) se relisent : les réglages sortent des données, la mission gagne une entreprise vide", () => {
     const ancien = {
       schema: 1,

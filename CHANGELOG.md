@@ -6,6 +6,12 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.40] — 2026-10-15
+
+### Corrigé
+
+- **Travail** : un jour de réserve réglé de minuit à minuit (même heure au début et à la fin) s'affiche en journée entière dans le calendrier, au lieu de provoquer une erreur.
+
 ## [0.1.39] — 2026-10-15
 
 ### Modifié
