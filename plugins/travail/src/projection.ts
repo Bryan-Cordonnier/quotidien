@@ -27,6 +27,9 @@ export function empreinte(valeur: unknown): string {
 
 export const cleDe = (p: Projection): string => `${p.service}|${p.ref}`;
 
+/** Fin d'un événement d'agenda : la même heure au début et à la fin (ex. 00:00 → 00:00) fait le jour entier, car l'agenda refuse une durée nulle. */
+const finAgenda = (debutMin: number, finMin: number): number => (finMin !== debutMin ? finMin : debutMin === 0 ? 1439 : debutMin - 1);
+
 /**
  * Toutes les projections voulues. Une mission ou une période dont le net réel a été saisi (bulletin) n'a plus de prévision attendue chez
  * Budget (une liste vide : le `remplacer` retire l'attendu sans toucher au réalisé). Chez l'Agenda, chaque jour de mission ou de réserve
@@ -80,8 +83,8 @@ export function projections(d: Donnees, r: Reglages, aujourdhui: Jour): Projecti
         lieu: null,
         jour,
         // même heure au début et à la fin (ex. 00:00 → 00:00) : le jour entier ; l'agenda refuse une durée nulle
-        debutMin: r.reserveDebutMin,
-        finMin: r.reserveFinMin === r.reserveDebutMin ? (r.reserveDebutMin === 0 ? 1439 : r.reserveDebutMin - 1) : r.reserveFinMin,
+        debutMin: p.debutMin ?? r.reserveDebutMin,
+        finMin: finAgenda(p.debutMin ?? r.reserveDebutMin, p.finMin ?? r.reserveFinMin),
         tempsContratMin: r.reserveTravailMin,
         trajetMin: null,
       })),

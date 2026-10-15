@@ -4,6 +4,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.2.2] — 2026-10-15
+
+### Modifié
+
+- **Jours de réserve** : une période se règle du premier au dernier jour (avec ou sans les week-ends), avec l'heure à laquelle tu arrives à la base et l'heure à laquelle tu pars. Ces heures servent uniquement à l'emploi du temps : un jour de réserve est payé au tarif du jour, même si tu arrives à 11 h. Les heures des paramètres restent les valeurs par défaut.
+- **Modifier** une période de réserve et un contrat CDI/CDD (comme une mission) : bouton « Modifier » sur chaque ligne.
+
 ## [0.2.1] — 2026-10-15
 
 ### Corrigé

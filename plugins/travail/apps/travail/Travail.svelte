@@ -23,8 +23,8 @@
   /** La fenêtre ouverte, s'il y en a une. */
   type Fenetre =
     | { type: "mission"; id?: string }
-    | { type: "reserve" }
-    | { type: "contrat" }
+    | { type: "reserve"; id?: string }
+    | { type: "contrat"; id?: string }
     | { type: "agence"; id?: string }
     | { type: "bulletin"; ref: string }
     | { type: "historique" };
@@ -33,6 +33,11 @@
 
   const precision = $derived(s.donnees ? precisionMoyenne(s.donnees, s.reglages) : null);
   const titreBouton = $derived(onglet === "interim" ? "+ Nouvelle mission" : onglet === "reserve" ? "+ Jours de réserve" : `+ Nouveau ${onglet.toUpperCase()}`);
+  /** Ouvre la fiche d'une ligne de la liste, d'après sa référence (« mission:m1 », « reserve:r2 », « contrat:c3 »). */
+  function modifier(ref: string): void {
+    const [genre, id] = ref.split(":");
+    if (genre === "mission" || genre === "reserve" || genre === "contrat") fenetre = { type: genre, id };
+  }
   function nouveau(): void {
     fenetre = onglet === "interim" ? { type: "mission" } : onglet === "reserve" ? { type: "reserve" } : { type: "contrat" };
   }
@@ -60,7 +65,7 @@
 
     <Tabs items={ONGLETS.map((o) => ({ id: o.id, label: o.label }))} bind:value={onglet} label="Type de contrat" />
 
-    <ListeContrats {s} {onglet} {precision} onnouveau={nouveau} {titreBouton} onhistorique={() => (fenetre = { type: "historique" })} onbulletin={(ref) => (fenetre = { type: "bulletin", ref })} onmodifier={(id) => (fenetre = { type: "mission", id })} />
+    <ListeContrats {s} {onglet} {precision} onnouveau={nouveau} {titreBouton} onhistorique={() => (fenetre = { type: "historique" })} onbulletin={(ref) => (fenetre = { type: "bulletin", ref })} onmodifier={modifier} />
 
     {#if onglet === "interim"}
       <Agences {s} onajouter={() => (fenetre = { type: "agence" })} onmodifier={(id) => (fenetre = { type: "agence", id })} />
@@ -76,12 +81,17 @@
     {#if s.message}<p class="negatif" role="alert">{s.message}</p>{/if}
 
     {#if fenetre?.type === "mission"}<FormMission {s} id={fenetre.id} onclose={fermer} />{/if}
-    {#if fenetre?.type === "reserve"}<FormReserve {s} onclose={fermer} />{/if}
-    {#if fenetre?.type === "contrat" && (onglet === "cdd" || onglet === "cdi")}<FormContrat {s} type={onglet} onclose={fermer} />{/if}
+    {#if fenetre?.type === "reserve"}<FormReserve {s} id={fenetre.id} onclose={fermer} />{/if}
+    {#if fenetre?.type === "contrat"}
+      {@const idOuvert = fenetre.id}
+      {@const contratOuvert = idOuvert ? s.donnees.contrats.find((c) => c.id === idOuvert) : undefined}
+      {#if contratOuvert}<FormContrat {s} type={contratOuvert.type} id={contratOuvert.id} onclose={fermer} />
+      {:else if onglet === "cdd" || onglet === "cdi"}<FormContrat {s} type={onglet} onclose={fermer} />{/if}
+    {/if}
     {#if fenetre?.type === "agence"}<FormAgence {s} id={fenetre.id} onclose={fermer} />{/if}
     {#if fenetre?.type === "bulletin"}<FormBulletin {s} ref={fenetre.ref} onclose={fermer} />{/if}
     {#if fenetre?.type === "historique"}
-      <Historique {s} {onglet} onclose={fermer} onbulletin={(ref) => (fenetre = { type: "bulletin", ref })} onmodifier={(id) => (fenetre = { type: "mission", id })} />
+      <Historique {s} {onglet} onclose={fermer} onbulletin={(ref) => (fenetre = { type: "bulletin", ref })} onmodifier={modifier} />
     {/if}
   {:else}
     <p class="petit">Chargement…</p>

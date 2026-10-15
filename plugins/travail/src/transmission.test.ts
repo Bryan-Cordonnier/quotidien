@@ -1,7 +1,7 @@
 // Données, projections et transmission : rejouable, tolérante à l'absence d'un plugin, sans doublon.
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ajouterAgence, ajouterContrat, ajouterMission, ajouterReserve, ajouterSupplementaires, donneesVides, lireDonnees, modifierMission, supprimerAgence, supprimerMission } from "./donnees";
+import { ajouterAgence, ajouterContrat, ajouterMission, ajouterReserve, ajouterSupplementaires, donneesVides, lireDonnees, modifierContrat, modifierMission, modifierReserve, supprimerAgence, supprimerMission } from "./donnees";
 import { empreinte, projections } from "./projection";
 import { saisirNetRecu, transmettre, type Appeler, type Reponse } from "./transmission";
 import { ErreurTravail, REGLAGES_DEFAUT, type Donnees } from "./types";
@@ -112,6 +112,31 @@ describe("données", () => {
     expect(agenda({ ...R, reserveDebutMin: 0, reserveFinMin: 0 })).toMatchObject({ debutMin: 0, finMin: 1439 });
     expect(agenda({ ...R, reserveDebutMin: 480, reserveFinMin: 480 })).toMatchObject({ debutMin: 480, finMin: 479 });
     expect(agenda(R)).toMatchObject({ debutMin: 480, finMin: 1020 });
+  });
+
+  it("une période de réserve a ses propres heures d'arrivée et de départ (emploi du temps seulement : la paie ne change pas)", () => {
+    const sans = ajouterReserve(donneesVides(), { libelle: "Formation", jours: ["2026-10-17", "2026-10-18"], horsBase: 0 });
+    const avec = ajouterReserve(donneesVides(), { libelle: "Formation", jours: ["2026-10-17", "2026-10-18"], horsBase: 0, debutMin: 11 * 60, finMin: 16 * 60 });
+    const reglages = { ...R, tarifReserveCents: 6000 };
+    const premier = (d: Donnees) => projections(d, reglages, "2026-10-01").find((p) => p.service === "agenda")?.contenu[0] as { debutMin: number; finMin: number };
+    expect(premier(sans.donnees)).toMatchObject({ debutMin: 480, finMin: 1020 });
+    expect(premier(avec.donnees)).toMatchObject({ debutMin: 660, finMin: 960 });
+    const budget = (d: Donnees) => JSON.stringify(projections(d, reglages, "2026-10-01").find((p) => p.service === "budget")?.contenu);
+    expect(budget(avec.donnees)).toBe(budget(sans.donnees));
+    expect(refus(() => ajouterReserve(donneesVides(), { libelle: "x", jours: ["2026-10-17"], horsBase: 0, debutMin: 600 })).code).toBe("argument_invalide");
+    expect(refus(() => ajouterReserve(donneesVides(), { libelle: "x", jours: ["2026-10-17"], horsBase: 0, debutMin: 600, finMin: 2000 })).code).toBe("argument_invalide");
+  });
+
+  it("une période de réserve et un contrat se modifient", () => {
+    let d = ajouterReserve(donneesVides(), { libelle: "Formation", jours: ["2026-10-17"], horsBase: 0 }).donnees;
+    d = modifierReserve(d, "r1", { libelle: "Formation réserviste", jours: ["2026-10-17", "2026-10-18", "2026-10-19"], horsBase: 1, debutMin: 600, finMin: 1020 });
+    expect(d.reserves[0]).toMatchObject({ id: "r1", libelle: "Formation réserviste", horsBase: 1, debutMin: 600 });
+    expect(d.reserves[0]?.jours).toHaveLength(3);
+    expect(refus(() => modifierReserve(d, "r9", { libelle: "x", jours: ["2026-10-17"], horsBase: 0 })).code).toBe("introuvable");
+    d = ajouterContrat(d, { libelle: "Vendeur", type: "cdi", brutMensuelCents: 180_000, debut: "2026-12-01", jourDePaie: 5 }).donnees;
+    d = modifierContrat(d, "c2", { libelle: "Vendeur", type: "cdi", brutMensuelCents: 200_000, debut: "2026-12-01", jourDePaie: 10 });
+    expect(d.contrats[0]).toMatchObject({ id: "c2", brutMensuelCents: 200_000, jourDePaie: 10 });
+    expect(refus(() => modifierContrat(d, "c2", { libelle: "x", type: "cdd", brutMensuelCents: 1, debut: "2026-12-01", jourDePaie: 5 })).code).toBe("argument_invalide");
   });
 
   it("des données de la version 1 (Paie) se relisent : les réglages sortent des données, la mission gagne une entreprise vide", () => {

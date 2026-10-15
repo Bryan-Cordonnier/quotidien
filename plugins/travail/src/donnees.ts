@@ -86,8 +86,18 @@ export function lireMission(brut: unknown, avecId: boolean): Omit<Mission, "id">
 }
 
 export function lireReserve(brut: unknown, avecId: boolean): Omit<PeriodeReserve, "id"> & { id?: string } {
-  const o = objet(brut, ["libelle", "jours", "horsBase"], avecId ? ["id"] : []);
-  return { ...(avecId ? { id: String(o.id) } : {}), libelle: texte(o.libelle, "libelle", 120), jours: joursUniques(o.jours, "jours", 366), horsBase: entier(o.horsBase, "horsBase", 0, 366) };
+  const o = objet(brut, ["libelle", "jours", "horsBase"], avecId ? ["id", "debutMin", "finMin"] : ["debutMin", "finMin"]);
+  const heureFacultative = (v: unknown, nom: string): number | null => (v === undefined || v === null ? null : entier(v, nom, 0, 1439));
+  const debutMin = heureFacultative(o.debutMin, "debutMin");
+  const finMin = heureFacultative(o.finMin, "finMin");
+  if ((debutMin === null) !== (finMin === null)) throw new ErreurTravail("argument_invalide", "Donnez l'heure de début ET l'heure d'arrivée, ou aucune des deux.");
+  return {
+    ...(avecId ? { id: String(o.id) } : {}),
+    libelle: texte(o.libelle, "libelle", 120),
+    jours: joursUniques(o.jours, "jours", 366),
+    horsBase: entier(o.horsBase, "horsBase", 0, 366),
+    ...(debutMin === null ? {} : { debutMin, finMin }),
+  };
 }
 
 export function lireContrat(brut: unknown, avecId: boolean): Omit<Contrat, "id"> & { id?: string } {
@@ -259,6 +269,12 @@ export function ajouterReserve(d: Donnees, brut: unknown): { id: string; donnees
   return { id, donnees: verifierTaille({ ...d, suivant: d.suivant + 1, reserves: [...d.reserves, { id, ...lireReserve(brut, false) } as PeriodeReserve] }) };
 }
 
+export function modifierReserve(d: Donnees, id: string, brut: unknown): Donnees {
+  if (!d.reserves.some((r) => r.id === id)) throw new ErreurTravail("introuvable", `Période « ${id} » introuvable.`);
+  const lue = lireReserve(brut, false);
+  return verifierTaille({ ...d, reserves: d.reserves.map((r) => (r.id === id ? ({ id, ...lue } as PeriodeReserve) : r)) });
+}
+
 export function supprimerReserve(d: Donnees, id: string): Donnees {
   if (!d.reserves.some((r) => r.id === id)) throw new ErreurTravail("introuvable", `Période « ${id} » introuvable.`);
   return { ...d, reserves: d.reserves.filter((r) => r.id !== id) };
@@ -268,6 +284,12 @@ export function ajouterContrat(d: Donnees, brut: unknown): { id: string; donnees
   if (d.contrats.length >= CONTRATS_MAX) throw new ErreurTravail("limite_atteinte", `Au plus ${CONTRATS_MAX} contrats.`);
   const id = `c${d.suivant}`;
   return { id, donnees: verifierTaille({ ...d, suivant: d.suivant + 1, contrats: [...d.contrats, { id, ...lireContrat(brut, false) } as Contrat] }) };
+}
+
+export function modifierContrat(d: Donnees, id: string, brut: unknown): Donnees {
+  if (!d.contrats.some((c) => c.id === id)) throw new ErreurTravail("introuvable", `Contrat « ${id} » introuvable.`);
+  const lu = lireContrat(brut, false);
+  return verifierTaille({ ...d, contrats: d.contrats.map((c) => (c.id === id ? ({ id, ...lu } as Contrat) : c)) });
 }
 
 export function supprimerContrat(d: Donnees, id: string): Donnees {
