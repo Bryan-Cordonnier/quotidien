@@ -5,6 +5,12 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ## [Non publié]
 
+## [0.2.2] — 2026-10-15
+
+### Modifié
+
+- **Les événements posés par l'assistant se modifient** comme les tiens : un clic sur l'événement ouvre sa fiche (modifier, supprimer)
+
 ## [0.2.1] — 2026-10-15
 
 ### Ajouté
