@@ -4,6 +4,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.2.1] — 2026-10-15
+
+### Corrigé
+
+- **Jours de réserve de minuit à minuit** : régler le même horaire au début et à la fin d'un jour de réserve (par exemple 00:00 et 00:00) donne maintenant une journée entière dans le calendrier, au lieu d'une erreur.
+
 ### Ajouté
 
 - **Bulletin estimé** dans la fenêtre du bulletin : heures, majorations, IFM, congés, cotisations, net, à comparer au vrai bulletin, et à enregistrer en PDF.

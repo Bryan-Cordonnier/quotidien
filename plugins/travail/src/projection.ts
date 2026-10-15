@@ -79,8 +79,9 @@ export function projections(d: Donnees, r: Reglages, aujourdhui: Jour): Projecti
         titre: p.libelle,
         lieu: null,
         jour,
+        // même heure au début et à la fin (ex. 00:00 → 00:00) : le jour entier ; l'agenda refuse une durée nulle
         debutMin: r.reserveDebutMin,
-        finMin: r.reserveFinMin,
+        finMin: r.reserveFinMin === r.reserveDebutMin ? (r.reserveDebutMin === 0 ? 1439 : r.reserveDebutMin - 1) : r.reserveFinMin,
         tempsContratMin: r.reserveTravailMin,
         trajetMin: null,
       })),
