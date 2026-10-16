@@ -6,6 +6,10 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+### Ajouté
+
+- **Serveur : mise à jour automatique des plugins** : au démarrage, les plugins installés sont mis à jour depuis les paquets signés livrés avec le serveur (`ETABLI_PAQUETS`).
+
 ## [0.1.48] — 2026-10-16
 
 ### Modifié
