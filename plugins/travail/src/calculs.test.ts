@@ -84,18 +84,18 @@ describe("intérim", () => {
 });
 
 describe("réserve", () => {
-  // du 7 au 9 octobre : 2 jours à la base, le dernier jour hors base
+  // du 7 au 9 octobre : 3 jours, le dernier hors base
   const periode: PeriodeReserve = { id: "r1", libelle: "Réserve", debut: "2026-10-07", fin: "2026-10-09", arriveeMin: 450, departMin: 1140, joursHorsBase: ["2026-10-09"] };
 
-  it("2 jours à la base (100 € imposables + 38 € non imposables) et 1 jour hors base (70 €) → 286,60 €", () => {
-    const d = detailReserve(periode, { ...R, tarifReserveCents: 10_000, tarifHorsBaseCents: 7_000 });
-    // brut imposable 2 × 100 + 70 = 270 € → 210,60 € après 22 % ; indemnité 2 × 38 = 76 €
-    expect(d).toMatchObject({ brutCents: 27_000, netJoursCents: 21_060, indemniteCents: 7_600, netCents: 28_660, jours: 3, joursABase: 2, joursHorsBase: 1, dernierJour: "2026-10-09", datePaiement: "2026-10-16" });
+  it("3 jours à 100 € imposables, dont 1 hors base (+38 € non imposables) → 272 €", () => {
+    const d = detailReserve(periode, { ...R, tarifReserveCents: 10_000 });
+    // brut imposable 3 × 100 = 300 € → 234 € après 22 % ; prime hors base 1 × 38 €
+    expect(d).toMatchObject({ brutCents: 30_000, netJoursCents: 23_400, indemniteCents: 3_800, netCents: 27_200, jours: 3, joursABase: 2, joursHorsBase: 1, dernierJour: "2026-10-09", datePaiement: "2026-10-16" });
   });
 
-  it("les réglages par défaut : 60 € imposables + 38 € non imposables par jour à la base, rien hors base tant que sa grille n'est pas réglée", () => {
-    // 2 jours à la base : 120 € → 93,60 € ; 76 € d'indemnité
-    expect(detailReserve(periode, R).netCents).toBe(9_360 + 7_600);
+  it("les réglages par défaut : 60 € imposables chaque jour, +38 € non imposables par jour hors base", () => {
+    // 3 jours : 180 € → 140,40 € ; 1 jour hors base : 38 €
+    expect(detailReserve(periode, R).netCents).toBe(14_040 + 3_800);
   });
 
   it("la paie ne dépend jamais des heures : arriver à 7 h 30 ou à 11 h, c'est le même jour", () => {

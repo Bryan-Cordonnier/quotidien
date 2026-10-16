@@ -4,9 +4,11 @@
 import { connect } from "@etabli/sdk";
 import { jourDeInstant, type Jour } from "@etabli/ui/civil";
 import { construireConsigne, construireConsigneListe, lireListeIa, lirePlanIa, SCHEMA_LISTE, SCHEMA_PLAN, type Choix, type PropositionPlan, type Questionnaire } from "./concocter";
-import { lireDonnees } from "./donnees";
+import { definirNutrition, lireDonnees } from "./donnees";
+import { consigneFusion, lireFusionIa, SCHEMA_FUSION } from "./fusion";
+import { consigneNutrition, lireNutritionIa, SCHEMA_NUTRITION } from "./nutrition";
 import { basePrix, type PrixConnu } from "./prix";
-import { ErreurRepas, type Donnees } from "./types";
+import { ErreurRepas, type Donnees, type Recette } from "./types";
 
 type Hote = Awaited<ReturnType<typeof connect<unknown>>>;
 
@@ -14,11 +16,13 @@ export interface ContexteCourses {
   budgetSemaineCents: number;
   jourCourses: number;
   prix: PrixConnu[];
+  /** Les listes pas encore réglées (la plus récente en dernier). */
+  listes: { id: string; nom: string; articles: string[] }[];
   /** Vrai si Courses a répondu ; sinon budget et prix par défaut. */
   disponible: boolean;
 }
 
-const COURSES_PAR_DEFAUT: ContexteCourses = { budgetSemaineCents: 7000, jourCourses: 6, prix: [], disponible: false };
+const COURSES_PAR_DEFAUT: ContexteCourses = { budgetSemaineCents: 7000, jourCourses: 6, prix: [], listes: [], disponible: false };
 
 export class Session {
   donnees = $state<Donnees | null>(null);
@@ -34,6 +38,16 @@ export class Session {
   get foyer(): number {
     const n = Number(this.parametres.personnes);
     return Number.isInteger(n) && n >= 1 && n <= 20 ? n : 1;
+  }
+
+  /** Les ustensiles de la maison : le paramètre (séparés par des virgules), sinon l'ancienne liste enregistrée. */
+  get ustensiles(): string[] {
+    const p = typeof this.parametres.ustensiles === "string" ? this.parametres.ustensiles.split(/[,\n]/).map((u) => u.trim()).filter((u) => u !== "") : [];
+    return p.length ? p : (this.donnees?.ustensiles ?? []);
+  }
+
+  ouvrirParametres(): void {
+    this.#hote?.openSettings("repas");
   }
 
   async demarrer(): Promise<void> {
@@ -81,6 +95,10 @@ export class Session {
       budgetSemaineCents: Number.isInteger(v.budgetSemaineCents) ? (v.budgetSemaineCents as number) : 7000,
       jourCourses: Number.isInteger(v.jourCourses) ? (v.jourCourses as number) : 6,
       prix,
+      listes: (Array.isArray(v.listes) ? v.listes : [])
+        .map((l) => l as Record<string, unknown>)
+        .filter((l) => typeof l.id === "string" && typeof l.nom === "string" && Array.isArray(l.articles))
+        .map((l) => ({ id: l.id as string, nom: l.nom as string, articles: (l.articles as unknown[]).filter((a): a is string => typeof a === "string") })),
       disponible: true,
     };
   }
@@ -114,10 +132,10 @@ export class Session {
   async concocter(q: Questionnaire): Promise<PropositionPlan | string> {
     if (!this.#hote || !this.donnees) return "Pas encore prêt : réessayez dans un instant.";
     const d = this.donnees;
-    const consigne = construireConsigne(q, { budgetSemaineCents: this.courses.budgetSemaineCents, ustensiles: d.ustensiles, recettes: d.recettes, prix: this.prixPourIa, sante: this.sante });
+    const consigne = construireConsigne(q, { budgetSemaineCents: this.courses.budgetSemaineCents, ustensiles: this.ustensiles, recettes: d.recettes, prix: this.prixPourIa, sante: this.sante });
     const r = await this.#hote.ai.extraire({ instruction: consigne, schema: SCHEMA_PLAN });
     if (!r.ok) return r.message;
-    return lirePlanIa(r.texte, q, d.recettes, d.ustensiles);
+    return lirePlanIa(r.texte, q, d.recettes, this.ustensiles);
   }
 
   /** Demande à l'IA la liste d'achats de recettes choisies. */
@@ -126,6 +144,41 @@ export class Session {
     const r = await this.#hote.ai.extraire({ instruction: construireConsigneListe(choix, this.prixPourIa, budgetCents), schema: SCHEMA_LISTE });
     if (!r.ok) return r.message;
     return lireListeIa(r.texte);
+  }
+
+  /**
+   * Prépare l'ajout d'une recette aux courses : l'IA la fusionne avec la liste ouverte de Courses (la plus récente). Rien n'est écrit :
+   * la proposition est montrée, puis `ecrireFusion` l'enregistre. Sans liste ouverte, on en crée une avec la recette.
+   */
+  async preparerFusion(recette: Recette, personnes: number): Promise<{ listeId: string | null; nomListe: string; articles: string[]; ajoutes: string[]; retires: string[]; remarques: string } | string> {
+    if (!this.#hote) return "Pas encore prêt : réessayez dans un instant.";
+    await this.rafraichirCourses();
+    if (!this.courses.disponible) return "Courses ne répond pas : la recette n'a pas pu être ajoutée.";
+    const liste = this.courses.listes.at(-1);
+    const actuels = liste?.articles ?? [];
+    const r = await this.#hote.ai.extraire({ instruction: consigneFusion(actuels, recette, personnes), schema: SCHEMA_FUSION });
+    if (!r.ok) return r.message;
+    const lu = lireFusionIa(r.texte, actuels);
+    return typeof lu === "string" ? lu : { listeId: liste?.id ?? null, nomListe: liste?.nom ?? recette.nom, ...lu };
+  }
+
+  async ecrireFusion(listeId: string | null, nom: string, articles: string[]): Promise<{ ok: boolean; message: string }> {
+    if (!this.#hote) return { ok: false, message: "Pas encore prêt." };
+    if (listeId === null) return this.envoyerACourses(nom, articles);
+    const r = await this.#hote.services.call("courses", "listes.remplacer", { id: listeId, articles }, { timeoutMs: 8000 });
+    return r.ok ? { ok: true, message: `Liste « ${nom} » mise à jour dans Courses.` } : { ok: false, message: r.message };
+  }
+
+  /** Estime à l'IA les valeurs nutritionnelles des recettes qui n'en ont pas (par paquets de 15). Rend un message. */
+  async estimerNutrition(): Promise<string> {
+    if (!this.#hote || !this.donnees) return "Pas encore prêt.";
+    const manquantes = this.donnees.recettes.filter((r) => r.nutrition === null).slice(0, 15);
+    if (manquantes.length === 0) return "Toutes les recettes ont leurs valeurs.";
+    const r = await this.#hote.ai.extraire({ instruction: consigneNutrition(manquantes), schema: SCHEMA_NUTRITION });
+    if (!r.ok) return r.message;
+    const lu = lireNutritionIa(r.texte, manquantes.map((x) => x.id));
+    if (typeof lu === "string") return lu;
+    return this.appliquer((d) => definirNutrition(d, lu)) ? `Valeurs estimées pour ${Object.keys(lu).length} recette${Object.keys(lu).length > 1 ? "s" : ""}.` : this.message;
   }
 
   /** Envoie une liste à Courses (rejouer la même liste ne crée pas de doublon). Rend un message pour l'utilisateur. */

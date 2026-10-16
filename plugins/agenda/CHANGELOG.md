@@ -5,6 +5,13 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ## [Non publié]
 
+## [0.2.4] — 2026-10-16
+
+### Modifié
+
+- Un événement qui commence à minuit (jour de réserve entier) ne crée plus de « Préparation » ni d'heure de lever avancée.
+
+
 ## [0.2.3] — 2026-10-16
 
 ### Modifié

@@ -42,6 +42,14 @@ export interface Ingredient {
   quantite: string;
 }
 
+/** Valeurs nutritionnelles d'UNE portion (estimées par l'IA) : kilocalories et grammes. */
+export interface Nutrition {
+  kcal: number;
+  proteines: number;
+  glucides: number;
+  lipides: number;
+}
+
 export interface Recette {
   id: string;
   nom: string;
@@ -56,6 +64,10 @@ export interface Recette {
   notes: string;
   /** Qui l'a ajoutée : moi (saisie), l'IA (plan concocté), Max (l'assistant). */
   source: Source;
+  /** Épinglée en tête de la page. */
+  favori: boolean;
+  /** Par portion, ou `null` tant qu'elle n'a pas été estimée. */
+  nutrition: Nutrition | null;
 }
 
 /** Un prix relevé ailleurs que sur un ticket : une recherche, une saisie, l'assistant. */

@@ -4,6 +4,15 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.4.0] — 2026-10-16
+
+### Modifié
+
+- Mission de réserviste : les jours se cochent sur un calendrier mois par mois ; des jours qui ne se suivent pas sont refusés (deux missions : « Partie 1 », « Partie 2 »).
+- Paie de réserve : chaque jour vaut le solde imposable (60 € par défaut) ; un jour hors base ajoute une prime non imposable (38 € par défaut). Le réglage « solde hors base » disparaît.
+- « Prochaine mission » et le widget comptent la réserve ; une réserve en cours s'affiche dans « Mission en cours ».
+
+
 ## [0.3.0] — 2026-10-16
 
 ### Modifié

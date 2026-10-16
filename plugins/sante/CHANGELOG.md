@@ -4,6 +4,15 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.3.0] — 2026-10-16
+
+### Modifié
+
+- Pesée en un geste : le poids, puis « Ajouter » (date du jour automatique).
+- IMC en cadran (demi-cercle par zones, aiguille) avec le sens sur 30 jours : mieux ou attention.
+- Profil, objectifs, régime et goûts se règlent dans Paramètres → Santé ; ce qui était déjà saisi est gardé.
+
+
 ## [0.2.0] — 2026-10-16
 
 ### Ajouté

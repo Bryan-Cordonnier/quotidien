@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { besoinCalories, besoinProteines, imc, nettoyer, OBJECTIFS_DEFAUT, peser } from "./objectifs";
+import { appliquerParametres, besoinCalories, imcIlYa30Jours, besoinProteines, imc, nettoyer, OBJECTIFS_DEFAUT, peser } from "./objectifs";
 
 describe("objectifs de santé", () => {
   it("rien ou n'importe quoi : les valeurs par défaut", () => {
@@ -22,5 +22,17 @@ describe("objectifs de santé", () => {
     expect(besoinCalories({ ...o, but: "perdre du poids" })).toBe(2350);
     expect(besoinProteines({ ...o, but: "prendre du muscle" })).toBe(144);
     expect(besoinCalories({ ...o, age: 0 })).toBeNull();
+  });
+
+  it("les Paramètres remplacent le profil, sauf ceux restés par défaut (rien de déjà saisi ne se perd)", () => {
+    const avant = nettoyer({ age: 30, tailleCm: 180, regime: "halal" });
+    const o = appliquerParametres(avant, { taille: 182, poidsVise: 75.5, age: 0 });
+    expect(o).toMatchObject({ age: 30, tailleCm: 182, poidsViseDixiemes: 755, regime: "halal" });
+  });
+
+  it("IMC d'il y a 30 jours", () => {
+    const o = nettoyer({ tailleCm: 200, pesees: [{ jour: "2026-08-01", dixiemesKg: 1000 }, { jour: "2026-09-20", dixiemesKg: 960 }, { jour: "2026-10-12", dixiemesKg: 900 }] });
+    expect(imcIlYa30Jours(o)).toBe(24);
+    expect(imcIlYa30Jours(nettoyer({ tailleCm: 200 }))).toBeNull();
   });
 });

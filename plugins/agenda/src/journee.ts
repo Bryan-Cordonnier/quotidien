@@ -52,8 +52,11 @@ export function departDe(o: Occurrence, r: ReglagesJournee): number {
   return t > 0 ? o.debutMin - t - r.margeArriveeMin : o.debutMin;
 }
 
-/** Le premier événement du matin qui commande le réveil : avant midi, avec un trajet ou de travail. */
-export const premierDuMatin = (occ: readonly Occurrence[]): Occurrence | undefined => occ.find((o) => o.debutMin < 720 && (o.type === "travail" || o.type === "retux" || o.trajetMin !== null));
+/**
+ * Le premier événement du matin qui commande le réveil : avant midi, avec un trajet ou de travail. Un événement qui commence à minuit continue
+ * celui de la veille (un jour de réserve en entier) : on est déjà sur place, ni préparation ni départ.
+ */
+export const premierDuMatin = (occ: readonly Occurrence[]): Occurrence | undefined => occ.find((o) => o.debutMin > 0 && o.debutMin < 720 && (o.type === "travail" || o.type === "retux" || o.trajetMin !== null));
 
 /** Heure du lever : calculée à rebours depuis le premier départ du matin, sinon l'heure par défaut. */
 export function leverDe(occ: readonly Occurrence[], r: ReglagesJournee): number {

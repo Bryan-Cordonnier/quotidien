@@ -163,6 +163,21 @@ export function retirerArticle(d: Donnees, listeId: string, id: string): Donnees
   return remplacer(d, { ...l, articles: l.articles.filter((x) => x.id !== id) });
 }
 
+/** Remplace tous les articles d'une liste (fusion faite par Repas) ; un article gardé tel quel reste coché s'il l'était. */
+export function remplacerArticles(d: Donnees, listeId: string, articles: unknown): Donnees {
+  const l = modifiable(d, listeId);
+  const noms = listeDe(articles, "articles", (a) => texte(a, "article", 120), ARTICLES_MAX);
+  if (noms.length === 0) throw new ErreurCourses("argument_invalide", "Une liste garde au moins un article.");
+  const restants = [...l.articles];
+  let suivant = d.suivant;
+  const nouveaux = noms.map((nom) => {
+    const i = restants.findIndex((a) => a.nom === nom);
+    if (i >= 0) return restants.splice(i, 1)[0]!;
+    return { id: `a${suivant++}`, nom, pris: false };
+  });
+  return verifier(remplacer({ ...d, suivant }, { ...l, articles: nouveaux }));
+}
+
 /** Met un article dans le caddie, ou l'en retire. */
 export function basculerPris(d: Donnees, listeId: string, id: string): Donnees {
   const l = modifiable(d, listeId);

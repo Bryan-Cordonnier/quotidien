@@ -4,23 +4,24 @@
   import { formatEuros } from "@etabli/ui/money";
   import { dans } from "../../src/affichage";
   import { Session } from "../../src/session.svelte";
-  import { missionEnCours, missionProchaine, resume } from "../../src/vue";
+  import { missionEnCours, prochaine, resume } from "../../src/vue";
 
   const s = new Session();
   void s.demarrer();
 
   const encours = $derived(s.donnees ? missionEnCours(s.donnees, s.aujourdhui) : undefined);
-  const suivante = $derived(s.donnees ? missionProchaine(s.donnees, s.aujourdhui) : undefined);
-  const m = $derived(encours ?? suivante);
-  const r = $derived(s.donnees && m ? resume(s.donnees, s.reglages, m, s.aujourdhui) : null);
+  const suivante = $derived(s.donnees && !encours ? prochaine(s.donnees, s.reglages, s.aujourdhui) : null);
+  const r = $derived(s.donnees && encours ? resume(s.donnees, s.reglages, encours, s.aujourdhui) : null);
 
   // Résumé pour l'écran d'accueil du téléphone.
   $effect(() => {
     if (!s.donnees) return;
     s.resumerWidget(
-      m && r
-        ? { titre: encours ? "Mission en cours" : "Prochaine mission", valeur: formatEuros(r.netCents), lignes: [r.titre, encours ? `${r.faits}/${r.total} jours` : dans(s.aujourdhui, m.debut)], page: "travail" }
-        : { titre: "Travail", lignes: ["Aucune mission pour l'instant."], page: "travail" },
+      r
+        ? { titre: "Mission en cours", valeur: formatEuros(r.netCents), lignes: [r.titre, `${r.faits}/${r.total} jours`], page: "travail" }
+        : suivante
+          ? { titre: "Prochaine mission", valeur: formatEuros(suivante.netCents), lignes: [suivante.titre, dans(s.aujourdhui, suivante.debut)], page: "travail" }
+          : { titre: "Travail", lignes: ["Aucune mission pour l'instant."], page: "travail" },
     );
   });
 </script>
@@ -32,13 +33,12 @@
 {:else}
   <button class="w lien" onclick={() => s.ouvrirPage("travail")} aria-label="Ouvrir Travail">
     <p class="etiquette">{encours ? "Mission en cours" : "Prochaine mission"}</p>
-    {#if m && r}
+    {#if r}
       <div class="titre"><b>{r.titre}</b><span class="num net">{formatEuros(r.netCents)}</span></div>
-      {#if encours}
-        <Jauge pourcent={r.pourcent} gauche="{r.faits}/{r.total} jours" droite="{r.pourcent} %" label="Jours travaillés de la mission" />
-      {:else}
-        <span class="num petit">{dans(s.aujourdhui, m.debut)}</span>
-      {/if}
+      <Jauge pourcent={r.pourcent} gauche="{r.faits}/{r.total} jours" droite="{r.pourcent} %" label="Jours travaillés de la mission" />
+    {:else if suivante}
+      <div class="titre"><b>{suivante.titre}</b><span class="num net">{formatEuros(suivante.netCents)}</span></div>
+      <span class="num petit">{dans(s.aujourdhui, suivante.debut)}</span>
     {:else}
       <p class="petit">Aucune mission pour l'instant.</p>
     {/if}

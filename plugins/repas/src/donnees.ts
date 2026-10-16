@@ -9,6 +9,7 @@ import {
   type Donnees,
   type Ingredient,
   type LigneCourse,
+  type Nutrition,
   type Plan,
   type PrixReleve,
   type Recette,
@@ -37,9 +38,15 @@ function lireIngredient(brut: unknown): Ingredient {
   return { nom: texte(o.nom, "ingrédient", 80), quantite: texteFacultatif(o.quantite, "quantité", 40) };
 }
 
+export function lireNutrition(brut: unknown): Nutrition | null {
+  if (brut === undefined || brut === null) return null;
+  const o = objet(brut, ["kcal", "proteines", "glucides", "lipides"]);
+  return { kcal: entier(o.kcal, "kcal", 0, 10_000), proteines: entier(o.proteines, "proteines", 0, 1000), glucides: entier(o.glucides, "glucides", 0, 1000), lipides: entier(o.lipides, "lipides", 0, 1000) };
+}
+
 /** Une recette telle qu'on la saisit (sans identifiant) ou telle qu'elle est enregistrée (avec). */
 export function lireRecette(brut: unknown, avecId: boolean): Omit<Recette, "id"> & { id?: string } {
-  const o = objet(brut, ["nom", "categorie", "ingredients"], [...(avecId ? ["id"] : []), "portions", "tempsMin", "etapes", "ustensiles", "notes", "source"]);
+  const o = objet(brut, ["nom", "categorie", "ingredients"], [...(avecId ? ["id"] : []), "portions", "tempsMin", "etapes", "ustensiles", "notes", "source", "favori", "nutrition"]);
   const ingredients = liste(o.ingredients, "ingredients", lireIngredient, 60);
   if (ingredients.length === 0) throw new ErreurRepas("argument_invalide", "Une recette a au moins un ingrédient.");
   return {
@@ -53,6 +60,8 @@ export function lireRecette(brut: unknown, avecId: boolean): Omit<Recette, "id">
     ustensiles: textes(o.ustensiles, "ustensiles", 30, 60),
     notes: texteFacultatif(o.notes, "notes", 1000),
     source: o.source === undefined ? "moi" : choix(o.source, "source", SOURCES),
+    favori: o.favori === true,
+    nutrition: lireNutrition(o.nutrition),
   };
 }
 
@@ -147,7 +156,19 @@ export function ajouterRecette(d: Donnees, brut: unknown): { id: string; donnees
 export function modifierRecette(d: Donnees, id: string, brut: unknown): Donnees {
   if (!d.recettes.some((r) => r.id === id)) throw new ErreurRepas("introuvable", `Recette « ${id} » introuvable.`);
   const lue = lireRecette(brut, false);
-  return verifier({ ...d, recettes: d.recettes.map((r) => (r.id === id ? ({ id, ...lue } as Recette) : r)) });
+  const o = typeof brut === "object" && brut !== null ? brut : {};
+  // le formulaire ne connaît ni le favori ni les valeurs nutritionnelles : ce qu'il ne donne pas est gardé
+  return verifier({ ...d, recettes: d.recettes.map((r) => (r.id === id ? ({ id, ...lue, favori: "favori" in o ? lue.favori : r.favori, nutrition: "nutrition" in o ? lue.nutrition : r.nutrition } as Recette) : r)) });
+}
+
+export function basculerFavori(d: Donnees, id: string): Donnees {
+  if (!d.recettes.some((r) => r.id === id)) throw new ErreurRepas("introuvable", `Recette « ${id} » introuvable.`);
+  return { ...d, recettes: d.recettes.map((r) => (r.id === id ? { ...r, favori: !r.favori } : r)) };
+}
+
+/** Pose les valeurs nutritionnelles estimées (par identifiant de recette) ; les identifiants inconnus sont ignorés. */
+export function definirNutrition(d: Donnees, valeurs: Readonly<Record<string, Nutrition>>): Donnees {
+  return { ...d, recettes: d.recettes.map((r) => (valeurs[r.id] ? { ...r, nutrition: lireNutrition(valeurs[r.id]) } : r)) };
 }
 
 export function supprimerRecette(d: Donnees, id: string): Donnees {

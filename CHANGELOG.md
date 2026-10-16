@@ -6,6 +6,17 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.45] — 2026-10-16
+
+### Modifié
+
+- **Repas 0.3.0** (ex-« Recettes ») : la page s'ouvre sur les recettes, avec un gros bouton Concocter, la recherche, les favoris, une assiette de ce que vous mangez (protéines, glucides, lipides) et « Ajouter cette recette aux courses », où l'IA fusionne la recette avec la liste ouverte. Les ustensiles passent dans Paramètres.
+- **Santé 0.3.0** : pesée en un geste (le poids, puis Ajouter), IMC en cadran avec aiguille, profil et goûts dans Paramètres.
+- **Travail 0.4.0** : mission de réserviste saisie sur un calendrier (jours cochés, sans trou), paie de réserve corrigée (60 € imposables par jour, +38 € non imposables hors base), la réserve apparaît dans « Prochaine mission » et « Mission en cours ».
+- **Agenda 0.2.4** : un jour de réserve entier (minuit à minuit) n'a plus de « Préparation ».
+- **Courses 0.4.0** : Repas peut lire la liste ouverte et la mettre à jour.
+
+
 ## [0.1.44] — 2026-10-16
 
 ### Modifié

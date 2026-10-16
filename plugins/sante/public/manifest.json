@@ -1,10 +1,10 @@
 {
   "id": "sante",
   "name": "Santé",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
-  "description": "Vos objectifs pour l'alimentation (calories, protéines, régime, allergies, goûts), pris en compte par Repas et recettes.",
+  "description": "Votre poids, votre IMC et vos objectifs pour l'alimentation (calories, protéines, régime, allergies, goûts), pris en compte par Repas. Le profil se règle dans Paramètres.",
   "color": "#e06a5f",
   "icon": "shield",
   "permissions": [
@@ -31,6 +31,210 @@
         "type": "app",
         "app": "sante"
       }
+    }
+  ],
+  "parameters": [
+    {
+      "id": "sexe",
+      "label": "Sexe",
+      "type": "select",
+      "default": "homme",
+      "group": "Profil",
+      "options": [
+        {
+          "value": "homme",
+          "label": "Homme"
+        },
+        {
+          "value": "femme",
+          "label": "Femme"
+        }
+      ]
+    },
+    {
+      "id": "age",
+      "label": "Âge",
+      "type": "number",
+      "default": 0,
+      "group": "Profil",
+      "min": 0,
+      "max": 120,
+      "step": 1,
+      "unit": "ans"
+    },
+    {
+      "id": "taille",
+      "label": "Taille",
+      "type": "number",
+      "default": 0,
+      "group": "Profil",
+      "min": 0,
+      "max": 250,
+      "step": 1,
+      "unit": "cm"
+    },
+    {
+      "id": "activite",
+      "label": "Activité",
+      "type": "select",
+      "default": "modéré",
+      "group": "Profil",
+      "options": [
+        {
+          "value": "sédentaire",
+          "label": "Sédentaire"
+        },
+        {
+          "value": "léger",
+          "label": "Léger"
+        },
+        {
+          "value": "modéré",
+          "label": "Modéré"
+        },
+        {
+          "value": "actif",
+          "label": "Actif"
+        },
+        {
+          "value": "très actif",
+          "label": "Très actif"
+        }
+      ]
+    },
+    {
+      "id": "but",
+      "label": "Mon but",
+      "type": "select",
+      "default": "manger équilibré",
+      "group": "Objectifs",
+      "options": [
+        {
+          "value": "manger équilibré",
+          "label": "Manger équilibré"
+        },
+        {
+          "value": "perdre du poids",
+          "label": "Perdre du poids"
+        },
+        {
+          "value": "prendre du muscle",
+          "label": "Prendre du muscle"
+        },
+        {
+          "value": "garder mon poids",
+          "label": "Garder mon poids"
+        },
+        {
+          "value": "plus d'énergie",
+          "label": "Plus d'énergie"
+        }
+      ]
+    },
+    {
+      "id": "poidsVise",
+      "label": "Poids visé",
+      "type": "number",
+      "default": 0,
+      "group": "Objectifs",
+      "min": 0,
+      "max": 500,
+      "step": 0.5,
+      "unit": "kg",
+      "hint": "0 : pas d'objectif de poids."
+    },
+    {
+      "id": "calories",
+      "label": "Calories par jour",
+      "type": "number",
+      "default": 0,
+      "group": "Objectifs",
+      "min": 0,
+      "max": 10000,
+      "step": 50,
+      "unit": "kcal",
+      "hint": "0 : calculé d'après le profil et la dernière pesée."
+    },
+    {
+      "id": "proteines",
+      "label": "Protéines par jour",
+      "type": "number",
+      "default": 0,
+      "group": "Objectifs",
+      "min": 0,
+      "max": 1000,
+      "step": 5,
+      "unit": "g",
+      "hint": "0 : conseillé d'après le poids et le but."
+    },
+    {
+      "id": "regime",
+      "label": "Régime",
+      "type": "select",
+      "default": "omnivore",
+      "group": "Régime et goûts",
+      "options": [
+        {
+          "value": "omnivore",
+          "label": "Omnivore"
+        },
+        {
+          "value": "flexitarien",
+          "label": "Flexitarien"
+        },
+        {
+          "value": "végétarien",
+          "label": "Végétarien"
+        },
+        {
+          "value": "végétalien",
+          "label": "Végétalien"
+        },
+        {
+          "value": "sans porc",
+          "label": "Sans porc"
+        },
+        {
+          "value": "halal",
+          "label": "Halal"
+        },
+        {
+          "value": "casher",
+          "label": "Casher"
+        }
+      ],
+      "hint": "Respecté strictement par Repas."
+    },
+    {
+      "id": "allergies",
+      "label": "Allergies et intolérances",
+      "type": "text",
+      "default": "",
+      "group": "Régime et goûts",
+      "hint": "Ex. : arachides, lactose. Respectées strictement."
+    },
+    {
+      "id": "aime",
+      "label": "J'aime",
+      "type": "text",
+      "default": "",
+      "group": "Régime et goûts",
+      "hint": "Ex. : pâtes, plats mijotés"
+    },
+    {
+      "id": "eviter",
+      "label": "J'évite",
+      "type": "text",
+      "default": "",
+      "group": "Régime et goûts",
+      "hint": "Ex. : poisson, champignons"
+    },
+    {
+      "id": "notes",
+      "label": "Notes",
+      "type": "text",
+      "default": "",
+      "group": "Régime et goûts"
     }
   ]
 }

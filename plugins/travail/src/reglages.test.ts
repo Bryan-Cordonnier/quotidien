@@ -22,8 +22,8 @@ describe("paramètres du manifeste", () => {
 
 describe("reglagesDepuis", () => {
   it("convertit les pourcentages en points de base, les heures en minutes et les euros en centimes", () => {
-    const r = reglagesDepuis({ cotisations: 21.5, seuilSemaine: 39, majoration1: 20, tarifReserve: 96.5, reserveDebut: "07:30", indemniteReserve: 40, tarifHorsBase: 55.5, baseAdresse: " Camp de Souge, 33160 Saint-Médard-en-Jalles ", delaiPaie: 5 });
-    expect(r).toMatchObject({ cotisationsBp: 2150, seuilSemaineMin: 2340, majorationSup1Bp: 2000, tarifReserveCents: 9650, reserveDebutMin: 450, indemniteReserveCents: 4000, tarifHorsBaseCents: 5550, baseLieu: "Camp de Souge, 33160 Saint-Médard-en-Jalles", delaiPaieJours: 5 });
+    const r = reglagesDepuis({ cotisations: 21.5, seuilSemaine: 39, majoration1: 20, tarifReserve: 96.5, reserveDebut: "07:30", indemniteReserve: 40, baseAdresse: " Camp de Souge, 33160 Saint-Médard-en-Jalles ", delaiPaie: 5 });
+    expect(r).toMatchObject({ cotisationsBp: 2150, seuilSemaineMin: 2340, majorationSup1Bp: 2000, tarifReserveCents: 9650, reserveDebutMin: 450, indemniteReserveCents: 4000, baseLieu: "Camp de Souge, 33160 Saint-Médard-en-Jalles", delaiPaieJours: 5 });
   });
 
   it("une valeur absente, fausse ou d'un autre type reprend la valeur par défaut", () => {

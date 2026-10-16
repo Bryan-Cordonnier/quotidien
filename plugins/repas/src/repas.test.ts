@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { budget, casesParDefaut, invites, PREFERENCES_DEFAUT, construireConsigne, debutConseille, lireListeIa, lirePlanIa, repasVoulus, type Questionnaire } from "./concocter";
-import { ajouterPlan, ajouterPrix, ajouterRecette, definirUstensiles, donneesVides, lireDonnees, modifierRecette, supprimerRecette } from "./donnees";
+import { ajouterPlan, ajouterPrix, ajouterRecette, basculerFavori, definirNutrition, definirUstensiles, donneesVides, lireDonnees, modifierRecette, supprimerRecette } from "./donnees";
+import { lireFusionIa } from "./fusion";
+import { lireNutritionIa, moyenneMangee } from "./nutrition";
 import { basePrix, chiffrer, jetons, prixParMagasin } from "./prix";
 import { ErreurRepas, type Recette } from "./types";
 
@@ -198,5 +200,35 @@ describe("concocter", () => {
     const lu = lireListeIa(JSON.stringify({ courses: [{ nom: "Farine 1 kg", pour: "pizza", unites: 1, prixUnitaire: 0.95 }], remarques: "ok" }));
     expect(lu).toEqual({ courses: [{ nom: "Farine 1 kg", pour: "pizza", unites: 1, estimeCents: 95 }], remarques: "ok" });
     expect(lireListeIa(JSON.stringify({ courses: [], remarques: "" }))).toContain("aucun article");
+  });
+});
+
+describe("favoris, valeurs nutritionnelles et fusion avec la liste de courses", () => {
+  const base = { nom: "Pâtes carbo", categorie: "Pâtes", portions: 2, ingredients: [{ nom: "spaghetti", quantite: "200 g" }] };
+
+  it("le favori et les valeurs se gardent quand le formulaire modifie la recette", () => {
+    let d = ajouterRecette(donneesVides(), base).donnees;
+    d = basculerFavori(d, "r1");
+    d = definirNutrition(d, { r1: { kcal: 650, proteines: 28, glucides: 80, lipides: 22 }, r9: { kcal: 1, proteines: 1, glucides: 1, lipides: 1 } });
+    d = modifierRecette(d, "r1", { ...base, nom: "Carbonara" });
+    expect(d.recettes[0]).toMatchObject({ nom: "Carbonara", favori: true, nutrition: { kcal: 650 } });
+    expect(lireDonnees(JSON.parse(JSON.stringify(d)))).toEqual(d);
+  });
+
+  it("la moyenne suit les parts des repas concoctés, sinon toutes les recettes", () => {
+    let d = ajouterRecette(donneesVides(), base).donnees;
+    d = ajouterRecette(d, { ...base, nom: "Salade" }).donnees;
+    expect(moyenneMangee(d)).toBeNull();
+    d = definirNutrition(d, { r1: { kcal: 600, proteines: 30, glucides: 80, lipides: 20 }, r2: { kcal: 300, proteines: 10, glucides: 20, lipides: 10 } });
+    expect(moyenneMangee(d)).toMatchObject({ kcal: 450, base: "recettes", nombre: 2 });
+    d = ajouterPlan(d, { cree: "2026-10-16", debut: "2026-10-17", jours: 1, budgetCents: 0, exceptionnel: false, envies: "", repas: [{ jour: "2026-10-17", moment: "soir", personnes: 3, plat: "Carbo", recetteId: "r1" }, { jour: "2026-10-17", moment: "midi", personnes: 1, plat: "Salade", recetteId: "r2" }], courses: [], magasinConseille: "", totaux: [], totalCents: 0, remarques: "", envoye: false }).donnees;
+    expect(moyenneMangee(d)).toMatchObject({ kcal: 525, proteines: 25, base: "repas", nombre: 4 });
+  });
+
+  it("la réponse nutrition et la fusion de l'IA sont lues strictement", () => {
+    expect(lireNutritionIa('{"recettes":[{"id":"r1","kcal":650.4,"proteines":28,"glucides":80,"lipides":22},{"id":"r7","kcal":1,"proteines":1,"glucides":1,"lipides":1},{"id":"r2","kcal":-5}]}', ["r1", "r2"])).toEqual({ r1: { kcal: 650, proteines: 28, glucides: 80, lipides: 22 } });
+    const f = lireFusionIa('{"articles":["Pâtes 500 g","Œufs x12","Œufs x12","Lardons 2 × 75 g"],"remarques":"Œufs en commun : boîte de 12 au lieu de 6."}', ["Pâtes 500 g", "Œufs x6"]);
+    expect(f).toEqual({ articles: ["Pâtes 500 g", "Œufs x12", "Lardons 2 × 75 g"], ajoutes: ["Œufs x12", "Lardons 2 × 75 g"], retires: ["Œufs x6"], remarques: "Œufs en commun : boîte de 12 au lieu de 6." });
+    expect(typeof lireFusionIa("pas du json", [])).toBe("string");
   });
 });

@@ -5,6 +5,16 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ## [Non publié]
 
+## [0.3.0] — 2026-10-16
+
+### Modifié
+
+- Le plugin s'appelle **Repas**. La page s'ouvre sur les recettes : bouton **Concocter** bien visible (les questions s'enchaînent, puis « Retour aux recettes »), recherche, **favoris** (étoile), assiette **« Ce que je mange »** (moyenne par portion des repas concoctés), toutes les recettes par rayon.
+- **Ajouter cette recette aux courses** (dans la fiche) : l'IA compare avec la liste ouverte de Courses (ingrédients en commun, quantités à changer, ce qui manque), montre ce qui change, puis l'écrit après validation.
+- Valeurs nutritionnelles par portion : données par l'IA pour les recettes concoctées, « Estimer les valeurs » pour les autres.
+- Les ustensiles sont un réglage (Paramètres → Repas). Les prix relevés s'ouvrent depuis l'en-tête.
+
+
 ## [0.2.0] — 2026-10-16
 
 ### Modifié

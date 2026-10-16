@@ -4,6 +4,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.4.0] — 2026-10-16
+
+### Modifié
+
+- Service `courses@1` : `contexte.lire` rend aussi les listes pas encore réglées ; nouvelle fonction `listes.remplacer` (Repas y fusionne une recette).
+
+
 ## [0.3.0] — 2026-10-16
 
 ### Ajouté
