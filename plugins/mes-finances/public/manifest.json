@@ -1,7 +1,7 @@
 {
   "id": "mes-finances",
   "name": "Mes finances",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Ce que j'ai estimé sur mes comptes, jusqu'à quand je tiens, les prochains paiements, un ajustement rapide et un recalage sur le solde réel. S'appuie sur Finances et Budget, sans les remplacer.",

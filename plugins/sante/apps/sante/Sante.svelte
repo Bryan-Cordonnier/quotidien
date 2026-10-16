@@ -77,7 +77,7 @@
 <div class="page-plugin">
   <Entete titre="Santé" />
 
-  <!-- Une grille sans trou : l'IMC à gauche sur deux lignes, la pesée et le besoin du jour à droite, le poids sur toute la largeur. -->
+  <!-- Quatre blocs sans trou : en haut l'IMC (un tiers) et la courbe du poids, en dessous la pesée (un tiers) et le besoin du jour. -->
   <div class="grille">
     <section class="bloc imc">
       <p class="bloc-titre">IMC</p>
@@ -131,11 +131,10 @@
 <style>
   .grille {
     display: grid;
-    grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
     grid-template-areas:
-      "imc pesee"
-      "imc besoin"
-      "poids poids";
+      "imc poids"
+      "pesee besoin";
     gap: 14px;
     align-items: stretch;
   }
@@ -154,7 +153,7 @@
   @media (max-width: 760px) {
     .grille {
       grid-template-columns: 1fr;
-      grid-template-areas: "pesee" "imc" "besoin" "poids";
+      grid-template-areas: "imc" "poids" "pesee" "besoin";
     }
   }
   .pesee-rapide {

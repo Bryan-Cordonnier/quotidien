@@ -90,6 +90,18 @@ export class Session {
     this.charge = true;
   }
 
+  /** Crée un compte chez Finances (Finances n'a plus d'écran à lui) ; son solde de départ est le solde d'aujourd'hui. */
+  async creerCompte(nom: string, type: "courant" | "epargne" | "especes" | "autre", soldeInitialCents: number): Promise<boolean> {
+    this.message = "";
+    const r = await this.#appeler("finances", "comptes.creer", { nom: nom.trim(), type, soldeInitialCents, cle: `compte-${Date.now()}` });
+    if (!r.ok) {
+      this.message = r.message;
+      return false;
+    }
+    await this.actualiser();
+    return true;
+  }
+
   /** Choisit le compte que montre le widget « Un compte ». */
   choisirCompteWidget(exemplaire: number, compteId: string | null): void {
     if (!this.donnees || !this.#hote) return;

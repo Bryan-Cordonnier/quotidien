@@ -4,6 +4,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.1.2] — 2026-10-16
+
+### Modifié
+
+- « + Compte » dans Mes comptes : crée un compte bancaire (nom, type, solde d'aujourd'hui) chez Finances, qui n'a plus d'écran à lui.
+
 ## [0.1.1] — 2026-10-16
 
 ### Modifié

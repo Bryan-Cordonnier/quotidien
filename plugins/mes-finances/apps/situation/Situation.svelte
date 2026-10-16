@@ -43,6 +43,17 @@
   let ajustement = $state("");
   let libelle = $state("");
   let reel = $state("");
+  // Nouveau compte : nom, type et solde d'aujourd'hui.
+  let nouveau = $state<{ nom: string; type: "courant" | "epargne" | "especes" | "autre"; solde: string } | null>(null);
+  async function creer(): Promise<void> {
+    if (!nouveau) return;
+    const cents = nouveau.solde.trim() === "" ? 0 : parseEuros(nouveau.solde);
+    if (nouveau.nom.trim() === "" || cents === null) {
+      s.message = "Donnez un nom au compte ; le solde s'écrit comme 1 250,00.";
+      return;
+    }
+    if (await s.creerCompte(nouveau.nom, nouveau.type, cents)) nouveau = null;
+  }
 
   async function ajuster(signe: 1 | -1): Promise<void> {
     const cents = parseEuros(ajustement);
@@ -150,6 +161,21 @@
             {/each}
           </ul>
         {/if}
+        {#if nouveau}
+          <div class="nouveau">
+            <input class="saisie" bind:value={nouveau.nom} placeholder="Nom (ex. : Compte courant)" aria-label="Nom du compte" autocomplete="off" />
+            <select class="saisie" bind:value={nouveau.type} aria-label="Type de compte">
+              <option value="courant">Courant</option><option value="epargne">Épargne</option><option value="especes">Espèces</option><option value="autre">Autre</option>
+            </select>
+            <input class="saisie num" bind:value={nouveau.solde} placeholder="Solde aujourd'hui (0,00 €)" aria-label="Solde d'aujourd'hui" inputmode="decimal" autocomplete="off" />
+            <div class="actions">
+              <button class="btn primary sm" onclick={creer}>Créer le compte</button>
+              <button class="btn sm" onclick={() => (nouveau = null)}>Annuler</button>
+            </div>
+          </div>
+        {:else}
+          <button class="btn sm ajouter-compte" onclick={() => (nouveau = { nom: "", type: "courant", solde: "" })}>+ Compte</button>
+        {/if}
       </section>
     </div>
 
@@ -179,7 +205,7 @@
         <p class="etiquette">Mes comptes</p>
         <p class="petit">Le rôle de chaque compte</p>
         {#if s.comptes.length === 0}
-          <p class="petit">Aucun compte. Créez-les dans Finances.</p>
+          <p class="petit">Aucun compte pour l'instant.</p>
         {:else}
           <ul class="liste">
             {#each s.comptes as c (c.id)}
@@ -307,6 +333,14 @@
   .recaler .btn {
     height: 44px;
     padding: 0 22px;
+  }
+  .nouveau {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .ajouter-compte {
+    margin-top: 10px;
   }
   .role {
     width: auto;
