@@ -1,9 +1,11 @@
 # Fabrique le paquet du serveur de Quotidien (docs/17 du moteur) : stockage et synchronisation seulement, sans interface web. Le serveur
 # Linux et les plugins signés (installables depuis l'administration de l'application). Le paquet est publié dans la Release « serveur » (remplacée à chaque fois) ;
-# le homelab le télécharge de là. Lancé à la main : Actions → Serveur → Run workflow.
+# le homelab le télécharge de là (vm-docker vérifie chaque heure et se met à jour seul). Lancé à chaque version (étiquette v*) ou à la main.
 name: Serveur
 
 on:
+  push:
+    tags: ["v*"]
   workflow_dispatch:
 
 permissions:
