@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appliquerParametres, besoinCalories, imcIlYa30Jours, besoinProteines, imc, nettoyer, OBJECTIFS_DEFAUT, peser } from "./objectifs";
+import { appliquerParametres, conseils, besoinCalories, imcIlYa30Jours, besoinProteines, imc, nettoyer, OBJECTIFS_DEFAUT, peser } from "./objectifs";
 
 describe("objectifs de santé", () => {
   it("rien ou n'importe quoi : les valeurs par défaut", () => {
@@ -34,5 +34,14 @@ describe("objectifs de santé", () => {
     const o = nettoyer({ tailleCm: 200, pesees: [{ jour: "2026-08-01", dixiemesKg: 1000 }, { jour: "2026-09-20", dixiemesKg: 960 }, { jour: "2026-10-12", dixiemesKg: 900 }] });
     expect(imcIlYa30Jours(o)).toBe(24);
     expect(imcIlYa30Jours(nettoyer({ tailleCm: 200 }))).toBeNull();
+  });
+
+  it("conseils : d'après l'IMC, son sens et ce que l'on mange", () => {
+    const o = nettoyer({ tailleCm: 180, age: 30, pesees: [{ jour: "2026-09-20", dixiemesKg: 900 }, { jour: "2026-10-16", dixiemesKg: 880 }] });
+    const c = conseils(o, { kcal: 800, proteines: 15, glucides: 70, lipides: 45 });
+    expect(c[0]).toMatch(/baisse/);
+    expect(c.some((x) => x.includes("protéines"))).toBe(true);
+    expect(c.some((x) => x.includes("gras"))).toBe(true);
+    expect(conseils(nettoyer({}), null)).toEqual(["Renseigne ta taille et pèse-toi pour avoir ton IMC et des conseils."]);
   });
 });

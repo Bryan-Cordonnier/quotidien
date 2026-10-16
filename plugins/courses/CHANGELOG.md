@@ -4,6 +4,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.4.1] — 2026-10-16
+
+### Modifié
+
+- La prévision envoyée à Budget s'appelle « Budget courses » (ce qui reste du budget de la semaine).
+- Le bouton Paramètres de la page disparaît.
+
 ## [0.4.0] — 2026-10-16
 
 ### Modifié

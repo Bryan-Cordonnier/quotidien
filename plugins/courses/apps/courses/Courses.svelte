@@ -17,7 +17,6 @@
   <Entete titre="Courses">
     {#snippet actions()}
       <button class="btn primary" onclick={() => (repas = true)}><Icon name="plus" size={16} /> Proposer des repas (IA)</button>
-      <button class="btn" onclick={() => s.ouvrirParametres()}>Paramètres</button>
     {/snippet}
   </Entete>
 

@@ -4,6 +4,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.4.1] — 2026-10-16
+
+### Modifié
+
+- Calendrier de la mission de réserviste au style de l'Agenda : un clic = réserve (vert clair), deux clics = hors base (vert foncé), trois clics enlèvent le jour.
+- Le bouton « Nouvelle mission » du haut et le bouton Paramètres de la page disparaissent.
+
 ## [0.4.0] — 2026-10-16
 
 ### Modifié

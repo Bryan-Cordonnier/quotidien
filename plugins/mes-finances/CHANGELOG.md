@@ -4,6 +4,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.1.1] — 2026-10-16
+
+### Modifié
+
+- Plus de bandeau « Plus de revenu prévu ».
+- Boutons + et − plus petits ; le bouton Paramètres de la page disparaît.
+
 ### Ajouté
 
 - **À confirmer** : les paiements prévus dont la date est passée ; *Confirmer* (montant corrigeable) les ajoute dans Finances, *Pas passé* les écarte.

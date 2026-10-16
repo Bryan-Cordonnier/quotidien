@@ -4,7 +4,7 @@
   import { connect } from "@etabli/sdk";
   import { DonutChart, Entete, Jauge, LineChart, PluginParameters, PluginSettings } from "@etabli/ui";
   import { jourDeInstant } from "@etabli/ui/civil";
-  import { appliquerParametres, besoinCalories, besoinProteines, imc, imcIlYa30Jours, nettoyer, OBJECTIFS_DEFAUT, PARAMS_DEFAUT, peser, poidsActuel } from "../../src/objectifs";
+  import { appliquerParametres, besoinCalories, conseils, type Mange, besoinProteines, imc, imcIlYa30Jours, nettoyer, OBJECTIFS_DEFAUT, PARAMS_DEFAUT, peser, poidsActuel } from "../../src/objectifs";
   import Cadran from "./Cadran.svelte";
 
   const objectifs = new PluginSettings(OBJECTIFS_DEFAUT, nettoyer, "sante");
@@ -19,6 +19,16 @@
   });
 
   let poids = $state("");
+  // Ce que je mange en moyenne par portion, publié par Repas (s'il est installé) : sert aux conseils.
+  let mange = $state<Mange | null>(null);
+  void connect().then((h) => {
+    const lire = () => {
+      const d = h.services.get("repas")?.data as { moyenne?: Mange | null } | null | undefined;
+      mange = d?.moyenne ?? null;
+    };
+    lire();
+    h.services.onChange(lire);
+  });
 
   const kg = $derived(poidsActuel(o));
   const indice = $derived(imc(o));
@@ -65,11 +75,9 @@
 </script>
 
 <div class="page-plugin">
-  <Entete titre="Santé">
-    {#snippet actions()}<button class="btn" onclick={parametres}>Paramètres</button>{/snippet}
-  </Entete>
+  <Entete titre="Santé" />
 
-  <section class="bloc pesee-rapide">
+  <section class="bloc pesee-rapide" aria-label="Nouvelle pesée">
     <input class="saisie num" bind:value={poids} placeholder="Poids (kg)" inputmode="decimal" aria-label="Poids en kg" onkeydown={(e) => e.key === "Enter" && ajouterPesee()} />
     <button class="btn primary" onclick={ajouterPesee}>Ajouter</button>
     <span class="petit">{kg ? `Dernière pesée : ${kg.toLocaleString("fr-FR")} kg${ecart30 === null ? "" : ` · ${ecart30 > 0 ? "+" : ""}${ecart30.toLocaleString("fr-FR")} kg sur 30 j`}` : "Aucune pesée pour l'instant."}</span>
@@ -79,10 +87,11 @@
     <p class="petit">Renseigne ta taille et ton âge dans <button class="lien" onclick={parametres}>Paramètres → Santé</button> pour l'IMC et le besoin calorique.</p>
   {/if}
 
-  <div class="grille-2-1">
+  <div class="haut">
     <section class="bloc">
       <p class="bloc-titre">IMC</p>
       <Cadran valeur={indice} avant={imcIlYa30Jours(o)} />
+      <ul class="conseils">{#each conseils(o, mange) as c (c)}<li>{c}</li>{/each}</ul>
     </section>
     <section class="bloc">
       <p class="bloc-titre">Besoin du jour</p>
@@ -116,7 +125,29 @@
 </div>
 
 <style>
+  .haut {
+    display: grid;
+    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+  }
+  @media (max-width: 720px) {
+    .haut {
+      grid-template-columns: 1fr;
+    }
+  }
+  .conseils {
+    margin: 12px 0 0;
+    padding: 10px 12px 10px 26px;
+    border-radius: var(--r-md);
+    background: var(--field);
+    display: grid;
+    gap: 6px;
+    font-size: 13.5px;
+  }
   .pesee-rapide {
+    width: fit-content;
+    max-width: 100%;
     display: flex;
     flex-wrap: wrap;
     align-items: center;

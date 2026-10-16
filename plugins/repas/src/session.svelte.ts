@@ -6,7 +6,7 @@ import { jourDeInstant, type Jour } from "@etabli/ui/civil";
 import { construireConsigne, construireConsigneListe, lireListeIa, lirePlanIa, SCHEMA_LISTE, SCHEMA_PLAN, type Choix, type PropositionPlan, type Questionnaire } from "./concocter";
 import { definirNutrition, lireDonnees } from "./donnees";
 import { consigneFusion, lireFusionIa, SCHEMA_FUSION } from "./fusion";
-import { consigneNutrition, lireNutritionIa, SCHEMA_NUTRITION } from "./nutrition";
+import { consigneNutrition, lireNutritionIa, moyenneMangee, SCHEMA_NUTRITION } from "./nutrition";
 import { basePrix, type PrixConnu } from "./prix";
 import { ErreurRepas, type Donnees, type Recette } from "./types";
 
@@ -67,10 +67,16 @@ export class Session {
       this.aujourdhui = jourDeInstant(Date.now());
       this.donnees = lireDonnees(brut);
       this.illisible = "";
+      this.#publier();
     } catch (e) {
       this.donnees = null;
       this.illisible = e instanceof ErreurRepas ? e.message : "Données illisibles.";
     }
+  }
+
+  /** Service `repas@1` : ce que l'on mange en moyenne par portion (Santé s'en sert pour ses conseils). */
+  #publier(): void {
+    if (this.donnees) this.#hote?.services.provide("repas", { moyenne: moyenneMangee(this.donnees) });
   }
 
   #lireSante(): void {
@@ -121,6 +127,7 @@ export class Session {
       const suivant = travail(this.donnees);
       this.#hote.settings.update(suivant);
       this.donnees = suivant;
+      this.#publier();
       return true;
     } catch (e) {
       this.message = e instanceof ErreurRepas ? e.message : "Une erreur est survenue : rien n'a été enregistré.";

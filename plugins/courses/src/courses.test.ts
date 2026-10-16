@@ -32,10 +32,10 @@ describe("ce que Courses annonce à Budget", () => {
   it("quatre samedis : le reste du budget cette semaine, le budget entier ensuite", () => {
     const d = ajouterTicket(donneesVides(), { jour: "2026-10-07", montantCents: 3450 }).donnees;
     expect(previsionsBudget(d, R, AUJ)).toEqual([
-      { montantCents: -3550, jour: "2026-10-10", libelle: "Courses" },
-      { montantCents: -7000, jour: "2026-10-17", libelle: "Courses" },
-      { montantCents: -7000, jour: "2026-10-24", libelle: "Courses" },
-      { montantCents: -7000, jour: "2026-10-31", libelle: "Courses" },
+      { montantCents: -3550, jour: "2026-10-10", libelle: "Budget courses" },
+      { montantCents: -7000, jour: "2026-10-17", libelle: "Budget courses" },
+      { montantCents: -7000, jour: "2026-10-24", libelle: "Budget courses" },
+      { montantCents: -7000, jour: "2026-10-31", libelle: "Budget courses" },
     ]);
   });
 

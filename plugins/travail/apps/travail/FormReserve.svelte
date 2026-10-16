@@ -1,7 +1,7 @@
 <script lang="ts">
   // Une mission de réserviste : du premier au dernier jour, on arrive à la base le premier jour (heure d'arrivée) et on la quitte le dernier (heure de départ) ;
   // entre les deux on y reste jour et nuit. Chaque jour est un jour payé, à la base ou hors base : les heures servent uniquement à l'emploi du temps.
-  import { Modal } from "@etabli/ui";
+  import { Icon, Modal } from "@etabli/ui";
   import { jourDeInstant, plage } from "@etabli/ui/civil";
   import { formatEuros } from "@etabli/ui/money";
   import { detailReserve } from "../../src/calculs";
@@ -18,14 +18,22 @@
   const aujourdhui = jourDeInstant(Date.now());
 
   let libelle = $state(existante?.libelle ?? "Réserve");
-  // Les jours se cochent sur un calendrier, mois par mois ; ils doivent se suivre (sinon ce sont deux missions).
+  // Les jours se cochent sur un calendrier, mois par mois : un clic = jour de réserve (vert clair), un deuxième = hors base (vert foncé), un
+  // troisième l'enlève. Ils doivent se suivre (sinon ce sont deux missions).
   let coches = $state<string[]>(existante ? plage(existante.debut, existante.fin, 400) : []);
   let mois = $state((existante?.debut ?? aujourdhui).slice(0, 7));
   const tries = $derived([...coches].sort());
   const du = $derived(tries[0] ?? "");
   const au = $derived(tries.at(-1) ?? "");
   const suivis = $derived(!du || plage(du, au, 400).length === tries.length);
-  const cocher = (j: string) => (coches = coches.includes(j) ? coches.filter((x) => x !== j) : [...coches, j]);
+  function cocher(j: string): void {
+    if (!coches.includes(j)) coches = [...coches, j];
+    else if (!horsBase.includes(j)) horsBase = [...horsBase, j];
+    else {
+      coches = coches.filter((x) => x !== j);
+      horsBase = horsBase.filter((x) => x !== j);
+    }
+  }
   const decaler = (n: number) => {
     const d = new Date(Date.UTC(Number(mois.slice(0, 4)), Number(mois.slice(5)) - 1 + n, 1));
     mois = d.toISOString().slice(0, 7);
@@ -48,7 +56,6 @@
   const jours = $derived(du && suivis ? tries : []);
   const periode = $derived({ id: "r0", libelle, debut: du, fin: au, arriveeMin: minutes(arrivee), departMin: minutes(depart), joursHorsBase: horsBase.filter((j) => jours.includes(j)) });
   const detail = $derived(jours.length > 0 ? detailReserve(periode, s.reglages) : null);
-  const basculer = (j: string) => (horsBase = horsBase.includes(j) ? horsBase.filter((x) => x !== j) : [...horsBase, j]);
 
   function enregistrer(): void {
     erreur = "";
@@ -64,21 +71,25 @@
 <Modal open titre={id ? "Modifier la mission de réserviste" : "Mission de réserviste"} {onclose} largeur={540}>
   <div class="groupe"><label for="r-lib">Nom de la mission</label><input id="r-lib" class="saisie" bind:value={libelle} autocomplete="off" /></div>
   <div class="groupe">
-    <span class="etiquette">Coche les jours de la mission</span>
-    <div class="calendrier">
-      <div class="entete-mois">
-        <button class="btn sm" onclick={() => decaler(-1)} aria-label="Mois précédent">‹</button>
-        <b>{nomMois}</b>
-        <button class="btn sm" onclick={() => decaler(1)} aria-label="Mois suivant">›</button>
-      </div>
-      <div class="grille" role="group" aria-label="Jours de {nomMois}">
-        {#each ["L", "M", "M", "J", "V", "S", "D"] as j, i (i)}<span class="jsem">{j}</span>{/each}
-        {#each cases as c, i (c ?? `vide${i}`)}
-          {#if c}
-            <button class="case {coches.includes(c) ? 'cochee' : ''} {c === aujourdhui ? 'auj' : ''}" onclick={() => cocher(c)} aria-pressed={coches.includes(c)} aria-label={jourMois(c)}>{Number(c.slice(8))}</button>
-          {:else}<span></span>{/if}
-        {/each}
-      </div>
+    <span class="etiquette">Les jours de la mission</span>
+    <div class="nav">
+      <button class="btn" onclick={() => decaler(-1)} aria-label="Mois précédent"><Icon name="chevron-left" size={18} /></button>
+      <h3>{nomMois}</h3>
+      <button class="btn" onclick={() => decaler(1)} aria-label="Mois suivant"><Icon name="chevron-right" size={18} /></button>
+    </div>
+    <div class="cal" role="group" aria-label="Jours de {nomMois}">
+      {#each ["lun", "mar", "mer", "jeu", "ven", "sam", "dim"] as j (j)}<div class="jour-nom">{j}</div>{/each}
+      {#each cases as c, i (c ?? `vide${i}`)}
+        {#if c}
+          {@const etat = !coches.includes(c) ? "" : horsBase.includes(c) ? "hors-base" : "base"}
+          <button class="rond {etat}" class:auj={c === aujourdhui} onclick={() => cocher(c)} aria-label="{jourMois(c)}{etat === 'base' ? ', réserve à la base' : etat ? ', hors base' : ''}">{Number(c.slice(8))}</button>
+        {:else}<span></span>{/if}
+      {/each}
+    </div>
+    <div class="legende">
+      <span><i class="base"></i>Réserve (1 clic)</span>
+      <span><i class="hors-base"></i>Hors base (2 clics)</span>
+      <span>3e clic : enlève le jour</span>
     </div>
     <p class="petit {suivis ? '' : 'negatif'}" style="margin: 0">
       {#if !du}Aucun jour coché.{:else if !suivis}Il y a un trou entre deux jours : les jours doivent se suivre.{:else}Du {jourMois(du)} au {jourMois(au)} · {tries.length} jour{tries.length > 1 ? "s" : ""}.{/if}
@@ -96,16 +107,6 @@
       {#if s.reglages.baseLieu}Lieu dans l'agenda : {s.reglages.baseLieu}.{:else}Règle le nom et l'adresse de ta base dans Paramètres → Travail pour qu'ils apparaissent dans l'agenda.{/if}
     </p>
   </div>
-  <div class="groupe">
-    <span class="etiquette">Chaque jour : à la base ou hors base</span>
-    <div class="puces" aria-label="Jours de la mission">
-      {#each jours as j (j)}
-        {@const hors = periode.joursHorsBase.includes(j)}
-        <button class="btn sm {hors ? '' : 'primary'}" onclick={() => basculer(j)} aria-pressed={hors} title={hors ? "Hors base (clique pour remettre à la base)" : "À la base (clique pour passer hors base)"}>{jourMois(j)} · {hors ? "hors base" : "base"}</button>
-      {/each}
-      {#if jours.length === 0}<span class="petit">Coche des jours qui se suivent.</span>{/if}
-    </div>
-  </div>
   {#if detail}
     <p style="margin: 0">
       {detail.jours} jour{detail.jours > 1 ? "s" : ""} ({detail.joursABase} à la base, {detail.joursHorsBase} hors base) · net estimé : <b class="num">{formatEuros(detail.netCents)}</b>
@@ -116,51 +117,78 @@
 </Modal>
 
 <style>
-  .calendrier {
-    border: 1px solid var(--border);
-    border-radius: var(--r-md);
-    padding: 10px;
-  }
-  .entete-mois {
+  .nav {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    text-transform: capitalize;
+    justify-content: center;
+    gap: 6px;
   }
-  .grille {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-  }
-  .jsem {
+  .nav h3 {
+    min-width: 160px;
+    margin: 0;
+    font-size: 15px;
     text-align: center;
-    font-size: 11px;
-    color: var(--muted);
   }
-  .case {
+  .nav h3::first-letter {
+    text-transform: uppercase;
+  }
+  .cal {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 52px));
+    gap: 8px;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  .jour-nom {
+    color: var(--faint);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+  .rond {
+    display: grid;
+    place-items: center;
     aspect-ratio: 1;
-    min-height: 34px;
-    border: 1px solid var(--border);
-    border-radius: var(--r-sm);
-    background: var(--surface);
+    padding: 0;
+    border: 3px solid transparent;
+    border-radius: 50%;
+    background: var(--surface-2);
     color: var(--text);
-    font: inherit;
+    font-family: var(--mono);
+    font-size: 17px;
+    font-weight: 600;
     cursor: pointer;
   }
-  .case.auj {
-    border-color: var(--accent);
+  .rond.auj {
+    border-color: var(--text);
   }
-  .case.cochee {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--accent-text);
-    font-weight: 700;
+  .base {
+    background: #8fd6a0;
+    color: #12361d;
   }
-  .puces {
+  .hors-base {
+    background: #1f7a3a;
+    color: #fff;
+  }
+  .legende {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    justify-content: center;
+    gap: 6px 16px;
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 12.5px;
+  }
+  .legende span {
+    display: inline-flex;
     align-items: center;
+    gap: 6px;
+  }
+  .legende i {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
   }
 </style>
