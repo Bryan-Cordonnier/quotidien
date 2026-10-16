@@ -4,6 +4,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.3.3] — 2026-10-16
+
+### Modifié
+
+- Quatre blocs : en haut l'IMC (un tiers) et la courbe du poids, en dessous la pesée et le besoin du jour.
+
 ## [0.3.2] — 2026-10-16
 
 ### Modifié

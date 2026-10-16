@@ -6,6 +6,13 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.48] — 2026-10-16
+
+### Modifié
+
+- **Santé 0.3.3** : quatre blocs (IMC et courbe du poids en haut, pesée et besoin du jour en dessous).
+- **Mes finances 0.1.2** : création d'un compte bancaire depuis « Mes comptes ».
+
 ## [0.1.47] — 2026-10-16
 
 ### Modifié
