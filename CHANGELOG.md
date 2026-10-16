@@ -6,6 +6,18 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.43] — 2026-10-16
+
+### Ajouté
+
+- **Repas et recettes** (nouveau) : *Concocter* prépare les repas de la semaine pas à pas (jours, petit-déjeuner, midi, soir, invités, budget, envies) et la liste de courses au magasin le moins cher pour toute la liste ; *Recettes* range votre bibliothèque par rayons, avec recherche, fiches, ustensiles de la maison, et fait la liste de courses de recettes cochées. Une semaine avec beaucoup d'invités est reconnue comme exceptionnelle.
+- **Santé** (nouveau) : vos objectifs pour l'alimentation (calories, protéines, régime, allergies, goûts), pris en compte par Repas.
+- **IA : votre cerveau** : Paramètres → Intelligence artificielle permet de faire répondre votre cerveau (Qwen, chez vous) au lieu de Gemini. Les photos de tickets restent lues par Gemini.
+
+### Modifié
+
+- **Courses** : Repas y lit le budget et les prix de vos tickets, et y dépose ses listes.
+
 ## [0.1.42] — 2026-10-16
 
 ### Modifié

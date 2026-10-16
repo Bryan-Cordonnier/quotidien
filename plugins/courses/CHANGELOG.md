@@ -4,6 +4,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.3.0] — 2026-10-16
+
+### Ajouté
+
+- **Service pour Repas et recettes** : Repas lit le budget de la semaine, le jour des courses et les prix de vos tickets, et dépose ses listes de courses dans Courses (une même liste envoyée deux fois n'est pas dupliquée).
+
+
 ## [0.2.0]
 
 ### Ajouté
