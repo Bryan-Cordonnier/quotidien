@@ -6,6 +6,13 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.47] — 2026-10-16
+
+### Modifié
+
+- **Courses 0.4.2** : réglage « Compter les courses dans mes finances » pour les garder hors de l'estimation.
+- **Santé 0.3.2** : page en grille sans trou, paliers du cadran lisibles.
+
 ## [0.1.46] — 2026-10-16
 
 ### Modifié

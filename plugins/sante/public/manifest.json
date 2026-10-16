@@ -1,7 +1,7 @@
 {
   "id": "sante",
   "name": "Santé",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Votre poids, votre IMC et vos objectifs pour l'alimentation (calories, protéines, régime, allergies, goûts), pris en compte par Repas. Le profil se règle dans Paramètres.",

@@ -25,6 +25,8 @@ export function empreinte(valeur: unknown): string {
 
 export function previsionsBudget(d: Donnees, r: Reglages, aujourdhui: Jour): PrevisionBudget[] {
   const sortie: PrevisionBudget[] = [];
+  // désactivé : une liste vide, que Budget applique en retirant ce qui avait déjà été annoncé
+  if (!r.estimation) return sortie;
   for (const jour of prochainsJoursCourses(aujourdhui, r, SEMAINES_ANNONCEES)) {
     const reste = lundiDe(jour) === lundiDe(aujourdhui) ? Math.max(0, budgetDisponible(d, r, aujourdhui).disponibleCents) : r.budgetCents;
     if (reste > 0 && comparerJours(jour, aujourdhui) >= 0) sortie.push({ montantCents: -reste, jour, libelle: "Budget courses" });

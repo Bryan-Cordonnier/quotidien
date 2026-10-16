@@ -4,6 +4,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.4.2] — 2026-10-16
+
+### Modifié
+
+- Nouveau réglage « Compter les courses dans mes finances » : désactivé, listes, tickets et détection marchent toujours, mais rien n'est prélevé dans l'estimation (la prévision déjà envoyée à Budget est retirée).
+
 ## [0.4.1] — 2026-10-16
 
 ### Modifié

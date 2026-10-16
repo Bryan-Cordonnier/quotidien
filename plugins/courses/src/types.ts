@@ -81,4 +81,6 @@ export interface Reglages {
   alertePourcent: number;
   /** Le budget non dépensé d'une semaine s'ajoute à la suivante. */
   report: boolean;
+  /** Faux : les courses ne comptent pas dans l'estimation (rien n'est annoncé à Budget) ; le reste de Courses marche pareil. */
+  estimation: boolean;
 }

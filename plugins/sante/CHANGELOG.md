@@ -4,6 +4,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.3.2] — 2026-10-16
+
+### Modifié
+
+- Page en grille sans trou : l'IMC à gauche, la pesée et le besoin du jour à droite, le poids sur toute la largeur.
+- Les paliers du cadran ne chevauchent plus l'arc.
+
 ## [0.3.1] — 2026-10-16
 
 ### Modifié
