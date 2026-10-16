@@ -118,7 +118,6 @@
     {#snippet actions()}
       {#if !concocter}
         <button class="btn" onclick={() => (prixOuverts = true)}>Prix relevés</button>
-        <button class="btn" onclick={() => s.ouvrirParametres()}>Paramètres</button>
         <button class="btn" onclick={() => (formulaire = {})}>+ Recette</button>
       {/if}
     {/snippet}

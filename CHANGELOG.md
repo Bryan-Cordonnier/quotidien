@@ -6,6 +6,19 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.46] — 2026-10-16
+
+### Modifié
+
+- **Paramètres d'une page** : une roue carrée, toujours au même endroit (à gauche de la barre de titre ; à droite sur téléphone). Les boutons « Paramètres » des pages disparaissent.
+- **Accueil** : seulement les widgets, sans barre de recherche (l'aperçu rapide reste au clavier).
+- **Paramètres** : « Gérer les plugins » passe dans la catégorie Application.
+- **Calendrier** : un grand bouton « Ajouter un événement » ; plus d'export .ics.
+- **Mes finances** : plus de bandeau jaune, boutons + et − plus petits.
+- **Santé** : IMC plus lisible (chiffre coloré, paliers, conseils), blocs resserrés.
+- **Travail** : calendrier de réserve au style de l'Agenda (réserve, hors base, enlever).
+- Corrige le message « Finances est en version 0.1.0 ; Budget demande ^1 ».
+
 ## [0.1.45] — 2026-10-16
 
 ### Modifié

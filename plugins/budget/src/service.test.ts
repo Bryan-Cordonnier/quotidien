@@ -26,7 +26,7 @@ describe("manifeste", () => {
   it("les fonctions et leur niveau d'accès sont ceux du manifeste, et Finances est une dépendance obligatoire", () => {
     const m = JSON.parse(readFileSync(new URL("../public/manifest.json", import.meta.url), "utf8"));
     expect(Object.fromEntries(Object.entries(m.functions.budget as Record<string, { acces: string }>).map(([k, v]) => [k, v.acces]))).toEqual(FONCTIONS);
-    expect(m.dependencies.finances).toBe("^1");
+    expect(m.dependencies.finances).toBe(">=0.1");
     expect(m.permissions).toContain("appelle:finances:ecriture");
   });
 });

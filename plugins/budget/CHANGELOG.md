@@ -5,6 +5,12 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ## [Non publié]
 
+## [0.1.1] — 2026-10-16
+
+### Modifié
+
+- Corrige le faux message « Finances est en version 0.1.0 ; Budget demande ^1 ».
+
 ### Ajouté
 
 - **Confirmer ou écarter une prévision passée** (`previsions.confirmer`, `previsions.abandonner`), quelle que soit sa source : c'est l'utilisateur qui dit si l'argent est passé.

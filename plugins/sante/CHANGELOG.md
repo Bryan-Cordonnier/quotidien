@@ -4,6 +4,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.3.1] — 2026-10-16
+
+### Modifié
+
+- IMC : chiffre en grand de la couleur de sa zone, paliers lisibles sur le cadran, bloc plus étroit, et des conseils simples d'après ton IMC, son sens et ce que tu manges (Repas).
+- Le bloc de pesée ne prend plus toute la largeur ; le bouton Paramètres de la page disparaît.
+
 ## [0.3.0] — 2026-10-16
 
 ### Modifié

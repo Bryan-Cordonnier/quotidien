@@ -67,9 +67,7 @@
 </script>
 
 <div class="page-plugin">
-  <Entete titre="Mes finances">
-    {#snippet actions()}<button class="btn" onclick={() => s.ouvrirParametres()}>Paramètres</button>{/snippet}
-  </Entete>
+  <Entete titre="Mes finances" />
 
   {#if s.illisible}
     <section class="bloc">
@@ -107,15 +105,6 @@
             </li>
           {/each}
         </ul>
-      </section>
-    {/if}
-    {#if s.finRevenus}
-      <section class="bloc alerte-revenu" role="status">
-        <p class="etiquette">Plus de revenu prévu</p>
-        <p style="margin: 0">
-          Aucun revenu n'est prévu après le <b>{dateLongue(s.finRevenus)}</b>.
-          {s.tient ? `Avec ce qui est prévu, tu tiens jusqu'au ${dateLongue(s.tient)}.` : "Ton argent reste au-dessus du seuil sur toute la période affichée."}
-        </p>
       </section>
     {/if}
     <div class="grille-2">
@@ -171,9 +160,9 @@
         <p class="petit">{s.compteParDefaut ? `Sur ${s.compteParDefaut.nom}` : "Une dépense ou une rentrée oubliée"}</p>
         <div class="ajout">
           <input class="saisie num" bind:value={ajustement} placeholder="0,00 €" aria-label="Montant" inputmode="decimal" autocomplete="off" />
-          <button class="carre plus" onclick={() => ajuster(1)} aria-label="Ajouter une rentrée" title="Rentrée"><Icon name="plus" size={20} /></button>
+          <button class="carre plus" onclick={() => ajuster(1)} aria-label="Ajouter une rentrée" title="Rentrée"><Icon name="plus" size={15} /></button>
           <input class="saisie" bind:value={libelle} placeholder="Libellé" aria-label="Libellé" autocomplete="off" />
-          <button class="carre moins" onclick={() => ajuster(-1)} aria-label="Ajouter une dépense" title="Dépense"><Icon name="minus" size={20} /></button>
+          <button class="carre moins" onclick={() => ajuster(-1)} aria-label="Ajouter une dépense" title="Dépense"><Icon name="minus" size={15} /></button>
         </div>
       </section>
 
@@ -210,10 +199,6 @@
 </div>
 
 <style>
-  .alerte-revenu {
-    border-color: color-mix(in srgb, var(--warn) 45%, var(--border));
-    background: color-mix(in srgb, var(--warn) 10%, var(--surface));
-  }
   .confirmer {
     margin: 0;
     padding: 0;
@@ -283,23 +268,23 @@
       grid-template-columns: 1fr;
     }
   }
-  /* Prix en haut, libellé en bas, et à droite deux gros boutons carrés alignés sur ces deux lignes : + (vert) et − (rouge). */
+  /* Prix en haut, libellé en bas, et à droite deux petits boutons carrés alignés sur ces deux lignes : + (vert) et − (rouge). */
   .ajout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: 38px 38px;
+    grid-template-rows: 36px 36px;
     gap: 10px 14px;
     align-items: center;
     margin-top: 10px;
   }
   .carre {
-    width: 38px;
-    height: 38px;
+    width: 28px;
+    height: 28px;
     display: grid;
     place-items: center;
     padding: 0;
     border: 0;
-    border-radius: 10px;
+    border-radius: 8px;
     color: #fff;
     cursor: pointer;
   }

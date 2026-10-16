@@ -1,7 +1,7 @@
 {
   "id": "repas",
   "name": "Repas",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Vos recettes (favoris, recherche, valeurs nutritionnelles), à ajouter aux courses d'un geste ; Concocter crée les repas de la semaine dans votre budget avec l'IA.",
@@ -61,5 +61,8 @@
       "group": "Repas",
       "hint": "Séparés par des virgules (ex. : poêle, four, mixeur, cocotte-minute). L'IA ne propose que des recettes faisables avec."
     }
-  ]
+  ],
+  "provides": {
+    "repas": "1"
+  }
 }

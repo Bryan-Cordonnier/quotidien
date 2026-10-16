@@ -5,6 +5,13 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ## [Non publié]
 
+## [0.3.1] — 2026-10-16
+
+### Modifié
+
+- Publie ce que l'on mange en moyenne par portion (service `repas@1`), pour les conseils de Santé.
+- Le bouton Paramètres de la page disparaît.
+
 ## [0.3.0] — 2026-10-16
 
 ### Modifié

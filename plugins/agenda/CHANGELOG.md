@@ -5,6 +5,12 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ## [Non publié]
 
+## [0.2.5] — 2026-10-16
+
+### Modifié
+
+- En-tête : un seul grand bouton « Ajouter un événement », centré. L'export .ics et le bouton Paramètres de la page disparaissent (les réglages s'ouvrent depuis la roue de la barre de titre).
+
 ## [0.2.4] — 2026-10-16
 
 ### Modifié

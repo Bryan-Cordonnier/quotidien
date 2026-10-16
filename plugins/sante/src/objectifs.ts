@@ -134,3 +134,42 @@ export function imcIlYa30Jours(o: Objectifs): number | null {
   const ref = o.pesees.find((p) => p.jour >= limite) ?? o.pesees[0]!;
   return ref === dernier ? null : Math.round((ref.dixiemesKg / 10 / (o.tailleCm / 100) ** 2) * 10) / 10;
 }
+
+/** La zone d'un IMC (seuils de l'OMS). */
+export const zoneImc = (v: number): "maigreur" | "normal" | "surpoids" | "obésité" => (v < 18.5 ? "maigreur" : v < 25 ? "normal" : v < 30 ? "surpoids" : "obésité");
+
+/** Ce que l'on mange en moyenne par portion, publié par Repas (service `repas@1`), s'il est installé. */
+export interface Mange {
+  kcal: number;
+  proteines: number;
+  glucides: number;
+  lipides: number;
+}
+
+/**
+ * Deux ou trois conseils simples, d'après l'IMC, son sens sur 30 jours, le but, et ce que l'on mange (si Repas le dit). Rien de médical :
+ * des pistes de bon sens.
+ */
+export function conseils(o: Objectifs, mange: Mange | null): string[] {
+  const sortie: string[] = [];
+  const v = imc(o);
+  const avant = imcIlYa30Jours(o);
+  if (v !== null) {
+    const z = zoneImc(v);
+    const sens = avant === null ? 0 : Math.round((v - avant) * 10) / 10;
+    if (z === "normal") sortie.push(sens > 0.5 ? "Ton IMC est bon, mais il monte depuis un mois : surveille les portions." : "Ton IMC est dans la zone normale : continue comme ça.");
+    else if (z === "maigreur") sortie.push("Ton IMC est un peu bas : ajoute des collations nourrissantes (féculents, oléagineux, laitages).");
+    else if (sens < 0) sortie.push(`Ton IMC baisse (${sens.toLocaleString("fr-FR")} en 30 jours) : tu es sur la bonne voie, garde le rythme.`);
+    else sortie.push(z === "surpoids" ? "Ton IMC est un peu haut : des portions plus petites, plus de légumes, moins de gras et de sucre." : "Ton IMC est élevé : réduis le gras et le sucre, bouge un peu chaque jour, et parles-en à ton médecin.");
+  } else sortie.push("Renseigne ta taille et pèse-toi pour avoir ton IMC et des conseils.");
+  if (mange && mange.kcal > 0) {
+    const besoin = o.proteinesJour || besoinProteines(o);
+    const parRepas = besoin ? Math.round(besoin / 3) : 0;
+    const partGras = (mange.lipides * 9) / mange.kcal;
+    const partSucres = (mange.glucides * 4) / mange.kcal;
+    if (parRepas && mange.proteines < parRepas * 0.8) sortie.push(`Tes repas manquent de protéines (${mange.proteines} g par portion, vise ${parRepas} g) : œufs, poulet, poisson, légumineuses, fromage blanc.`);
+    if (partGras > 0.38) sortie.push(`Tes plats sont assez gras (${Math.round(partGras * 100)} % des calories) : moins de crème, de fromage et de friture.`);
+    else if (partSucres > 0.6) sortie.push(`Tes plats sont riches en féculents (${Math.round(partSucres * 100)} % des calories) : remplace une partie par des légumes.`);
+  }
+  return sortie.slice(0, 3);
+}

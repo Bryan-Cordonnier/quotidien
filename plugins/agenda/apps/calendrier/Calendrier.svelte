@@ -3,9 +3,7 @@
   // sommeil, les trajets (« je suis parti », « je suis arrivé ») et le repos légal de la semaine. Les contrats viennent de Travail ; ici,
   // « + Événement » crée un événement quelconque. Tout le calcul est dans src/ ; l'écran est mince.
   import { Entete, Icon } from "@etabli/ui";
-  import { ajouterJours, ajouterMois, premierDuMois, type Jour } from "@etabli/ui/civil";
-  import { occurrences } from "../../src/calculs";
-  import { genererIcs } from "../../src/ics";
+  import { ajouterJours, ajouterMois, type Jour } from "@etabli/ui/civil";
   import { supprimer } from "../../src/operations";
   import { Session } from "../../src/session.svelte";
   import { UTILISATEUR } from "../../src/types";
@@ -34,21 +32,12 @@
   function supprimerEvenement(id: string): void {
     s.appliquer((c) => supprimer(c, id, { appelant: UTILISATEUR, proprietaire: true }).carnet);
   }
-
-  function exporter(): void {
-    if (!s.hote || !s.carnet) return;
-    const du = premierDuMois(reference);
-    const au = ajouterJours(ajouterMois(du, 12), -1);
-    s.hote.saveFile({ name: `agenda-${du}.ics`, content: genererIcs(occurrences(s.carnet.evenements, du, au), Date.now()), extension: "ics", description: "Calendrier iCalendar" });
-  }
 </script>
 
 <div class="page-plugin">
   <Entete titre="Calendrier">
     {#snippet actions()}
-      <button class="btn" onclick={exporter}>Exporter (.ics)</button>
-      <button class="btn" onclick={() => s.ouvrirParametres()}>Paramètres</button>
-      <button class="btn primary" onclick={() => (fenetre = {})}><Icon name="plus" size={16} /> Événement</button>
+      <button class="btn primary ajouter" onclick={() => (fenetre = {})}><Icon name="plus" size={18} /> Ajouter un événement</button>
     {/snippet}
   </Entete>
 
@@ -75,6 +64,12 @@
 </div>
 
 <style>
+  .ajouter {
+    min-width: 260px;
+    min-height: 46px;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
   .haut {
     display: grid;
     grid-template-columns: max-content minmax(0, 1fr);
