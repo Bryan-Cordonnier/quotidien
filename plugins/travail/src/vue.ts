@@ -65,6 +65,14 @@ export const missionEnCours = (d: Donnees, aujourdhui: Jour): Mission | undefine
 export const missionProchaine = (d: Donnees, aujourdhui: Jour): Mission | undefined =>
   d.missions.filter((m) => statutContrat(m.debut, m.fin, aujourdhui) === "prevu").sort((a, b) => comparerJours(a.debut, b.debut))[0];
 
+/** Ce qui vient ensuite, mission d'intérim ou de réserviste : la première qui n'a pas encore commencé. */
+export function prochaine(d: Donnees, r: Reglages, aujourdhui: Jour): { titre: string; netCents: number; debut: Jour; fin: Jour } | null {
+  const m = missionProchaine(d, aujourdhui);
+  const p = d.reserves.filter((x) => statutContrat(x.debut, x.fin, aujourdhui) === "prevu").sort((a, b) => comparerJours(a.debut, b.debut))[0];
+  if (p && (!m || comparerJours(p.debut, m.debut) < 0)) return { titre: p.libelle, netCents: detailReserve(p, r).netCents, debut: p.debut, fin: p.fin };
+  return m ? { titre: titreContrat(m), netCents: resume(d, r, m, aujourdhui).netCents, debut: m.debut, fin: m.fin } : null;
+}
+
 export interface ResumeMission {
   titre: string;
   netCents: number;

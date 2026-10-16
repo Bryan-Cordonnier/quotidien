@@ -32,6 +32,15 @@ describe("service courses@1", () => {
     expect(b).toMatchObject({ valeur: { rejoue: true }, donnees: null });
   });
 
+  it("listes.remplacer : remplace les articles d'une liste ouverte, garde ce qui était coché ; contexte.lire la montre", () => {
+    const a = executer(donneesVides(), {}, "listes.ajouter", { nom: "Semaine", articles: ["Pâtes", "Tomates"] });
+    const d = { ...a.donnees!, listes: a.donnees!.listes.map((l) => ({ ...l, articles: l.articles.map((x) => ({ ...x, pris: x.nom === "Pâtes" })) })) };
+    expect((executer(d, {}, "contexte.lire", {}).valeur as any).listes).toEqual([{ id: "l1", nom: "Semaine", articles: ["Pâtes", "Tomates"] }]);
+    const b = executer(d, {}, "listes.remplacer", { id: "l1", articles: ["Pâtes", "Tomates x3", "Basilic"] });
+    expect(b.donnees?.listes[0]?.articles.map((x) => [x.nom, x.pris])).toEqual([["Pâtes", true], ["Tomates x3", false], ["Basilic", false]]);
+    expect(() => executer(d, {}, "listes.remplacer", { id: "l9", articles: ["x"] })).toThrow();
+  });
+
   it("refuse une fonction inconnue ou des arguments faux", () => {
     expect(() => executer(donneesVides(), {}, "tout.effacer", {})).toThrow();
     expect(() => executer(donneesVides(), {}, "listes.ajouter", { nom: "x" })).toThrow();

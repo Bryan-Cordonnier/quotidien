@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { dans, heuresMinutes, jourLong, jourMois, periodeCourte } from "./affichage";
 import { ajouterAgence, ajouterContrat, ajouterMission, ajouterReserve, donneesVides, enregistrerBulletin } from "./donnees";
-import { lignes, missionEnCours, missionProchaine, precisionMoyenne, resume } from "./vue";
+import { lignes, missionEnCours, missionProchaine, precisionMoyenne, prochaine, resume } from "./vue";
 import { REGLAGES_DEFAUT, type Donnees } from "./types";
 
 const R = { ...REGLAGES_DEFAUT, tarifReserveCents: 10_000 };
@@ -36,8 +36,8 @@ describe("lignes des onglets", () => {
   it("réserve : une ligne par période, entre son premier et son dernier jour", () => {
     const [p] = lignes(jeu(), R, "reserve", AUJ);
     expect(p).toMatchObject({ titre: "Réserve de septembre", debut: "2026-09-09", fin: "2026-09-10", statut: "termine" });
-    // 1 jour à la base : 100 € moins 22 % + 38 € non imposables ; 1 jour hors base : 0 € (grille non réglée)
-    expect(p?.netCents).toBe(7_800 + 3_800);
+    // 2 jours à 100 € moins 22 % ; 1 jour hors base : +38 € non imposables
+    expect(p?.netCents).toBe(15_600 + 3_800);
   });
 
   it("CDD : net de tout le contrat ; CDI sans fin : seulement le net par mois", () => {
@@ -62,6 +62,13 @@ describe("mission en cours et prochaine", () => {
     expect(missionProchaine(jeu(), "2027-06-01")).toBeUndefined();
   });
 
+  it("la prochaine mission compte aussi la réserve, si elle vient avant", () => {
+    const d = ajouterReserve(jeu(), { libelle: "Formation réserviste", debut: "2026-11-02", fin: "2026-11-06", arriveeMin: 480, departMin: 1020, joursHorsBase: [] }).donnees;
+    expect(prochaine(d, R, AUJ)?.titre).toBe("Formation réserviste");
+    expect(prochaine(jeu(), R, AUJ)?.titre).toBe("Cariste — Dupont");
+    expect(prochaine(jeu(), R, "2027-06-01")).toBeNull();
+  });
+
   it("le résumé : avancement, semaine, prochaine paie selon le rythme de l'agence (au mois : une paie, 7 jours après le dernier jour)", () => {
     const d = jeu();
     const r = resume(d, R, missionEnCours(d, AUJ)!, AUJ);
@@ -77,8 +84,8 @@ describe("précision moyenne", () => {
     let d = jeu();
     d = enregistrerBulletin(d, "mission:m2", { netCents: 42_943, jour: "2026-10-16", ecritureId: null }); // exact
     expect(precisionMoyenne(d, R)).toBe(1);
-    d = enregistrerBulletin(d, "reserve:m5".replace("m5", "r5"), { netCents: 11_600 + 1_160, jour: "2026-09-20", ecritureId: null }); // +10 %
-    // exact : écart 0 ; réserve : 1 160 / 11 600 = 10 % → moyenne des écarts 5 % → précision 95 %
+    d = enregistrerBulletin(d, "reserve:m5".replace("m5", "r5"), { netCents: 19_400 + 1_940, jour: "2026-09-20", ecritureId: null }); // +10 %
+    // exact : écart 0 ; réserve : 1 940 / 19 400 = 10 % → moyenne des écarts 5 % → précision 95 %
     expect(precisionMoyenne(d, R)).toBeCloseTo(0.95, 5);
   });
 });

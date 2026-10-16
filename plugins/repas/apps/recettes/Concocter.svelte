@@ -293,7 +293,7 @@
       <p class="bloc-titre">Vos envies</p>
       <textarea class="saisie" rows="4" bind:value={envies} placeholder="Ex. : une pizza maison vendredi avec les invités, des pâtes carbo un soir. Pas de poisson."></textarea>
       <p class="petit">
-        L'IA tient compte de vos {s.donnees?.ustensiles.length ? `${s.donnees.ustensiles.length} ustensiles` : "ustensiles (à renseigner)"}, de vos {s.donnees?.recettes.length ?? 0} recettes{s.sante ? ", de vos objectifs Santé" : ""} et de
+        L'IA tient compte de vos {s.ustensiles.length ? `${s.ustensiles.length} ustensiles` : "ustensiles (à renseigner dans Paramètres)"}, de vos {s.donnees?.recettes.length ?? 0} recettes{s.sante ? ", de vos objectifs Santé" : ""} et de
         {s.courses.prix.length + (s.donnees?.prix.length ?? 0)} prix connus.
       </p>
     {/if}

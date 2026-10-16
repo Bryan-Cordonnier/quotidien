@@ -5,7 +5,7 @@
   import { formatEuros } from "@etabli/ui/money";
   import { heuresMinutes, jourLong } from "../../src/affichage";
   import { effacerSupplementaires, ajouterSupplementaires } from "../../src/donnees";
-  import { joursDeLaSemaine } from "../../src/calculs";
+  import { detailReserve, joursDeLaSemaine, joursDeReserve, statutContrat } from "../../src/calculs";
   import type { Session } from "../../src/session.svelte";
   import { missionEnCours, resume } from "../../src/vue";
 
@@ -13,6 +13,16 @@
 
   const m = $derived(s.donnees ? missionEnCours(s.donnees, s.aujourdhui) : undefined);
   const r = $derived(s.donnees && m ? resume(s.donnees, s.reglages, m, s.aujourdhui) : null);
+
+  // Sinon, la mission de réserviste en cours : jours passés sur le total, et le jour du paiement.
+  const p = $derived(s.donnees && !m ? s.donnees.reserves.find((x) => statutContrat(x.debut, x.fin, s.aujourdhui) === "encours") : undefined);
+  const rp = $derived.by(() => {
+    if (!p) return null;
+    const jours = joursDeReserve(p);
+    const faits = jours.filter((j) => j <= s.aujourdhui).length;
+    const d = detailReserve(p, s.reglages);
+    return { faits, total: jours.length, pourcent: Math.round((faits * 100) / jours.length), netCents: d.netCents, paie: d.datePaiement };
+  });
 
   /** Le temps à ajouter : heures (de 1 en 1) et minutes (de 5 en 5). */
   let h = $state(0);
@@ -69,6 +79,13 @@
       </div>
     </div>
     <p class="petit paie">Prochaine paie : <b class="num">{r.prochainePaie ? jourLong(r.prochainePaie.date) : "—"}</b></p>
+  {:else if p && rp}
+    <div class="titre">
+      <b>{p.libelle}</b>
+      <span class="num net">{formatEuros(rp.netCents)}</span>
+    </div>
+    <Jauge pourcent={rp.pourcent} gauche="{rp.faits}/{rp.total} jours" droite="{rp.pourcent} %" label="Jours de réserve passés" />
+    <p class="petit paie">Paiement prévu : <b class="num">{rp.paie ? jourLong(rp.paie) : "—"}</b></p>
   {:else}
     <div class="vide">Aucune mission en cours.</div>
   {/if}

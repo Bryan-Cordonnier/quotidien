@@ -1,10 +1,10 @@
 {
   "id": "repas",
-  "name": "Repas et recettes",
-  "version": "0.2.0",
+  "name": "Repas",
+  "version": "0.3.0",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
-  "description": "Concocter les repas de la semaine dans votre budget avec l'IA, et une bibliothèque de recettes rangée par rayons d'où l'on tire sa liste de courses au magasin le moins cher.",
+  "description": "Vos recettes (favoris, recherche, valeurs nutritionnelles), à ajouter aux courses d'un geste ; Concocter crée les repas de la semaine dans votre budget avec l'IA.",
   "color": "#d9893f",
   "icon": "flame",
   "permissions": [
@@ -24,7 +24,7 @@
   "apps": [
     {
       "id": "recettes",
-      "name": "Recettes",
+      "name": "Repas",
       "entry": "apps/recettes/index.html",
       "accepts": []
     }
@@ -32,7 +32,7 @@
   "pages": [
     {
       "id": "recettes",
-      "title": "Recettes",
+      "title": "Repas",
       "icon": "recettes",
       "category": "Maison",
       "layout": {
@@ -52,6 +52,14 @@
       "step": 1,
       "group": "Repas",
       "hint": "Le nombre de parts proposé pour chaque repas ; les invités se règlent repas par repas dans Concocter."
+    },
+    {
+      "id": "ustensiles",
+      "label": "Mes ustensiles",
+      "type": "text",
+      "default": "",
+      "group": "Repas",
+      "hint": "Séparés par des virgules (ex. : poêle, four, mixeur, cocotte-minute). L'IA ne propose que des recettes faisables avec."
     }
   ]
 }

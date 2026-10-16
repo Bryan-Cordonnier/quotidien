@@ -96,3 +96,41 @@ export function besoinProteines(o: Objectifs): number | null {
 
 /** Ajoute (ou remplace) la pesée d'un jour. */
 export const peser = (o: Objectifs, jour: string, kg: number): Objectifs => nettoyer({ ...o, pesees: [...o.pesees.filter((p) => p.jour !== jour), { jour, dixiemesKg: Math.round(kg * 10) }] });
+
+/** Les paramètres du plugin (Paramètres → Santé), tels que le moteur les donne ; mêmes valeurs par défaut que le manifeste. */
+export const PARAMS_DEFAUT = { sexe: "homme", age: 0, taille: 0, poidsVise: 0, activite: "modéré", but: "manger équilibré", calories: 0, proteines: 0, regime: "omnivore", allergies: "", aime: "", eviter: "", notes: "" };
+export type Parametres = typeof PARAMS_DEFAUT;
+
+/**
+ * Le profil vient des Paramètres. Un paramètre resté à sa valeur par défaut ne remplace pas ce qui était déjà saisi dans l'ancien
+ * onglet « Profil » : rien de ce qu'on avait rempli ne se perd au passage.
+ */
+export function appliquerParametres(o: Objectifs, p: Partial<Parametres>): Objectifs {
+  const v = { ...PARAMS_DEFAUT, ...p };
+  const si = <T>(cle: keyof Parametres, valeur: T, avant: T): T => (v[cle] !== PARAMS_DEFAUT[cle] ? valeur : avant);
+  return nettoyer({
+    ...o,
+    sexe: si("sexe", v.sexe, o.sexe),
+    age: si("age", Number(v.age), o.age),
+    tailleCm: si("taille", Number(v.taille), o.tailleCm),
+    poidsViseDixiemes: si("poidsVise", Math.round(Number(v.poidsVise) * 10), o.poidsViseDixiemes),
+    activite: si("activite", v.activite, o.activite),
+    but: si("but", v.but, o.but),
+    caloriesJour: si("calories", Number(v.calories), o.caloriesJour),
+    proteinesJour: si("proteines", Number(v.proteines), o.proteinesJour),
+    regime: si("regime", v.regime, o.regime),
+    allergies: si("allergies", v.allergies, o.allergies),
+    aime: si("aime", v.aime, o.aime),
+    eviter: si("eviter", v.eviter, o.eviter),
+    notes: si("notes", v.notes, o.notes),
+  });
+}
+
+/** IMC d'il y a environ 30 jours (la pesée la plus proche), pour dire si l'on va dans le bon sens ; null sans historique. */
+export function imcIlYa30Jours(o: Objectifs): number | null {
+  if (o.pesees.length < 2 || !o.tailleCm) return null;
+  const dernier = o.pesees[o.pesees.length - 1]!;
+  const limite = new Date(Date.parse(dernier.jour) - 30 * 86_400_000).toISOString().slice(0, 10);
+  const ref = o.pesees.find((p) => p.jour >= limite) ?? o.pesees[0]!;
+  return ref === dernier ? null : Math.round((ref.dixiemesKg / 10 / (o.tailleCm / 100) ** 2) * 10) / 10;
+}

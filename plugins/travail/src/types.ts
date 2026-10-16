@@ -25,12 +25,10 @@ export interface Reglages {
   seuilSup1Min: number;
   /** Délai entre la fin d'une mission ou d'une période de réserve et le paiement, en jours (jamais un week-end ni un jour férié). */
   delaiPaieJours: number;
-  /** Réserve : solde d'un jour À LA BASE, imposable (brut, cotisations déduites ensuite). */
+  /** Réserve : solde de CHAQUE jour (à la base ou hors base), imposable (brut, cotisations déduites ensuite). */
   tarifReserveCents: Centimes;
-  /** Réserve : indemnité d'un jour à la base, NON imposable (pas de cotisations). */
+  /** Réserve : prime d'un jour HORS BASE, en plus du solde, NON imposable (pas de cotisations). */
   indemniteReserveCents: Centimes;
-  /** Réserve : solde d'un jour HORS BASE, imposable (grille de solde du soldat ; à régler). */
-  tarifHorsBaseCents: Centimes;
   /** CDD : prime de précarité sur le brut total du contrat (légal : 10 %). */
   precariteBp: PointsDeBase;
   /** CDD : indemnité de congés payés non pris sur le brut total (légal : 10 %). */
@@ -53,7 +51,6 @@ export const REGLAGES_DEFAUT: Reglages = {
   delaiPaieJours: 7,
   tarifReserveCents: 6000,
   indemniteReserveCents: 3800,
-  tarifHorsBaseCents: 0,
   precariteBp: 1000,
   cpCddBp: 1000,
   reserveDebutMin: 8 * 60,

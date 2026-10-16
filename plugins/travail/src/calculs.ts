@@ -193,11 +193,11 @@ export const datePaiement = (jour: Jour, delai: number): Jour => prochainOuvre(a
 // ——— Réserve ———
 
 export interface DetailReserve {
-  /** Brut imposable : jours à la base × solde de base + jours hors base × solde hors base. */
+  /** Brut imposable : tous les jours × solde. */
   brutCents: number;
   /** Net du brut imposable (cotisations déduites). */
   netJoursCents: number;
-  /** Indemnité non imposable : jours à la base × indemnité de base (pas de cotisations). */
+  /** Prime non imposable : jours hors base × prime (pas de cotisations). */
   indemniteCents: number;
   netCents: number;
   /** Nombre de jours de la mission, dont à la base et hors base. */
@@ -213,17 +213,17 @@ export const joursDeReserve = (p: PeriodeReserve): Jour[] => plage(p.debut, p.fi
 
 /**
  * Réserve, payée PAR JOUR (jamais d'après les heures : arriver à 11 h reste un jour) :
- * jour à la base = solde imposable + indemnité non imposable ; jour hors base = solde hors base (grille de solde du soldat), imposable.
- * `net = (bases × solde + hors base × solde hors base) × (1 − cotisations) + bases × indemnité`.
+ * chaque jour = solde imposable ; un jour hors base ajoute une prime non imposable.
+ * `net = jours × solde × (1 − cotisations) + hors base × prime`.
  */
 export function detailReserve(p: PeriodeReserve, r: Reglages): DetailReserve {
   const jours = joursDeReserve(p);
   const horsBase = new Set(p.joursHorsBase);
   const nbHorsBase = jours.filter((j) => horsBase.has(j)).length;
   const nbABase = jours.length - nbHorsBase;
-  const brutCents = ajouter(mulDiv(r.tarifReserveCents, nbABase, 1), mulDiv(r.tarifHorsBaseCents, nbHorsBase, 1));
+  const brutCents = mulDiv(r.tarifReserveCents, jours.length, 1);
   const netJoursCents = apresPrelevement(brutCents, r.cotisationsBp);
-  const indemniteCents = mulDiv(r.indemniteReserveCents, nbABase, 1);
+  const indemniteCents = mulDiv(r.indemniteReserveCents, nbHorsBase, 1);
   const dernierJour = jours.length > 0 ? p.fin : null;
   return {
     brutCents,

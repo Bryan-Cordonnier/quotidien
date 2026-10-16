@@ -1,22 +1,21 @@
 <script lang="ts">
-  // La prochaine mission : titre et net, dans combien de jours, du… au….
+  // La prochaine mission (intérim ou réserve) : titre et net, dans combien de jours, du… au….
   import { formatEuros } from "@etabli/ui/money";
   import { dans, periodeCourte } from "../../src/affichage";
   import type { Session } from "../../src/session.svelte";
-  import { missionProchaine, resume } from "../../src/vue";
+  import { prochaine } from "../../src/vue";
 
   let { s }: { s: Session } = $props();
 
-  const m = $derived(s.donnees ? missionProchaine(s.donnees, s.aujourdhui) : undefined);
-  const r = $derived(s.donnees && m ? resume(s.donnees, s.reglages, m, s.aujourdhui) : null);
+  const m = $derived(s.donnees ? prochaine(s.donnees, s.reglages, s.aujourdhui) : null);
 </script>
 
 <section class="bloc">
   <p class="etiquette">Prochaine mission</p>
-  {#if m && r}
+  {#if m}
     <div class="titre">
-      <b>{r.titre}</b>
-      <span class="num net">{formatEuros(r.netCents)}</span>
+      <b>{m.titre}</b>
+      <span class="num net">{formatEuros(m.netCents)}</span>
     </div>
     <div class="suite">
       <span class="num dans">{dans(s.aujourdhui, m.debut)}</span>

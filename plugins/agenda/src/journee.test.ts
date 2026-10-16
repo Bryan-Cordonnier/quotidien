@@ -34,6 +34,11 @@ describe("lever, départ et coucher", () => {
 });
 
 describe("la journée", () => {
+  it("un jour de réserve en entier (minuit à minuit) : ni préparation ni départ", () => {
+    const reserve = occ({ titre: "Réserve (à la base)", type: "travail", debutMin: 0, finMin: 1439, contrat: "reserve", source: "travail" });
+    expect(leverDe([reserve], R)).toBe(R.leverDefautMin);
+    expect(journee([reserve], [], R).segments.some((x) => x.genre === "preparation")).toBe(false);
+  });
   it("travail puis rendez-vous : préparation, trajet, travail, retour, temps libre, trajet, rendez-vous, retour, temps libre, coucher", () => {
     const j = journee([travail, medecin], [travail], R);
     expect(resume(j)).toEqual([

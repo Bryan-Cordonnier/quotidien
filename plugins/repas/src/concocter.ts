@@ -3,8 +3,9 @@
 // de courses en unités d'achat avec une estimation de prix ; le choix du magasin et les totaux sont recalculés ici avec NOS prix (prix.ts).
 import { ajouterJours, jourDeSemaine, type Jour } from "@etabli/ui/civil";
 import type { Centimes } from "@etabli/ui/money";
-import { CATEGORIES, LIBELLES_MOMENTS, MOMENTS, type Categorie, type Moment, type Recette } from "./types";
+import { CATEGORIES, LIBELLES_MOMENTS, MOMENTS, type Categorie, type Moment, type Nutrition, type Recette } from "./types";
 import type { PrixConnu } from "./prix";
+import { lireValeurs, SCHEMA_VALEURS } from "./nutrition";
 
 /** Les repas voulus : pour chaque jour, le nombre de personnes à chaque moment (0 = pas de repas à prévoir). */
 export type Cases = Record<Jour, Record<Moment, number>>;
@@ -161,7 +162,7 @@ PRIX DÉJÀ VUS (tickets et relevés ; ce sont les seuls prix sûrs, sers-t'en p
 ${prix || "- (aucun prix connu : estime des prix de supermarché français)"}
 
 RÉPONSE :
-- "repas" : un élément par repas demandé, avec le jour (AAAA-MM-JJ), le moment ("matin", "midi" ou "soir"), le nom du plat, "recette" = l'identifiant d'une recette de la bibliothèque, ou "" si c'est une nouvelle recette, et dans ce cas "nouvelleRecette" complète (nom, catégorie, portions, temps en minutes, ingrédients avec quantités, étapes courtes, ustensiles). Une nouvelle recette ne sert qu'une fois dans la liste "repas" ; si elle revient, reprends le même nom de plat.
+- "repas" : un élément par repas demandé, avec le jour (AAAA-MM-JJ), le moment ("matin", "midi" ou "soir"), le nom du plat, "recette" = l'identifiant d'une recette de la bibliothèque, ou "" si c'est une nouvelle recette, et dans ce cas "nouvelleRecette" complète (nom, catégorie, portions, temps en minutes, ingrédients avec quantités, étapes courtes, ustensiles, et "nutrition" pour UNE portion : kcal, protéines, glucides et lipides en grammes). Une nouvelle recette ne sert qu'une fois dans la liste "repas" ; si elle revient, reprends le même nom de plat.
 - "courses" : la liste à acheter pour TOUS ces repas, en unités d'achat du commerce (« Spaghetti 500 g » × 2, « Œufs boîte de 12 » × 1), regroupée (pas deux fois le même article), avec "pour" (les plats concernés), "unites" (nombre entier) et "prixUnitaire" (ton estimation en euros pour UNE unité, d'après les prix vus quand c'est possible). N'achète pas ce qui se garde d'habitude à la maison (sel, poivre, huile, épices) sauf si une recette en demande beaucoup.
 - "remarques" : 1 à 3 phrases utiles (le budget est-il tenu, une astuce de restes, ce qui a été adapté).`;
 }
@@ -176,8 +177,9 @@ const RECETTE_SCHEMA = {
     ingredients: { type: "array", items: { type: "object", properties: { nom: { type: "string" }, quantite: { type: "string" } }, required: ["nom", "quantite"] } },
     etapes: { type: "array", items: { type: "string" } },
     ustensiles: { type: "array", items: { type: "string" } },
+    nutrition: SCHEMA_VALEURS,
   },
-  required: ["nom", "categorie", "portions", "ingredients", "etapes", "ustensiles"],
+  required: ["nom", "categorie", "portions", "ingredients", "etapes", "ustensiles", "nutrition"],
 };
 
 export const SCHEMA_PLAN = {
@@ -208,6 +210,7 @@ export interface NouvelleRecette {
   ingredients: { nom: string; quantite: string }[];
   etapes: string[];
   ustensiles: string[];
+  nutrition: Nutrition | null;
 }
 
 export interface PropositionPlan {
@@ -235,7 +238,7 @@ function lireNouvelle(v: unknown, ustensilesMaison: readonly string[]): Nouvelle
   const etapes = (Array.isArray(o.etapes) ? o.etapes : []).map((e) => court(e, 600)).filter((e) => e !== "").slice(0, 40);
   const ustensiles = (Array.isArray(o.ustensiles) ? o.ustensiles : []).map((u) => court(u, 60)).filter((u) => u !== "").slice(0, 20);
   void ustensilesMaison;
-  return { nom, categorie, portions, tempsMin, ingredients, etapes, ustensiles };
+  return { nom, categorie, portions, tempsMin, ingredients, etapes, ustensiles, nutrition: lireValeurs(o.nutrition) };
 }
 
 /**

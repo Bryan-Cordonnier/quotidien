@@ -1,7 +1,7 @@
 {
   "id": "agenda",
   "name": "Agenda",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Votre temps : calendrier, événements qui se répètent, heures de départ, réveil et coucher calculées à rebours, alertes de repos légal, rappels sur le téléphone, export .ics.",
