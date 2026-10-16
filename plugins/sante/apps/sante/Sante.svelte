@@ -77,23 +77,27 @@
 <div class="page-plugin">
   <Entete titre="Santé" />
 
-  <section class="bloc pesee-rapide" aria-label="Nouvelle pesée">
-    <input class="saisie num" bind:value={poids} placeholder="Poids (kg)" inputmode="decimal" aria-label="Poids en kg" onkeydown={(e) => e.key === "Enter" && ajouterPesee()} />
-    <button class="btn primary" onclick={ajouterPesee}>Ajouter</button>
-    <span class="petit">{kg ? `Dernière pesée : ${kg.toLocaleString("fr-FR")} kg${ecart30 === null ? "" : ` · ${ecart30 > 0 ? "+" : ""}${ecart30.toLocaleString("fr-FR")} kg sur 30 j`}` : "Aucune pesée pour l'instant."}</span>
-  </section>
-
-  {#if profilIncomplet}
-    <p class="petit">Renseigne ta taille et ton âge dans <button class="lien" onclick={parametres}>Paramètres → Santé</button> pour l'IMC et le besoin calorique.</p>
-  {/if}
-
-  <div class="haut">
-    <section class="bloc">
+  <!-- Une grille sans trou : l'IMC à gauche sur deux lignes, la pesée et le besoin du jour à droite, le poids sur toute la largeur. -->
+  <div class="grille">
+    <section class="bloc imc">
       <p class="bloc-titre">IMC</p>
       <Cadran valeur={indice} avant={imcIlYa30Jours(o)} />
       <ul class="conseils">{#each conseils(o, mange) as c (c)}<li>{c}</li>{/each}</ul>
     </section>
-    <section class="bloc">
+
+    <section class="bloc pesee" aria-label="Nouvelle pesée">
+      <p class="bloc-titre">Pesée du jour</p>
+      <div class="pesee-rapide">
+        <input class="saisie num" bind:value={poids} placeholder="Poids (kg)" inputmode="decimal" aria-label="Poids en kg" onkeydown={(e) => e.key === "Enter" && ajouterPesee()} />
+        <button class="btn primary" onclick={ajouterPesee}>Ajouter</button>
+      </div>
+      <p class="petit">{kg ? `Dernière pesée : ${kg.toLocaleString("fr-FR")} kg${ecart30 === null ? "" : ` · ${ecart30 > 0 ? "+" : ""}${ecart30.toLocaleString("fr-FR")} kg sur 30 j`}` : "Aucune pesée pour l'instant."}</p>
+      {#if profilIncomplet}
+        <p class="petit">Renseigne ta taille et ton âge dans <button class="lien" onclick={parametres}>Paramètres → Santé</button> pour l'IMC et le besoin calorique.</p>
+      {/if}
+    </section>
+
+    <section class="bloc besoin">
       <p class="bloc-titre">Besoin du jour</p>
       {#if macros.length}
         <DonutChart parts={macros} format={(v) => `${v} kcal`} title="Répartition des calories" centre="kcal / jour" />
@@ -102,39 +106,66 @@
         <p class="petit">Il faut le profil (Paramètres) et une pesée, ou un objectif de calories.</p>
       {/if}
     </section>
-  </div>
 
-  <section class="bloc">
-    <p class="bloc-titre">Mon poids</p>
-    {#if courbe.length > 1}
-      <LineChart points={courbe} format={(v) => `${v.toLocaleString("fr-FR")} kg`} title="Évolution du poids" />
-    {:else}
-      <p class="petit vide">La courbe apparaît dès la deuxième pesée.</p>
-    {/if}
-    {#if progression !== null}
-      <Jauge pourcent={progression} gauche="Vers {(o.poidsViseDixiemes / 10).toLocaleString('fr-FR')} kg" droite="{Math.round(Math.max(0, Math.min(100, progression)))} %" label="Progression vers le poids visé" />
-    {/if}
-    {#if o.pesees.length > 0}
-      <div class="pesees">
-        {#each [...o.pesees].reverse().slice(0, 30) as p (p.jour)}
-          <span class="pesee">{p.jour.split("-").reverse().join("/")} · <b>{(p.dixiemesKg / 10).toLocaleString("fr-FR")} kg</b><button onclick={() => retirer(p.jour)} aria-label="Supprimer la pesée du {p.jour}">✕</button></span>
-        {/each}
-      </div>
-    {/if}
-  </section>
+    <section class="bloc poids">
+      <p class="bloc-titre">Mon poids</p>
+      {#if courbe.length > 1}
+        <LineChart points={courbe} format={(v) => `${v.toLocaleString("fr-FR")} kg`} title="Évolution du poids" />
+      {:else}
+        <p class="petit vide">La courbe apparaît dès la deuxième pesée.</p>
+      {/if}
+      {#if progression !== null}
+        <Jauge pourcent={progression} gauche="Vers {(o.poidsViseDixiemes / 10).toLocaleString('fr-FR')} kg" droite="{Math.round(Math.max(0, Math.min(100, progression)))} %" label="Progression vers le poids visé" />
+      {/if}
+      {#if o.pesees.length > 0}
+        <div class="pesees">
+          {#each [...o.pesees].reverse().slice(0, 30) as p (p.jour)}
+            <span class="pesee-puce">{p.jour.split("-").reverse().join("/")} · <b>{(p.dixiemesKg / 10).toLocaleString("fr-FR")} kg</b><button onclick={() => retirer(p.jour)} aria-label="Supprimer la pesée du {p.jour}">✕</button></span>
+          {/each}
+        </div>
+      {/if}
+    </section>
+  </div>
 </div>
 
 <style>
-  .haut {
+  .grille {
     display: grid;
-    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+    grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+    grid-template-areas:
+      "imc pesee"
+      "imc besoin"
+      "poids poids";
     gap: 14px;
-    align-items: start;
+    align-items: stretch;
   }
-  @media (max-width: 720px) {
-    .haut {
+  .imc {
+    grid-area: imc;
+  }
+  .pesee {
+    grid-area: pesee;
+  }
+  .besoin {
+    grid-area: besoin;
+  }
+  .poids {
+    grid-area: poids;
+  }
+  @media (max-width: 760px) {
+    .grille {
       grid-template-columns: 1fr;
+      grid-template-areas: "pesee" "imc" "besoin" "poids";
     }
+  }
+  .pesee-rapide {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+  .pesee-rapide input {
+    width: 140px;
+    font-size: 18px;
   }
   .conseils {
     margin: 12px 0 0;
@@ -145,18 +176,6 @@
     gap: 6px;
     font-size: 13.5px;
   }
-  .pesee-rapide {
-    width: fit-content;
-    max-width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-  }
-  .pesee-rapide input {
-    width: 140px;
-    font-size: 18px;
-  }
   .lien {
     border: 0;
     background: none;
@@ -166,9 +185,6 @@
     font: inherit;
     text-decoration: underline;
   }
-  .pesees {
-    margin-top: 12px;
-  }
   .vide {
     padding: 30px 0;
     text-align: center;
@@ -177,8 +193,9 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+    margin-top: 12px;
   }
-  .pesee {
+  .pesee-puce {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -187,7 +204,7 @@
     background: var(--field);
     font-size: 13px;
   }
-  .pesee button {
+  .pesee-puce button {
     border: 0;
     background: none;
     cursor: pointer;

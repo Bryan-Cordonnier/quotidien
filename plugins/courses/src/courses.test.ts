@@ -17,7 +17,7 @@ describe("manifeste et paramètres", () => {
   });
 
   it("convertit les euros en centimes ; une valeur fausse reprend la valeur par défaut", () => {
-    expect(reglagesDepuis({ budget: 82.5, jour: "0", alerte: 90, report: true })).toEqual({ budgetCents: 8250, jourCourses: 0, alertePourcent: 90, report: true });
+    expect(reglagesDepuis({ budget: 82.5, jour: "0", alerte: 90, report: true, estimation: false })).toEqual({ budgetCents: 8250, jourCourses: 0, alertePourcent: 90, report: true, estimation: false });
     expect(reglagesDepuis({ budget: -5, jour: "9", alerte: 0, report: "oui" })).toEqual(REGLAGES_DEFAUT);
   });
 
@@ -46,6 +46,10 @@ describe("ce que Courses annonce à Budget", () => {
 
   it("le jour des courses passé : la semaine en cours n'annonce plus rien", () => {
     expect(previsionsBudget(donneesVides(), R, "2026-10-12").map((p) => p.jour)).toEqual(["2026-10-17", "2026-10-24", "2026-10-31", "2026-11-07"]);
+  });
+
+  it("courses hors estimation : rien n'est annoncé à Budget (et l'ancienne prévision est retirée)", () => {
+    expect(previsionsBudget(donneesVides(), { ...R, estimation: false }, "2026-10-12")).toEqual([]);
   });
 });
 

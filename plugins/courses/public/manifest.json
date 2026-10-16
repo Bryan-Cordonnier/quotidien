@@ -1,7 +1,7 @@
 {
   "id": "courses",
   "name": "Courses",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Un budget par semaine pour les courses : les tickets, ce qu'il reste à dépenser, la moyenne par semaine et par mois, et vos listes de courses à régler.",
@@ -85,6 +85,14 @@
     }
   ],
   "parameters": [
+    {
+      "id": "estimation",
+      "label": "Compter les courses dans mes finances",
+      "type": "boolean",
+      "default": true,
+      "group": "Budget",
+      "hint": "Désactivé : listes, tickets et détection marchent toujours, mais rien n'est prélevé dans l'estimation (Budget, Mes finances)."
+    },
     {
       "id": "budget",
       "label": "Budget par semaine",

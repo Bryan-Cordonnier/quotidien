@@ -33,10 +33,11 @@
 <div class="cadran">
   <b class="num chiffre" style:color={zone?.couleur ?? "var(--muted)"}>{valeur?.toLocaleString("fr-FR") ?? "—"}</b>
   <span class="zone" style:color={zone?.couleur}>{zone?.nom ?? "taille et pesée requises"}</span>
-  <svg viewBox="0 0 220 124" role="img" aria-label={valeur === null ? "IMC inconnu" : `IMC ${valeur}, ${zone?.nom}`}>
+  <svg viewBox="-16 -10 252 144" role="img" aria-label={valeur === null ? "IMC inconnu" : `IMC ${valeur}, ${zone?.nom}`}>
     {#each ZONES as z (z.nom)}<path d={arc(z.de, z.a)} stroke={z.couleur} stroke-width="16" fill="none" />{/each}
     {#each PALIERS as p (p)}
-      <text x={x(p, 104)} y={y(p, 104) + 4} text-anchor={p < 20 ? "start" : p > 35 ? "end" : "middle"} class="palier">{String(p).replace(".", ",")}</text>
+      <!-- 15 et 40 sous les bouts de l'arc, les autres juste à l'extérieur -->
+      <text x={x(p, p === MIN || p === MAX ? 84 : 106)} y={p === MIN || p === MAX ? 128 : y(p, 106) + 4} text-anchor="middle" class="palier">{String(p).replace(".", ",")}</text>
     {/each}
     {#if valeur !== null}
       <line x1="110" y1="110" x2={x(valeur, 72)} y2={y(valeur, 72)} class="aiguille" style:stroke={zone?.couleur} />
@@ -59,8 +60,11 @@
     font-weight: 800;
   }
   .zone {
+    display: inline-block;
     font-weight: 600;
-    text-transform: capitalize;
+  }
+  .zone::first-letter {
+    text-transform: uppercase;
   }
   svg {
     width: 100%;
