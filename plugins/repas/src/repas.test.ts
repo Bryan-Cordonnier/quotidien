@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { budget, casesParDefaut, construireConsigne, debutConseille, lireListeIa, lirePlanIa, repasVoulus, type Questionnaire } from "./concocter";
+import { budget, casesParDefaut, invites, PREFERENCES_DEFAUT, construireConsigne, debutConseille, lireListeIa, lirePlanIa, repasVoulus, type Questionnaire } from "./concocter";
 import { ajouterPlan, ajouterPrix, ajouterRecette, definirUstensiles, donneesVides, lireDonnees, modifierRecette, supprimerRecette } from "./donnees";
 import { basePrix, chiffrer, jetons, prixParMagasin } from "./prix";
 import { ErreurRepas, type Recette } from "./types";
@@ -111,7 +111,7 @@ describe("prix et magasin", () => {
 });
 
 describe("concocter", () => {
-  const q = (reste: Partial<Questionnaire> = {}): Questionnaire => ({ debut: "2026-10-19", jours: 7, foyer: 1, cases: casesParDefaut("2026-10-19", 7, 1), economieCents: 0, envies: "pizza et carbo", ...reste });
+  const q = (reste: Partial<Questionnaire> = {}): Questionnaire => ({ debut: "2026-10-19", jours: 7, foyer: 1, cases: casesParDefaut("2026-10-19", 7, 1), economieCents: 0, envies: "pizza et carbo", preferences: PREFERENCES_DEFAUT, ...reste });
 
   it("courses le samedi : la semaine commence le dimanche qui suit", () => {
     expect(debutConseille("2026-10-16", 6)).toBe("2026-10-18"); // vendredi → samedi 17 → dimanche 18
@@ -135,6 +135,18 @@ describe("concocter", () => {
     expect(b.exceptionnel).toBe(true);
     expect(b.parts).toBe(26);
     expect(b.viseCents).toBe(13_000); // 70 € pour 14 parts → 5 € la part × 26
+  });
+
+  it("un invité un seul soir : seul ce repas a plus de parts, et la consigne le dit", () => {
+    const cases = casesParDefaut("2026-10-19", 7, 1);
+    cases["2026-10-23"]!.soir = 2;
+    const qq = q({ cases, preferences: { ...PREFERENCES_DEFAUT, gamelles: true, restes: false } });
+    expect(budget(qq, 7000)).toMatchObject({ parts: 15, exceptionnel: false });
+    expect(invites(qq)).toEqual(["vendredi 23 soir : 2 personnes (1 invité)"]);
+    const c = construireConsigne(qq, { budgetSemaineCents: 7000, ustensiles: [], recettes: [], prix: [], sante: null });
+    expect(c).toContain("vendredi 23 soir : 2 personnes (1 invité)");
+    expect(c).toContain("GAMELLE");
+    expect(c).toContain("Pas de restes");
   });
 
   it("la consigne parle des repas, du budget, des envies, des ustensiles et des recettes connues", () => {

@@ -5,6 +5,19 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ## [Non publié]
 
+## [0.2.0] — 2026-10-16
+
+### Modifié
+
+- **Concocter est un onglet de Recettes** (plus de page à part) : il crée plusieurs recettes d'un coup à partir de vos réglages.
+- **Invités repas par repas** : chaque jour a sa carte, chaque repas son interrupteur et son bouton « + invité » ; « Absent » vide une journée, « tous / aucun » règle tous les midis ou tous les soirs.
+- **Nouvelle étape « En cuisine »** : temps pour cuisiner en semaine et le week-end, niveau, restes, gamelle les midis, préparation le week-end.
+- Budget plus lisible (budget Courses, habituel, visé et prix par part).
+
+### Ajouté
+
+- **Aperçu de la bibliothèque** : nombre de recettes, temps moyen, recettes rapides, répartition par rayon (anneau) et coût par part des plans (courbe).
+
 ## [0.1.0] — 2026-10-16
 
 ### Ajouté
