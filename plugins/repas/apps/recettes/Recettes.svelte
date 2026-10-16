@@ -1,19 +1,20 @@
 <script lang="ts">
   // Recettes : la bibliothèque (recherche, rayons, fiches), les ustensiles de la maison et les prix relevés. On coche des recettes, on règle pour
   // combien de personnes, et l'IA en fait la liste de courses ; les prix et le magasin le moins cher sont calculés avec nos prix.
-  import { Entete, Modal, Tabs } from "@etabli/ui";
+  import { DonutChart, Entete, LineChart, Modal, Tabs } from "@etabli/ui";
   import { formatEuros } from "@etabli/ui/money";
   import { definirUstensiles, supprimerRecette } from "../../src/donnees";
   import { chiffrer, normaliser, type Chiffrage } from "../../src/prix";
   import { Session } from "../../src/session.svelte";
   import { CATEGORIES, type Recette } from "../../src/types";
   import ListeChiffree from "../../src/ui/ListeChiffree.svelte";
+  import Concocter from "./Concocter.svelte";
   import FormRecette from "./FormRecette.svelte";
 
   const s = new Session();
   void s.demarrer();
 
-  type Onglet = "recettes" | "ustensiles" | "prix";
+  type Onglet = "concocter" | "recettes" | "ustensiles" | "prix";
   let onglet = $state<Onglet>("recettes");
   let recherche = $state("");
   let rayon = $state<string>("");
@@ -37,6 +38,20 @@
   const parRayon = $derived(CATEGORIES.map((c) => [c, trouvees.filter((r) => r.categorie === c).sort((a, b) => a.nom.localeCompare(b.nom))] as const).filter(([, l]) => l.length > 0));
   const rayonsUtilises = $derived(CATEGORIES.filter((c) => (s.donnees?.recettes ?? []).some((r) => r.categorie === c)));
   const nbChoisies = $derived(Object.keys(choisies).length);
+
+  // Aperçu : répartition par rayon, temps moyen, et coût des derniers plans (du plus ancien au plus récent).
+  const parts = $derived(rayonsUtilises.map((c) => ({ label: c, value: (s.donnees?.recettes ?? []).filter((r) => r.categorie === c).length })));
+  const tempsMoyen = $derived.by(() => {
+    const t = (s.donnees?.recettes ?? []).map((r) => r.tempsMin).filter((x): x is number => x !== null);
+    return t.length ? Math.round(t.reduce((a, x) => a + x, 0) / t.length) : null;
+  });
+  const rapides = $derived((s.donnees?.recettes ?? []).filter((r) => r.tempsMin !== null && r.tempsMin <= 20).length);
+  const coutPlans = $derived(
+    [...(s.donnees?.plans ?? [])]
+      .sort((a, b) => a.debut.localeCompare(b.debut))
+      .slice(-12)
+      .map((p) => ({ label: p.debut.slice(8) + "/" + p.debut.slice(5, 7), value: p.repas.reduce((n, r) => n + r.personnes, 0) ? Math.round(p.totalCents / p.repas.reduce((n, r) => n + r.personnes, 0)) : 0 })),
+  );
 
   function cocher(r: Recette): void {
     if (choisies[r.id] !== undefined) {
@@ -89,9 +104,23 @@
   {#if s.illisible}
     <section class="bloc"><p class="negatif">{s.illisible}</p></section>
   {:else if s.donnees}
-    <Tabs items={[{ id: "recettes", label: `Recettes (${s.donnees.recettes.length})` }, { id: "ustensiles", label: "Mes ustensiles" }, { id: "prix", label: "Prix relevés" }]} bind:value={onglet} label="Rubrique" />
+    <Tabs items={[{ id: "concocter", label: "✨ Concocter" }, { id: "recettes", label: `Recettes (${s.donnees.recettes.length})` }, { id: "ustensiles", label: "Mes ustensiles" }, { id: "prix", label: "Prix relevés" }]} bind:value={onglet} label="Rubrique" />
 
-    {#if onglet === "recettes"}
+    {#if onglet === "concocter"}
+      <Concocter {s} />
+    {:else if onglet === "recettes"}
+      {#if s.donnees.recettes.length > 0}
+        <div class="apercu">
+          <section class="bloc tuiles">
+            <div><b class="num">{s.donnees.recettes.length}</b><span class="petit">recettes</span></div>
+            <div><b class="num">{tempsMoyen ?? "—"}</b><span class="petit">min en moyenne</span></div>
+            <div><b class="num">{rapides}</b><span class="petit">en 20 min ou moins</span></div>
+            <div><b class="num">{s.donnees.plans.length}</b><span class="petit">plans concoctés</span></div>
+          </section>
+          {#if parts.length > 1}<section class="bloc"><DonutChart {parts} title="Recettes par rayon" centre="recettes" /></section>{/if}
+          {#if coutPlans.length > 1}<section class="bloc large"><p class="bloc-titre">Coût par part des plans</p><LineChart points={coutPlans} format={formatEuros} title="Coût par part des derniers plans" height={150} /></section>{/if}
+        </div>
+      {/if}
       <section class="bloc">
         <input class="saisie recherche" type="search" bind:value={recherche} placeholder="Chercher une recette ou un ingrédient…" aria-label="Chercher" />
         {#if rayonsUtilises.length > 1}
@@ -132,7 +161,7 @@
       {#if s.donnees.recettes.length === 0}
         <section class="bloc vide-biblio">
           <p>Aucune recette pour l'instant.</p>
-          <p class="petit">Ajoutez-en avec « + Recette », gardez celles que propose Concocter, ou dites à Max : « ajoute ma recette de… ».</p>
+          <p class="petit">Ajoutez-en avec « + Recette », créez-en plusieurs d'un coup avec <button class="lien-texte" onclick={() => (onglet = "concocter")}>Concocter</button>, ou dites à Max : « ajoute ma recette de… ».</p>
         </section>
       {:else if trouvees.length === 0}
         <p class="petit">Aucune recette ne correspond.</p>
@@ -268,6 +297,38 @@
   }
   .ligne-choix span {
     flex: 1;
+  }
+  .apercu {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+  }
+  .apercu .large {
+    grid-column: 1 / -1;
+  }
+  .tuiles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .tuiles div {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 12px;
+    border-radius: var(--r-md);
+    background: var(--field);
+  }
+  .tuiles b {
+    font-size: 22px;
+  }
+  .lien-texte {
+    border: 0;
+    background: none;
+    padding: 0;
+    font: inherit;
+    color: var(--accent);
+    text-decoration: underline;
+    cursor: pointer;
   }
   .vide-biblio {
     text-align: center;

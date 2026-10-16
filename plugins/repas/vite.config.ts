@@ -15,7 +15,6 @@ export default defineConfig({
     target: "chrome120",
     rollupOptions: {
       input: {
-        concocter: page("apps/concocter"),
         recettes: page("apps/recettes"),
       },
     },

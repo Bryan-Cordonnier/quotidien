@@ -6,6 +6,13 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.44] — 2026-10-16
+
+### Modifié
+
+- **Repas et recettes 0.2.0** : Concocter devient un onglet de Recettes, invités réglables repas par repas, nouvelle étape « En cuisine » (temps, niveau, restes, gamelle, préparation le week-end), aperçu de la bibliothèque avec graphiques.
+- **Santé 0.2.0** : suivi du poids avec courbe, IMC, besoin calorique calculé, répartition des calories, page en onglets.
+
 ## [0.1.43] — 2026-10-16
 
 ### Ajouté

@@ -9,15 +9,39 @@ import type { PrixConnu } from "./prix";
 /** Les repas voulus : pour chaque jour, le nombre de personnes à chaque moment (0 = pas de repas à prévoir). */
 export type Cases = Record<Jour, Record<Moment, number>>;
 
+export const TEMPS = ["rapide", "normal", "long"] as const;
+export type Temps = (typeof TEMPS)[number];
+export const LIBELLES_TEMPS: Record<Temps, string> = { rapide: "Rapide (moins de 20 min)", normal: "Normal (30 à 45 min)", long: "J'ai le temps" };
+export const NIVEAUX = ["facile", "moyen", "chef"] as const;
+export type Niveau = (typeof NIVEAUX)[number];
+
+/** Comment on cuisine cette fois-ci. */
+export interface Preferences {
+  /** Temps de cuisine en semaine (lundi-vendredi) et le week-end. */
+  tempsSemaine: Temps;
+  tempsWeekend: Temps;
+  niveau: Niveau;
+  /** Les midis de semaine se mangent à l'extérieur (gamelle) : plats qui se transportent et se mangent froids ou réchauffés. */
+  gamelles: boolean;
+  /** Cuisiner plus pour manger les restes un autre repas. */
+  restes: boolean;
+  /** Préparer à l'avance (le week-end) pour gagner du temps en semaine. */
+  batch: boolean;
+}
+
+export const PREFERENCES_DEFAUT: Preferences = { tempsSemaine: "rapide", tempsWeekend: "normal", niveau: "facile", gamelles: false, restes: true, batch: false };
+
 export interface Questionnaire {
   debut: Jour;
   jours: number;
   /** Personnes au foyer, d'habitude. */
   foyer: number;
+  /** Personnes à chaque repas (invités compris). */
   cases: Cases;
   /** Économie voulue sur le budget conseillé (0 = viser le budget). */
   economieCents: Centimes;
   envies: string;
+  preferences: Preferences;
 }
 
 /** Ce que l'IA doit savoir en plus du questionnaire. */
@@ -86,8 +110,17 @@ export function budget(q: Questionnaire, budgetSemaineCents: Centimes): Budget {
 const euros = (c: number) => (c / 100).toFixed(2).replace(".", ",") + " €";
 
 /** La consigne donnée à l'IA : tout ce qu'il faut pour un plan réaliste, rien de plus (la bibliothèque est résumée). */
+/** Les repas avec des invités (plus de personnes que le foyer), en clair. */
+export function invites(q: Questionnaire): string[] {
+  return repasVoulus(q)
+    .filter((c) => c.personnes > q.foyer)
+    .map((c) => `${nomJour(c.jour)} ${Number(c.jour.slice(8))} ${LIBELLES_MOMENTS[c.moment].toLowerCase()} : ${c.personnes} personnes (${c.personnes - q.foyer} invité${c.personnes - q.foyer > 1 ? "s" : ""})`);
+}
+
 export function construireConsigne(q: Questionnaire, ctx: Contexte): string {
   const b = budget(q, ctx.budgetSemaineCents);
+  const p = q.preferences;
+  const avecInvites = invites(q);
   const voulus = repasVoulus(q);
   const lignesRepas = voulus.map((c) => `- ${c.jour} (${nomJour(c.jour)}) ${LIBELLES_MOMENTS[c.moment].toLowerCase()} : ${c.personnes} personne${c.personnes > 1 ? "s" : ""}`).join("\n");
   const recettes = ctx.recettes
@@ -106,12 +139,21 @@ ${lignesRepas}
 BUDGET : ${euros(b.viseCents)} pour toutes les courses de ces repas.${b.exceptionnel ? ` Semaine EXCEPTIONNELLE (${b.parts} parts au lieu de ${b.partsHabituelles} d'habitude, des invités) : ce budget est déjà ajusté au nombre de parts ; reste raisonnable par personne, sans viser le budget d'une semaine normale.` : " Rentre dans ce budget."}${q.economieCents > 0 ? ` (Il comprend une économie voulue de ${euros(q.economieCents)}.)` : ""}
 Ne sacrifie pas la qualité : des repas équilibrés et rassasiants (légumes, féculents, protéines), de saison si possible, pas de plats tout prêts à chaque repas. Prévois les restes (un plat cuisiné en grande quantité peut servir deux repas) et les produits de base qu'on finit (pas de 1 kg de farine pour une seule cuillère sans le réutiliser).
 
+MANIÈRE DE CUISINER :
+- Temps en semaine : ${LIBELLES_TEMPS[p.tempsSemaine].toLowerCase()} ; le week-end : ${LIBELLES_TEMPS[p.tempsWeekend].toLowerCase()}.
+- Niveau : ${p.niveau === "facile" ? "facile, gestes simples" : p.niveau === "moyen" ? "moyen" : "ambitieux, je sais cuisiner"}.
+${p.gamelles ? `- Les midis de semaine se mangent en GAMELLE : plats transportables, bons froids ou réchauffés au micro-ondes.
+` : ""}${p.restes ? `- Les restes sont bienvenus : un plat cuisiné en double peut servir un autre repas (dis-le dans le nom du plat, ex. « Restes de lasagnes »).
+` : `- Pas de restes : un plat différent à chaque repas.
+`}${p.batch ? `- Préparation à l'avance : regroupe la cuisine le week-end (plats qui se gardent 3-4 jours au frigo).
+` : ""}${avecInvites.length ? `- Repas avec invités (plats qui se partagent, en quantité) : ${avecInvites.join(" ; ")}.
+` : ""}
 ENVIES DE LA SEMAINE : ${q.envies.trim() || "aucune en particulier"}.
 Place chaque envie sur un jour qui convient (un plat long un jour plus calme), et respecte-les exactement.
 
 USTENSILES DE LA MAISON : ${ctx.ustensiles.length ? ctx.ustensiles.join(", ") : "non renseignés (reste sur des ustensiles courants : poêle, casserole, four, saladier)"}.
 Ne propose RIEN qui demande un ustensile absent de cette liste.
-${ctx.sante ? `\nOBJECTIFS DE SANTÉ (à respecter) : ${JSON.stringify(ctx.sante)}\n` : ""}
+${ctx.sante ? `\nOBJECTIFS DE SANTÉ (à respecter) : ${JSON.stringify(santeCourte(ctx.sante))}\n` : ""}
 RECETTES DE LA BIBLIOTHÈQUE (réutilise-les quand elles conviennent, avec leur identifiant entre crochets) :
 ${recettes || "- (bibliothèque vide)"}
 
@@ -294,9 +336,16 @@ export function lireListeIa(texte: string): { courses: PropositionPlan["courses"
   if (typeof brut !== "object" || brut === null) return "La réponse de l'IA est illisible : réessayez.";
   // on réutilise la lecture d'un plan avec un unique repas factice : les lignes de courses sont lues et bornées de la même façon
   const jour = "2000-01-01" as Jour;
-  const q: Questionnaire = { debut: jour, jours: 1, foyer: 1, cases: { [jour]: { matin: 0, midi: 1, soir: 0 } }, economieCents: 0, envies: "" };
+  const q: Questionnaire = { debut: jour, jours: 1, foyer: 1, cases: { [jour]: { matin: 0, midi: 1, soir: 0 } }, economieCents: 0, envies: "", preferences: PREFERENCES_DEFAUT };
   const lu = lirePlanIa(JSON.stringify({ ...(brut as object), repas: [{ jour, moment: "midi", plat: "liste", recette: "" }] }), q, []);
   if (typeof lu === "string") return lu;
   if (lu.courses.length === 0) return "L'IA n'a proposé aucun article : réessayez.";
   return { courses: lu.courses, remarques: lu.remarques };
+}
+
+/** Les objectifs de Santé sans l'historique des pesées (seul le dernier poids compte pour l'IA). */
+function santeCourte(s: Record<string, unknown>): Record<string, unknown> {
+  const { pesees, ...reste } = s;
+  const dernier = Array.isArray(pesees) ? (pesees[pesees.length - 1] as { dixiemesKg?: number } | undefined) : undefined;
+  return dernier?.dixiemesKg ? { ...reste, poidsKg: dernier.dixiemesKg / 10 } : reste;
 }
