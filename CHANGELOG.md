@@ -6,6 +6,12 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.49] — 2026-10-24
+
+### Ajouté
+
+- **Notes** (nouveau plugin) : pense-bête rapide, partagé avec le cerveau ; Max peut ajouter des notes et les rappeler au bon moment (quand ton agenda est libre), ou à une heure précise.
+
 ### Ajouté
 
 - **Serveur : mise à jour automatique des plugins** : au démarrage, les plugins installés sont mis à jour depuis les paquets signés livrés avec le serveur (`ETABLI_PAQUETS`).
