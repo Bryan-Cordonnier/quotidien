@@ -1,0 +1,33 @@
+{
+  "id": "notes",
+  "name": "Notes",
+  "version": "0.1.0",
+  "apiVersion": "^3",
+  "author": "Bryan Cordonnier",
+  "description": "Un pense-bête rapide : on note ce qui passe par la tête, Max (le cerveau) peut en ajouter et te le rappelle au bon moment.",
+  "color": "#e0b04a",
+  "icon": "list",
+  "permissions": [
+    "reglages"
+  ],
+  "apps": [
+    {
+      "id": "notes",
+      "name": "Notes",
+      "entry": "apps/notes/index.html",
+      "accepts": []
+    }
+  ],
+  "pages": [
+    {
+      "id": "notes",
+      "title": "Notes",
+      "icon": "notes",
+      "category": "Maison",
+      "layout": {
+        "type": "app",
+        "app": "notes"
+      }
+    }
+  ]
+}
