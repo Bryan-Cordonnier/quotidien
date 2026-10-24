@@ -1,6 +1,6 @@
 ﻿{
   "productName": "Quotidien",
-  "version": "0.1.52",
+  "version": "0.1.53",
   "identifier": "fr.cordonnier.quotidien",
   "app": {
     "windows": [
