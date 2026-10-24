@@ -6,7 +6,7 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
-## [0.1.52] — 2026-10-24
+## [0.1.53] — 2026-10-24
 
 ### Ajouté
 
