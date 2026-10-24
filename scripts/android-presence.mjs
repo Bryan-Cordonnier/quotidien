@@ -30,8 +30,13 @@ const manifeste = join(principal, "AndroidManifest.xml");
 let xml = readFileSync(manifeste, "utf8");
 const internet = '<uses-permission android:name="android.permission.INTERNET" />';
 if (!xml.includes(internet) || !xml.includes("</application>")) echec("manifeste inattendu.");
-for (const p of ["ACCESS_COARSE_LOCATION", "ACCESS_BACKGROUND_LOCATION", "ACTIVITY_RECOGNITION", "RECEIVE_BOOT_COMPLETED"]) {
+for (const p of ["ACTIVITY_RECOGNITION", "RECEIVE_BOOT_COMPLETED"]) {
   if (!xml.includes(`android.permission.${p}"`)) xml = xml.replace(internet, `${internet}\n    <uses-permission android:name="android.permission.${p}" />`);
+}
+// Statistiques d'utilisation (Bien-être numérique) : permission « protégée », accordée par Bryan dans les réglages.
+if (!xml.includes("android.permission.PACKAGE_USAGE_STATS")) {
+  if (!xml.includes("xmlns:tools=")) xml = xml.replace("<manifest ", '<manifest xmlns:tools="http://schemas.android.com/tools" ');
+  xml = xml.replace(internet, `${internet}\n    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />`);
 }
 if (!xml.includes(".PresenceReglage")) {
   xml = xml.replace(

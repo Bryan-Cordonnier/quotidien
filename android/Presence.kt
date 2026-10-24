@@ -19,15 +19,18 @@ import com.google.android.gms.location.ActivityTransition
 import com.google.android.gms.location.ActivityTransitionRequest
 import com.google.android.gms.location.ActivityTransitionResult
 import com.google.android.gms.location.DetectedActivity
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
+import android.app.AppOpsManager
+import android.app.usage.UsageEvents
+import android.app.usage.UsageStatsManager
+import android.provider.Settings
 import java.net.HttpURLConnection
 import java.net.URL
+import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Présence pour Max (le cerveau de Bryan) : écran allumé ou éteint, activité (voiture, vélo, à pied, immobile) et position
- * approximative, envoyés directement au cerveau par Tailscale. Rien ne part tant que Bryan n'a pas ouvert le lien d'activation
+ * Présence pour Max (le cerveau de Bryan) : activité (voiture, vélo, à pied, immobile) et événements d'utilisation qu'Android
+ * enregistre déjà (écran, déverrouillages, appli au premier plan), envoyés directement au cerveau par Tailscale. Rien ne part tant que Bryan n'a pas ouvert le lien d'activation
  * (`quotidien-presence://activer?url=…&jeton=…`) ; `quotidien-presence://couper` arrête tout. Le cerveau ne garde que le dernier état.
  */
 object Presence {
@@ -68,23 +71,50 @@ object Presence {
     prefs(c).edit().putBoolean("actif", false).apply()
   }
 
-  /** Relevé périodique : état de l'écran, puis position approximative si permise, puis envoi. */
+  /** L'accès aux statistiques d'utilisation (celles de Bien-être numérique) est donné à la main dans les réglages. */
+  fun accesUtilisation(c: Context): Boolean {
+    val ops = c.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+    return ops.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), c.packageName) == AppOpsManager.MODE_ALLOWED
+  }
+
+  /** Les événements qu'Android a déjà enregistrés depuis le dernier envoi : écran, déverrouillages, appli au premier plan. */
+  private fun evenements(c: Context, depuis: Long, jusqua: Long): JSONArray {
+    val sortie = JSONArray()
+    if (!accesUtilisation(c)) return sortie
+    val stats = c.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+    val evs = stats.queryEvents(depuis, jusqua)
+    val e = UsageEvents.Event()
+    val noms = HashMap<String, String>()
+    while (evs.hasNextEvent() && sortie.length() < 2000) {
+      evs.getNextEvent(e)
+      val genre = when (e.eventType) {
+        UsageEvents.Event.SCREEN_INTERACTIVE -> "ecran_on"
+        UsageEvents.Event.SCREEN_NON_INTERACTIVE -> "ecran_off"
+        UsageEvents.Event.KEYGUARD_HIDDEN -> "deverrouillage"
+        UsageEvents.Event.ACTIVITY_RESUMED -> "appli"
+        else -> null
+      } ?: continue
+      val o = JSONObject().put("t", e.timeStamp).put("type", genre)
+      if (genre == "appli") {
+        val nom = noms.getOrPut(e.packageName) {
+          try {
+            c.packageManager.getApplicationLabel(c.packageManager.getApplicationInfo(e.packageName, 0)).toString()
+          } catch (_: Exception) {
+            e.packageName
+          }
+        }
+        o.put("app", nom)
+      }
+      sortie.put(o)
+    }
+    return sortie
+  }
+
+  /** Relevé périodique : on lit ce qu'Android a noté depuis le dernier envoi, puis on l'envoie. */
   fun releve(c: Context, fin: () -> Unit) {
     val ecran = (c.getSystemService(Context.POWER_SERVICE) as PowerManager).isInteractive
     prefs(c).edit().putBoolean("ecran", ecran).apply()
-    if (!permis(c, Manifest.permission.ACCESS_COARSE_LOCATION)) {
-      envoyer(c, fin)
-      return
-    }
-    try {
-      LocationServices.getFusedLocationProviderClient(c).getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, null)
-        .addOnCompleteListener { t ->
-          if (t.isSuccessful) t.result?.let { prefs(c).edit().putString("lat", it.latitude.toString()).putString("lon", it.longitude.toString()).apply() }
-          envoyer(c, fin)
-        }
-    } catch (_: Exception) {
-      envoyer(c, fin)
-    }
+    envoyer(c, fin)
   }
 
   fun activite(c: Context, intent: Intent, fin: () -> Unit) {
@@ -101,18 +131,24 @@ object Presence {
     envoyer(c, fin)
   }
 
-  /** Envoie tout l'état connu (un envoi raté est rattrapé par le suivant), hors du fil principal. */
+  /** Envoie l'état et les événements depuis le dernier envoi réussi (un envoi raté est rattrapé par le suivant), hors du fil principal. */
   private fun envoyer(c: Context, fin: () -> Unit) {
     if (!actif(c)) return fin()
     val p = prefs(c)
-    val etat = JSONObject().put("screen_on", p.getBoolean("ecran", true))
-    p.getString("activite", null)?.let { etat.put("activity", it) }
-    val lat = p.getString("lat", null)?.toDoubleOrNull()
-    val lon = p.getString("lon", null)?.toDoubleOrNull()
-    if (lat != null && lon != null) etat.put("lat", lat).put("lon", lon)
-    val corps = JSONObject().put("jsonrpc", "2.0").put("id", 1).put("method", "tools/call")
-      .put("params", JSONObject().put("name", "presence_set").put("arguments", etat)).toString()
+    val maintenant = System.currentTimeMillis()
+    // au plus 24 h en arrière la première fois ; le cerveau ignore les doublons
+    val depuis = maxOf(p.getLong("envoye_jusqua", 0L), maintenant - 86_400_000L)
     Thread {
+      val etat = JSONObject().put("screen_on", p.getBoolean("ecran", true))
+      p.getString("activite", null)?.let { etat.put("activity", it) }
+      val evs = try {
+        evenements(c, depuis, maintenant)
+      } catch (_: Exception) {
+        JSONArray()
+      }
+      if (evs.length() > 0) etat.put("events", evs)
+      val corps = JSONObject().put("jsonrpc", "2.0").put("id", 1).put("method", "tools/call")
+        .put("params", JSONObject().put("name", "presence_set").put("arguments", etat)).toString()
       try {
         val cx = URL(p.getString("url", "")).openConnection() as HttpURLConnection
         cx.requestMethod = "POST"
@@ -125,6 +161,7 @@ object Presence {
         cx.outputStream.use { it.write(corps.toByteArray()) }
         cx.inputStream.use { it.readBytes() }
         cx.disconnect()
+        p.edit().putLong("envoye_jusqua", maintenant).apply()
       } catch (_: Exception) {
         // cerveau injoignable (Tailscale coupé…) : le prochain relevé renverra l'état complet
       } finally {
@@ -175,24 +212,23 @@ class PresenceReglage : Activity() {
       return
     }
     Presence.prefs(this).edit().putString("url", url).putString("jeton", jeton).putBoolean("actif", true).apply()
-    val demandes = mutableListOf(Manifest.permission.ACCESS_COARSE_LOCATION)
-    if (Build.VERSION.SDK_INT >= 29) demandes += Manifest.permission.ACTIVITY_RECOGNITION
-    requestPermissions(demandes.toTypedArray(), 1)
+    if (Build.VERSION.SDK_INT >= 29) requestPermissions(arrayOf(Manifest.permission.ACTIVITY_RECOGNITION), 1) else terminer()
   }
 
   override fun onRequestPermissionsResult(code: Int, permissions: Array<out String>, resultats: IntArray) {
     super.onRequestPermissionsResult(code, permissions, resultats)
-    val position = checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-    if (code == 1 && position && Build.VERSION.SDK_INT >= 29 &&
-      checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED
-    ) {
-      // Android ouvre ici la page « Autoriser tout le temps » : sans elle, la position ne part pas écran éteint
-      Toast.makeText(this, "Choisis « Autoriser tout le temps » pour que la position marche en arrière-plan.", Toast.LENGTH_LONG).show()
-      requestPermissions(arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), 2)
-      return
-    }
+    terminer()
+  }
+
+  private fun terminer() {
     Presence.demarrer(this)
-    Toast.makeText(this, "Présence pour Max activée.", Toast.LENGTH_LONG).show()
+    if (!Presence.accesUtilisation(this)) {
+      // pas de fenêtre d'autorisation pour ça : Android n'offre que la page des réglages, où il faut activer Quotidien
+      Toast.makeText(this, "Active « Quotidien » dans « Accès aux données d'utilisation ».", Toast.LENGTH_LONG).show()
+      startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+    } else {
+      Toast.makeText(this, "Présence pour Max activée.", Toast.LENGTH_LONG).show()
+    }
     finish()
   }
 }

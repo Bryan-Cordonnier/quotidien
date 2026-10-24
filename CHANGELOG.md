@@ -6,6 +6,12 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.54] — 2026-10-24
+
+### Modifié
+
+- **Présence pour Max (Android)** : Quotidien lit maintenant ce qu'Android enregistre déjà (comme Bien-être numérique) : allumages et extinctions de l'écran à l'heure près, déverrouillages, applis utilisées. Max peut ainsi faire le bilan de ta journée sur le téléphone. La position n'est plus envoyée. À activer une fois : Réglages → Accès aux données d'utilisation → Quotidien.
+
 ## [0.1.53] — 2026-10-24
 
 ### Ajouté
