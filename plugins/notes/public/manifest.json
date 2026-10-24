@@ -1,7 +1,7 @@
 {
   "id": "notes",
   "name": "Notes",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Un pense-bête rapide : on note ce qui passe par la tête, Max (le cerveau) peut en ajouter et te le rappelle au bon moment.",

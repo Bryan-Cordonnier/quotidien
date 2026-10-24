@@ -1,7 +1,7 @@
 <script lang="ts">
   // Notes : un pense-bête rapide. On tape ce qui passe par la tête ; « Max me le rappelle » laisse Max choisir le bon moment
   // (agenda, disponibilité), sinon une heure précise, sinon rien. Les notes écrites par Max ou Claude apparaissent ici aussi.
-  import { Entete, PluginSettings } from "@etabli/ui";
+  import { Entete, PluginSettings, Segmented } from "@etabli/ui";
   import { ajouter, basculer, CARNET_VIDE, nettoyer, ordonner, retirer, type Rappel } from "../../src/notes";
 
   const carnet = new PluginSettings(CARNET_VIDE, nettoyer);
@@ -30,14 +30,10 @@
   <Entete titre="Notes" />
 
   <section class="bloc saisie-note">
-    <textarea class="saisie" rows="2" bind:value={texte} placeholder="Un truc à pas oublier… (« appeler mamie », « faire l'URSSAF cette semaine »)" aria-label="Nouvelle note"
+    <textarea class="saisie" rows="3" bind:value={texte} placeholder="Un truc à pas oublier…" aria-label="Nouvelle note"
       onkeydown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), noter())}></textarea>
+    <Segmented label="Rappel" options={[{ value: "max", label: "Max choisit" }, { value: "heure", label: "À une heure" }, { value: "aucun", label: "Aucun" }]} bind:value={mode} />
     <div class="actions">
-      <select class="saisie" bind:value={mode} aria-label="Rappel">
-        <option value="max">Max me le rappelle au bon moment</option>
-        <option value="heure">À une heure précise</option>
-        <option value="aucun">Pas de rappel</option>
-      </select>
       {#if mode === "heure"}<input class="saisie" type="datetime-local" bind:value={quand} aria-label="Heure du rappel" />{/if}
       <button class="btn primary" onclick={noter}>Noter</button>
     </div>
@@ -59,10 +55,18 @@
 </div>
 
 <style>
+  .saisie-note {
+    display: grid;
+    gap: 10px;
+  }
   .saisie-note textarea {
     width: 100%;
+    box-sizing: border-box;
+    min-height: 4.5em;
     resize: vertical;
     font-size: 16px;
+    line-height: 1.4;
+    field-sizing: content;
   }
   .liste {
     list-style: none;
