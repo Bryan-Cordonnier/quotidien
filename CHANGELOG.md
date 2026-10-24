@@ -6,6 +6,16 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.1.52] — 2026-10-24
+
+### Ajouté
+
+- **Présence pour Max (Android)** : si tu l'actives avec le lien que Max t'envoie, Quotidien lui dit si ton écran est allumé, si tu es en voiture, à pied ou immobile, et ta position approximative. Max évite alors de t'écrire quand tu conduis ou quand ton téléphone dort. Rien n'est envoyé sans activation, et seul le dernier état est gardé.
+
+### Modifié
+
+- **Notes 0.1.1** : le champ de saisie ne coupe plus le texte, et le choix du rappel prend le style de Quotidien au lieu de la liste Android.
+
 ## [0.1.49] — 2026-10-24
 
 ### Ajouté
