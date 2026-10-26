@@ -106,15 +106,17 @@
 {#snippet carte(r: Recette)}
   <div class="carte">
     <button class="ouvrir" onclick={() => ouvrir(r)}>
+      {#if r.photo}<img class="vignette" src={r.photo} alt="" />{/if}
       <b>{r.nom}</b>
-      <span class="petit">{r.portions} pers.{r.tempsMin ? ` · ${r.tempsMin} min` : ""}{r.nutrition ? ` · ${r.nutrition.kcal} kcal` : ""}</span>
+      {#if r.description}<span class="petit description">{r.description}</span>{/if}
+      <span class="petit">{r.note ? `${"★".repeat(r.note)} · ` : ""}{r.portions} pers.{r.tempsMin ? ` · ${r.tempsMin} min` : ""}{r.nutrition ? ` · ${r.nutrition.kcal} kcal` : ""}</span>
     </button>
     <button class="etoile" class:allumee={r.favori} onclick={() => s.appliquer((d) => basculerFavori(d, r.id))} aria-pressed={r.favori} aria-label={r.favori ? `Retirer ${r.nom} des favoris` : `Mettre ${r.nom} en favori`}>{r.favori ? "★" : "☆"}</button>
   </div>
 {/snippet}
 
 <div class="page-plugin">
-  <Entete titre="Repas">
+  <Entete titre="Recettes">
     {#snippet actions()}
       {#if !concocter}
         <button class="btn" onclick={() => (prixOuverts = true)}>Prix relevés</button>
@@ -206,6 +208,9 @@
 
 {#if fiche}
   <Modal open titre={fiche.nom} onclose={() => (ficheId = null)} largeur={620}>
+    {#if fiche.photo}<img class="photo-fiche" src={fiche.photo} alt="Photo de {fiche.nom}" />{/if}
+    {#if fiche.description}<p class="description-fiche">{fiche.description}</p>{/if}
+    {#if fiche.note}<p class="note-fiche" aria-label="Note : {fiche.note} sur 5">{"★".repeat(fiche.note)}{"☆".repeat(5 - fiche.note)}</p>{/if}
     <p class="petit">
       {fiche.categorie} · {fiche.portions} personne{fiche.portions > 1 ? "s" : ""}{fiche.tempsMin ? ` · ${fiche.tempsMin} min` : ""}
       {#if fiche.nutrition}· par portion : {fiche.nutrition.kcal} kcal, {fiche.nutrition.proteines} g de protéines, {fiche.nutrition.glucides} g de glucides, {fiche.nutrition.lipides} g de lipides{/if}
@@ -329,6 +334,35 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 8px;
+  }
+  .vignette {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 4px;
+  }
+  .description {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .photo-fiche {
+    width: 100%;
+    max-height: 280px;
+    object-fit: cover;
+    border-radius: 12px;
+  }
+  .description-fiche {
+    margin: 6px 0 0;
+    font-size: 15px;
+  }
+  .note-fiche {
+    margin: 2px 0 0;
+    color: #f2c14e;
+    letter-spacing: 2px;
   }
   .carte {
     position: relative;

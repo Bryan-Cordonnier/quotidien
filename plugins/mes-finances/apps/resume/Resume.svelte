@@ -1,7 +1,7 @@
 <script lang="ts">
   // Les widgets de Mes finances sur l'accueil : l'estimé, jusqu'à quand je tiens, la courbe, les prochains paiements, un compte au choix.
   // L'accueil donne l'identifiant du widget dans l'adresse (« #widget=courbe ») ; un clic ouvre la page Mes finances en grand.
-  import { LineChart } from "@etabli/ui";
+  import { LineChart, SelectField } from "@etabli/ui";
   import { ajouterJours, decomposer, differenceJours } from "@etabli/ui/civil";
   import { formatEuros } from "@etabli/ui/money";
   import { Session } from "../../src/session.svelte";
@@ -69,10 +69,8 @@
 {:else if id === "compte"}
   <div class="w">
     <p class="etiquette">Un compte</p>
-    <select class="saisie choix" value={s.donnees?.comptesWidgets[String(exemplaire)] ?? ""} aria-label="Compte affiché" onchange={(e) => s.choisirCompteWidget(exemplaire, e.currentTarget.value || null)}>
-      <option value="">Choisir un compte…</option>
-      {#each s.comptes as c (c.id)}<option value={c.id}>{c.nom}</option>{/each}
-    </select>
+    <SelectField compact label="Compte affiché" value={s.donnees?.comptesWidgets[String(exemplaire)] ?? ""} onchange={(v) => s.choisirCompteWidget(exemplaire, v || null)}
+      options={[{ value: "", label: "Choisir un compte…" }, ...s.comptes.map((c) => ({ value: c.id, label: c.nom }))]} />
     {#if compte}
       <button class="lien" onclick={ouvrir}>
         <span class="grand num" class:negatif={(s.soldes[compte.id] ?? 0) < 0}>{euros(s.soldes[compte.id] ?? 0)}</span>
@@ -184,9 +182,6 @@
     display: flex;
     justify-content: space-between;
     gap: 10px;
-  }
-  .choix {
-    width: 100%;
   }
   /* Petites tailles (une case de haut ou de large) : on resserre et on garde l'essentiel. */
   @media (max-height: 150px) {

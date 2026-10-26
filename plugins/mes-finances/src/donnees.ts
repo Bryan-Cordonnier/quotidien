@@ -22,7 +22,8 @@ export function lireDonnees(enregistre: unknown): Donnees {
   const recalages: Recalage[] = o.recalages.map((r: unknown) => {
     const x = r as Record<string, unknown> | null;
     if (!x || !estJour(x.jour) || !Number.isSafeInteger(x.ecartCents)) return illisible();
-    return { jour: x.jour as string, ecartCents: x.ecartCents as number };
+    if (x.ecritureId !== undefined && (typeof x.ecritureId !== "string" || !/^e\d{1,12}$/.test(x.ecritureId))) return illisible();
+    return { jour: x.jour as string, ecartCents: x.ecartCents as number, ...(typeof x.ecritureId === "string" ? { ecritureId: x.ecritureId } : {}) };
   });
   if (recalages.length > RECALAGES_MAX) return illisible();
   // Ajouté après coup : absent des données plus anciennes, ce n'est pas une erreur. L'ancien champ « compteWidget » devient l'exemplaire 1.
@@ -43,6 +44,11 @@ export function avecCompteWidget(d: Donnees, exemplaire: number, compteId: strin
 
 export function avecRole(d: Donnees, compteId: string, role: Role): Donnees {
   return { ...d, roles: { ...d.roles, [compteId]: role } };
+}
+
+/** Retire un recalage de l'historique (son écriture est annulée à part). */
+export function sansRecalage(d: Donnees, index: number): Donnees {
+  return { ...d, recalages: d.recalages.filter((_, i) => i !== index) };
 }
 
 /** Ajoute un recalage (le plus récent en dernier) ; l'historique est borné. */

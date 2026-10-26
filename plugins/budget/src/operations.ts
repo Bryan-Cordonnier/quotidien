@@ -71,6 +71,30 @@ export function supprimerAbonnement(plan: Plan, id: string): Plan {
   return { ...plan, abonnements: plan.abonnements.filter((a) => a.id !== id), previsions: retirerAttendues(plan.previsions, `abonnement:${id}`, BUDGET) };
 }
 
+/**
+ * Modifie un abonnement (ou un paiement en plusieurs fois) : ses échéances futures encore attendues sont recalculées ; ce qui est passé
+ * (réalisé, abandonné, ou attendu avant aujourd'hui) ne bouge pas.
+ */
+export function modifierAbonnement(plan: Plan, id: string, brut: unknown, aujourdhui: Jour): Plan {
+  if (!plan.abonnements.some((a) => a.id === id)) throw new ErreurBudget("introuvable", `Abonnement « ${id} » introuvable.`);
+  const a = { id, ...lireAbonnement(brut, false) } as Abonnement;
+  const ref = `abonnement:${id}`;
+  const previsions = plan.previsions.filter((p) => !(p.source.plugin === BUDGET && p.source.ref === ref && p.statut === "attendue" && p.jour >= aujourdhui));
+  return verifierTaille(synchroniser({ ...plan, abonnements: plan.abonnements.map((x) => (x.id === id ? a : x)), previsions }, aujourdhui));
+}
+
+/** Change une échéance seule (jour, montant, libellé) : par exemple un prélèvement décalé ou un montant différent ce mois-ci. */
+export function modifierPrevision(plan: Plan, id: string, champs: { jour?: Jour; montantCents?: number; libelle?: string }): Plan {
+  const p = plan.previsions.find((x) => x.id === id);
+  if (!p) throw new ErreurBudget("introuvable", `Prévision « ${id} » introuvable.`);
+  if (p.statut !== "attendue") throw new ErreurBudget("argument_invalide", "Seul un paiement encore attendu se modifie.");
+  if (champs.montantCents !== undefined && (!Number.isSafeInteger(champs.montantCents) || champs.montantCents === 0)) {
+    throw new ErreurBudget("argument_invalide", "« montantCents » : un nombre entier de centimes, non nul.");
+  }
+  const suivante: Prevision = { ...p, ...champs };
+  return { ...plan, previsions: plan.previsions.map((x) => (x.id === id ? suivante : x)) };
+}
+
 export function marquerAResilier(plan: Plan, id: string, aResilier: boolean): Plan {
   if (!plan.abonnements.some((a) => a.id === id)) throw new ErreurBudget("introuvable", `Abonnement « ${id} » introuvable.`);
   return { ...plan, abonnements: plan.abonnements.map((a) => (a.id === id ? { ...a, aResilier } : a)) };

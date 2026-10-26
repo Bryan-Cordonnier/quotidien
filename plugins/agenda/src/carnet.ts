@@ -23,7 +23,7 @@ export const AVERTISSEMENT_OCTETS = 2_800_000;
 export const EVENEMENTS_MAX_PAR_PLUGIN = 2000;
 export const CLES_GARDEES = 50;
 
-export const carnetVide = (): Carnet => ({ schema: 1, evenements: [], reglages: { ...REGLAGES_DEFAUT }, dernierNumero: 0, cles: {}, rappels: {}, rappelsHoraires: true, sommeil: {}, trajets: {} });
+export const carnetVide = (): Carnet => ({ schema: 1, evenements: [], reglages: { ...REGLAGES_DEFAUT }, dernierNumero: 0, cles: {}, rappels: {}, rappelsHoraires: true, sommeil: {}, trajets: {}, lieux: [], sejours: [], trajetsAutoActifs: true, trajetsAuto: {} });
 
 export const octetsDe = (c: Carnet): number => JSON.stringify(c).length;
 
@@ -164,11 +164,46 @@ function lireTrajets(brut: unknown): Carnet["trajets"] {
   return sortie;
 }
 
+// Ajoutés après coup : absents des carnets plus anciens, ce n'est pas une erreur.
+function lireLieux(brut: unknown): Carnet["lieux"] {
+  if (brut === undefined) return [];
+  if (!Array.isArray(brut)) throw new ErreurAgenda("illisible", "Lieux illisibles.");
+  return brut.map((x) => {
+    const o = objet(x, ["id", "nom", "adresse", "logement"]);
+    if (typeof o.id !== "string" || !/^l\d{1,6}$/.test(o.id) || typeof o.nom !== "string" || typeof o.adresse !== "string" || typeof o.logement !== "boolean") {
+      throw new ErreurAgenda("illisible", "Lieu illisible.");
+    }
+    return { id: o.id, nom: o.nom.slice(0, 60), adresse: o.adresse.slice(0, 200), logement: o.logement };
+  });
+}
+
+function lireSejours(brut: unknown): Carnet["sejours"] {
+  if (brut === undefined) return [];
+  if (!Array.isArray(brut)) throw new ErreurAgenda("illisible", "Séjours illisibles.");
+  return brut.map((x) => {
+    const o = objet(x, ["lieuId", "du", "au"]);
+    if (typeof o.lieuId !== "string") throw new ErreurAgenda("illisible", "Séjour illisible.");
+    return { lieuId: o.lieuId, du: jourValide(o.du, "sejour.du"), au: o.au === null ? null : jourValide(o.au, "sejour.au") };
+  });
+}
+
+function lireTrajetsAuto(brut: unknown): Carnet["trajetsAuto"] {
+  if (brut === undefined) return {};
+  if (brut === null || typeof brut !== "object" || Array.isArray(brut)) throw new ErreurAgenda("illisible", "Trajets calculés illisibles.");
+  const sortie: Carnet["trajetsAuto"] = {};
+  for (const [k, v] of Object.entries(brut)) {
+    const o = objet(v, ["min", "depuis", "vers", "calculeLe"]);
+    if (typeof o.depuis !== "string" || typeof o.vers !== "string" || typeof o.calculeLe !== "number") throw new ErreurAgenda("illisible", "Trajet calculé illisible.");
+    sortie[k] = { min: entier(o.min, "trajet.min", 1, 1440), depuis: o.depuis, vers: o.vers, calculeLe: o.calculeLe };
+  }
+  return sortie;
+}
+
 /** Carnet enregistré → carnet validé. `null`/`undefined` (rien d'enregistré) → carnet vide ; tout autre écart → `ErreurAgenda("illisible")`. */
 export function lireCarnet(enregistre: unknown): Carnet {
   if (enregistre === null || enregistre === undefined) return carnetVide();
   try {
-    const o = objet(enregistre, ["schema", "evenements", "reglages", "dernierNumero", "cles"], ["rappels", "rappelsHoraires", "sommeil", "trajets"]);
+    const o = objet(enregistre, ["schema", "evenements", "reglages", "dernierNumero", "cles"], ["rappels", "rappelsHoraires", "sommeil", "trajets", "lieux", "sejours", "trajetsAutoActifs", "trajetsAuto"]);
     if (o.schema !== 1) throw new ErreurAgenda("illisible", `Version de carnet inconnue : ${String(o.schema)} (cet agenda lit la version 1).`);
     if (!Array.isArray(o.evenements)) throw new ErreurAgenda("illisible", "Liste d'événements illisible.");
     const evenements = o.evenements.map(lireEvenement);
@@ -185,6 +220,10 @@ export function lireCarnet(enregistre: unknown): Carnet {
       rappelsHoraires: o.rappelsHoraires ?? true,
       sommeil: lireSommeil(o.sommeil),
       trajets: lireTrajets(o.trajets),
+      lieux: lireLieux(o.lieux),
+      sejours: lireSejours(o.sejours),
+      trajetsAutoActifs: o.trajetsAutoActifs !== false,
+      trajetsAuto: lireTrajetsAuto(o.trajetsAuto),
     };
   } catch (e) {
     if (e instanceof ErreurAgenda && e.code === "illisible") throw e;

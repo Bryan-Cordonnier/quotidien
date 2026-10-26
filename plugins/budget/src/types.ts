@@ -62,6 +62,8 @@ export interface Abonnement {
   jour: Jour;
   /** Marqué à résilier : rappel visuel, les échéances futures restent prévues tant qu'il existe. */
   aResilier: boolean;
+  /** Paiement en plusieurs fois : nombre total d'échéances (`null` : sans fin, un vrai abonnement). */
+  echeances: number | null;
 }
 
 /** Plafond de dépense d'une catégorie, par mois. */

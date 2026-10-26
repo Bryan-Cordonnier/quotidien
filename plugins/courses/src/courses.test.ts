@@ -17,7 +17,8 @@ describe("manifeste et paramètres", () => {
   });
 
   it("convertit les euros en centimes ; une valeur fausse reprend la valeur par défaut", () => {
-    expect(reglagesDepuis({ budget: 82.5, jour: "0", alerte: 90, report: true, estimation: false })).toEqual({ budgetCents: 8250, jourCourses: 0, alertePourcent: 90, report: true, estimation: false });
+    expect(reglagesDepuis({ budget: 82.5, jour: "0", alerte: 90, report: true, estimation: false })).toEqual({ budgetCents: 8250, jourCourses: 0, alertePourcent: 90, report: true, estimation: false, pause: false });
+    expect(reglagesDepuis({ pause: true }).estimation).toBe(false);
     expect(reglagesDepuis({ budget: -5, jour: "9", alerte: 0, report: "oui" })).toEqual(REGLAGES_DEFAUT);
   });
 

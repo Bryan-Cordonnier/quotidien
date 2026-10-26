@@ -68,6 +68,31 @@ export interface Recette {
   favori: boolean;
   /** Par portion, ou `null` tant qu'elle n'a pas été estimée. */
   nutrition: Nutrition | null;
+  /** Quelques mots pour donner envie (« Gratin crémeux, prêt en 30 min »). */
+  description: string;
+  /** Ma note, de 1 à 5 étoiles, ou 0 si pas notée. */
+  note: number;
+  /** Photo réduite (JPEG en « data: »), ou vide. */
+  photo: string;
+}
+
+/** Un repas prévu à la main dans la semaine (gagne sur le plan concocté). */
+export interface RepasPrevu {
+  jour: Jour;
+  moment: Moment;
+  plat: string;
+  recetteId: string | null;
+  /** Heure visée pour manger (minutes depuis minuit), ou `null` : l'heure habituelle du moment. */
+  heureMin: number | null;
+}
+
+/** Réglages de la page Repas. */
+export interface ReglagesRepas {
+  /** Le système de repas (semaine, heure de cuisine, alertes) ; coupé tant qu'on ne gère pas ses repas soi-même. */
+  actif: boolean;
+  alertes: boolean;
+  /** Heures habituelles des repas (minutes depuis minuit). */
+  heures: Record<Moment, number>;
 }
 
 /** Un prix relevé ailleurs que sur un ticket : une recherche, une saisie, l'assistant. */
@@ -140,6 +165,9 @@ export interface Donnees {
   prix: PrixReleve[];
   /** Les derniers plans concoctés, du plus récent au plus ancien. */
   plans: Plan[];
+  /** Les repas prévus à la main, jour par jour. */
+  semaine: RepasPrevu[];
+  reglages: ReglagesRepas;
 }
 
 export type CodeErreur = "argument_invalide" | "introuvable" | "limite_atteinte" | "illisible";

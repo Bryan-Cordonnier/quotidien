@@ -1,7 +1,7 @@
 {
   "id": "finances",
   "name": "Finances",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Votre argent réel : comptes, écritures qui ne se suppriment pas (une erreur s'annule), soldes à une date, courbe et dépenses du mois.",
@@ -42,6 +42,12 @@
         "acces": "ecriture"
       },
       "ecritures.annuler": {
+        "acces": "ecriture"
+      },
+      "comptes.modifier": {
+        "acces": "ecriture"
+      },
+      "ecritures.corriger": {
         "acces": "ecriture"
       }
     }

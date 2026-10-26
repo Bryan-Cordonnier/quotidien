@@ -1,7 +1,7 @@
 <script lang="ts">
   // Ajouter ou modifier une recette : nom, rayon, personnes, temps, ingrédients (un par ligne : « 200 g spaghetti » ou « spaghetti : 200 g »),
   // étapes (une par ligne), ustensiles (séparés par des virgules) et notes.
-  import { Modal } from "@etabli/ui";
+  import { Modal, SelectField } from "@etabli/ui";
   import { ajouterRecette, modifierRecette } from "../../src/donnees";
   import type { Session } from "../../src/session.svelte";
   import { CATEGORIES, type Categorie } from "../../src/types";
@@ -18,6 +18,22 @@
   let etapes = $state(r ? r.etapes.join("\n") : "");
   let ustensiles = $state(r ? r.ustensiles.join(", ") : "");
   let notes = $state(r?.notes ?? "");
+  let description = $state(r?.description ?? "");
+  let note = $state(r?.note ?? 0);
+  let photo = $state(r?.photo ?? "");
+
+  /** Une photo choisie : réduite à 640 px de large au plus, en JPEG, pour rester légère dans les données. */
+  async function choisirPhoto(e: Event & { currentTarget: HTMLInputElement }): Promise<void> {
+    const fichier = e.currentTarget.files?.[0];
+    if (!fichier) return;
+    const image = await createImageBitmap(fichier);
+    const echelle = Math.min(1, 640 / image.width);
+    const toile = document.createElement("canvas");
+    toile.width = Math.round(image.width * echelle);
+    toile.height = Math.round(image.height * echelle);
+    toile.getContext("2d")!.drawImage(image, 0, 0, toile.width, toile.height);
+    photo = toile.toDataURL("image/jpeg", 0.75);
+  }
   let erreur = $state("");
 
   /** « 200 g spaghetti », « 2 œufs », « sel » ou « spaghetti : 200 g » → nom et quantité. */
@@ -39,6 +55,9 @@
       etapes: etapes.split("\n").map((l) => l.trim()).filter((l) => l !== ""),
       ustensiles: ustensiles.split(",").map((u) => u.trim()).filter((u) => u !== ""),
       notes,
+      description,
+      note,
+      photo,
       source: r?.source ?? "moi",
     };
     const ok = id ? s.appliquer((d) => modifierRecette(d, id, brut)) : s.appliquer((d) => ajouterRecette(d, brut).donnees);
@@ -52,7 +71,7 @@
   <div class="trois">
     <div class="groupe">
       <label for="f-cat">Rayon</label>
-      <select id="f-cat" class="saisie" bind:value={categorie}>{#each CATEGORIES as c (c)}<option value={c}>{c}</option>{/each}</select>
+      <SelectField compact label="Rayon" bind:value={categorie} options={CATEGORIES.map((c) => ({ value: c, label: c }))} />
     </div>
     <div class="groupe"><label for="f-por">Personnes</label><input id="f-por" class="saisie num" type="number" min="1" max="50" bind:value={portions} /></div>
     <div class="groupe"><label for="f-tps">Temps (min)</label><input id="f-tps" class="saisie num" bind:value={temps} inputmode="numeric" placeholder="—" /></div>
@@ -66,12 +85,56 @@
     <textarea id="f-eta" class="saisie" rows="5" bind:value={etapes}></textarea>
   </div>
   <div class="groupe"><label for="f-ust">Ustensiles (séparés par des virgules)</label><input id="f-ust" class="saisie" bind:value={ustensiles} placeholder="casserole, poêle" /></div>
+  <div class="groupe"><label for="f-desc">Description</label><input id="f-desc" class="saisie" bind:value={description} maxlength="300" placeholder="Gratin crémeux, prêt en 30 min" /></div>
+  <div class="groupe">
+    <span class="petit">Ma note</span>
+    <div class="etoiles" role="radiogroup" aria-label="Ma note">
+      {#each [1, 2, 3, 4, 5] as n (n)}
+        <button class="etoile-note" class:allumee={note >= n} role="radio" aria-checked={note === n} aria-label="{n} étoile{n > 1 ? 's' : ''}" onclick={() => (note = note === n ? 0 : n)}>★</button>
+      {/each}
+    </div>
+  </div>
+  <div class="groupe">
+    <span class="petit">Photo</span>
+    <div class="photo">
+      {#if photo}<img src={photo} alt="Aperçu" /><button class="btn sm" onclick={() => (photo = "")}>Retirer</button>{/if}
+      <input type="file" accept="image/*" onchange={choisirPhoto} aria-label="Choisir une photo" />
+    </div>
+  </div>
   <div class="groupe"><label for="f-not">Notes</label><textarea id="f-not" class="saisie" rows="2" bind:value={notes}></textarea></div>
   {#if erreur}<p class="negatif" role="alert">{erreur}</p>{/if}
   {#snippet pied()}<button class="btn primary" onclick={enregistrer}>{id ? "Enregistrer" : "Ajouter la recette"}</button>{/snippet}
 </Modal>
 
 <style>
+  .etoiles {
+    display: flex;
+    gap: 2px;
+  }
+  .etoile-note {
+    border: 0;
+    background: none;
+    font-size: 22px;
+    color: var(--border);
+    cursor: pointer;
+    padding: 0 2px;
+  }
+  .etoile-note.allumee {
+    color: #f2c14e;
+  }
+  .photo {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .photo img {
+    width: 120px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
   textarea.saisie {
     width: 100%;
     resize: vertical;

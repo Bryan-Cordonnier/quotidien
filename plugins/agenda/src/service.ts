@@ -3,7 +3,7 @@
 // teste ici sans navigateur.
 import type { RemindersResult } from "@etabli/sdk";
 import { differenceJours } from "@etabli/ui/civil";
-import { FENETRE_MAX_JOURS, OCCURRENCES_MAX, occurrences, plagesOccupees } from "./calculs";
+import { FENETRE_MAX_JOURS, OCCURRENCES_MAX, occurrencesDuCarnet, plagesOccupees } from "./calculs";
 import { lireBrouillon, lireCarnet } from "./carnet";
 import { remplacer, supprimerGroupe, type Contexte } from "./operations";
 import { annulerRappels, groupeValide, lireRappels, remplacerRappels, rappelsPourLeMoteur } from "./rappels";
@@ -68,13 +68,13 @@ export function executer(enregistre: unknown, fonction: string, args: unknown, a
       const a = objet(args, ["du", "au"], ["types"]);
       const { du, au } = fenetre(a);
       const types = a.types === undefined ? undefined : liste(a.types, "types", (t) => choix(t, "types", TYPES_EVENEMENT), TYPES_EVENEMENT.length);
-      const occ = occurrences(carnet.evenements, du, au, types);
+      const occ = occurrencesDuCarnet(carnet, du, au, types);
       if (occ.length > OCCURRENCES_MAX) throw new ErreurAgenda("limite_atteinte", `Plus de ${OCCURRENCES_MAX} occurrences dans cette fenêtre : réduisez-la.`);
       return lecture(occ);
     }
     case "plages.occupees": {
       const { du, au } = fenetre(objet(args, ["du", "au"]));
-      const occ = occurrences(carnet.evenements, du, au);
+      const occ = occurrencesDuCarnet(carnet, du, au);
       if (occ.length > OCCURRENCES_MAX) throw new ErreurAgenda("limite_atteinte", `Plus de ${OCCURRENCES_MAX} occurrences dans cette fenêtre : réduisez-la.`);
       return lecture(plagesOccupees(occ));
     }

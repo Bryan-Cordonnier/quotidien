@@ -1,8 +1,10 @@
 <script lang="ts">
   // Les trajets du jour : deux boutons seulement, « Je suis parti » et « Je suis arrivé ». Le logiciel devine de quel trajet on parle d'après
   // l'heure et ce qui est déjà noté, et refuse un bouton hors de propos (le départ compte quand les roues tournent, pas quand on quitte la maison).
+  import { Icon, Modal } from "@etabli/ui";
   import { ajouterJours } from "@etabli/ui/civil";
-  import { occurrences } from "../../src/calculs";
+  import Lieux from "./Lieux.svelte";
+  import { occurrencesDuCarnet } from "../../src/calculs";
   import { journee, trajetsDe } from "../../src/journee";
   import type { Session } from "../../src/session.svelte";
   import { cible, etats, jeSuisArrive, jeSuisParti, type Reponse } from "../../src/trajets";
@@ -11,12 +13,13 @@
   let { s }: { s: Session } = $props();
 
   const trajets = $derived(
-    s.carnet ? trajetsDe(journee(occurrences(s.carnet.evenements, s.aujourdhui, s.aujourdhui), occurrences(s.carnet.evenements, ajouterJours(s.aujourdhui, 1), ajouterJours(s.aujourdhui, 1)), s.reglages.journee)) : [],
+    s.carnet ? trajetsDe(journee(occurrencesDuCarnet(s.carnet, s.aujourdhui, s.aujourdhui), occurrencesDuCarnet(s.carnet, ajouterJours(s.aujourdhui, 1), ajouterJours(s.aujourdhui, 1)), s.reglages.journee)) : [],
   );
   const notes = $derived(s.carnet?.trajets[s.aujourdhui] ?? {});
   const visee = $derived(cible(trajets, notes, s.maintenantMin));
   const points = $derived(etats(trajets, notes, s.maintenantMin));
   let reponse = $state<{ ok: boolean; texte: string } | null>(null);
+  let grand = $state(false);
   const duree = (min: number) => (min < 60 ? `${min} min` : `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")}`);
 
   function agir(f: (c: NonNullable<typeof s.carnet>, jour: string, t: typeof trajets, min: number) => Reponse): void {
@@ -33,6 +36,7 @@
     <span class="points" aria-label="Trajets du jour">
       {#each points as e, i (i)}<i class={e}></i>{/each}
     </span>
+    <button class="bloc-plus" onclick={() => (grand = true)} aria-label="Lieux et trajets automatiques" title="Lieux, où je dors, trajets calculés"><Icon name="plus" size={15} /></button>
   </div>
   <div class="corps">
     {#if trajets.length === 0}
@@ -59,7 +63,24 @@
   </div>
 </section>
 
+<Modal open={grand} titre="Lieux et trajets automatiques" largeur={820} onclose={() => (grand = false)}>
+  <Lieux {s} />
+</Modal>
+
 <style>
+  .bloc-plus {
+    margin-left: 8px;
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-2);
+    color: var(--muted);
+    cursor: pointer;
+  }
   .tj {
     display: flex;
     flex-direction: column;

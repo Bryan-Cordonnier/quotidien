@@ -1,7 +1,8 @@
 // Calculs de l'agenda, purs et testés : répétitions, plages occupées, chronologie à rebours (coucher → réveil → départ) et repos légal.
 // Les formules de `horaires` et `repos` viennent de `gestion-budget-perso` (crates/core) : leurs tests y deviennent des vecteurs d'or.
 import { ajouterJours, ajouterMois, comparerJours, differenceJours, dureeEntre, MINUTES_PAR_JOUR, numeroDeJour, type Jour } from "@etabli/ui/civil";
-import { TYPES_TRAVAIL, type Evenement, type Occurrence, type Reglages, type TypeEvenement } from "./types";
+import { TYPES_TRAVAIL, type Evenement, type Occurrence, type Reglages, type TypeEvenement, type Carnet } from "./types";
+import { avecTrajetAuto } from "./lieux";
 
 /** Au plus cette durée de fenêtre pour une lecture (5 ans, docs/24 A.1.3). */
 export const FENETRE_MAX_JOURS = 1830;
@@ -52,6 +53,11 @@ const numero = (id: string): number => Number(id.slice(1));
 /** Ordre stable : jour, heure de début, puis ordre de création. */
 export const parOrdre = (a: Occurrence, b: Occurrence): number =>
   comparerJours(a.jour, b.jour) || a.debutMin - b.debutMin || numero(a.evenementId) - numero(b.evenementId);
+
+/** Les occurrences d'un carnet, avec les trajets calculés automatiquement (lieux et séjours). */
+export function occurrencesDuCarnet(c: Pick<Carnet, "evenements" | "trajetsAuto" | "trajetsAutoActifs">, du: Jour, au: Jour, types?: readonly TypeEvenement[]): Occurrence[] {
+  return occurrences(c.evenements, du, au, types).map((o) => avecTrajetAuto(o, c));
+}
 
 export function occurrences(evenements: readonly Evenement[], du: Jour, au: Jour, types?: readonly TypeEvenement[]): Occurrence[] {
   const sortie: Occurrence[] = [];

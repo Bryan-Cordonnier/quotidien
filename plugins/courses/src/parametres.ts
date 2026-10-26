@@ -3,9 +3,9 @@ import type { Reglages } from "./types";
 
 export type Parametres = Record<string, number | string | boolean>;
 
-export const PARAMETRES_DEFAUT = { budget: 70, jour: "6", alerte: 80, report: false, estimation: true } as const;
+export const PARAMETRES_DEFAUT = { budget: 70, jour: "6", alerte: 80, report: false, estimation: true, pause: false } as const;
 
-export const REGLAGES_DEFAUT: Reglages = { budgetCents: 7000, jourCourses: 6, alertePourcent: 80, report: false, estimation: true };
+export const REGLAGES_DEFAUT: Reglages = { budgetCents: 7000, jourCourses: 6, alertePourcent: 80, report: false, estimation: true, pause: false };
 
 export function reglagesDepuis(p: Parametres | null | undefined): Reglages {
   const v = p ?? {};
@@ -17,6 +17,8 @@ export function reglagesDepuis(p: Parametres | null | undefined): Reglages {
     jourCourses: Number.isInteger(jour) && jour >= 0 && jour <= 6 ? jour : 6,
     alertePourcent: alerte,
     report: v.report === true,
-    estimation: v.estimation !== false,
+    // En pause, les courses ne comptent nulle part (ni dans les finances, ni dans les alertes).
+    estimation: v.estimation !== false && v.pause !== true,
+    pause: v.pause === true,
   };
 }

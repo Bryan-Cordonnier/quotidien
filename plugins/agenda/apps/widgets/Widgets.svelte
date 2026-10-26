@@ -1,7 +1,7 @@
 <script lang="ts">
   // Les widgets de l'Agenda sur l'accueil : la journée du jour, et l'heure de coucher conseillée ce soir (un clic ouvre le Calendrier).
   import { ajouterJours } from "@etabli/ui/civil";
-  import { occurrences } from "../../src/calculs";
+  import { occurrencesDuCarnet } from "../../src/calculs";
   import { coucherDe as coucherConseille, journee, type Segment } from "../../src/journee";
   import { Session } from "../../src/session.svelte";
   import { heure } from "../../src/vue";
@@ -13,9 +13,9 @@
   $effect(() => () => s.arreter());
 
   const j = $derived(
-    s.carnet ? journee(occurrences(s.carnet.evenements, s.aujourdhui, s.aujourdhui), occurrences(s.carnet.evenements, ajouterJours(s.aujourdhui, 1), ajouterJours(s.aujourdhui, 1)), s.reglages.journee) : null,
+    s.carnet ? journee(occurrencesDuCarnet(s.carnet, s.aujourdhui, s.aujourdhui), occurrencesDuCarnet(s.carnet, ajouterJours(s.aujourdhui, 1), ajouterJours(s.aujourdhui, 1)), s.reglages.journee) : null,
   );
-  const coucher = $derived(s.carnet ? coucherConseille(occurrences(s.carnet.evenements, ajouterJours(s.aujourdhui, 1), ajouterJours(s.aujourdhui, 1)), s.reglages.journee) : 0);
+  const coucher = $derived(s.carnet ? coucherConseille(occurrencesDuCarnet(s.carnet, ajouterJours(s.aujourdhui, 1), ajouterJours(s.aujourdhui, 1)), s.reglages.journee) : 0);
   const hhmm = (min: number) => heure(((min % 1440) + 1440) % 1440);
   const utiles = $derived((j?.segments ?? []).filter((seg: Segment) => seg.genre !== "libre" && seg.genre !== "coucher"));
   const classe = (seg: Segment): string =>

@@ -246,4 +246,29 @@ describe("confirmer ou écarter une prévision passée (Mes finances)", () => {
     const r = executer(plan, "previsions.abandonner", { id: plan.previsions[0]!.id }, "mes-finances");
     expect(r.plan!.previsions[0]!.statut).toBe("abandonnee");
   });
+
+  describe("abonnements et paiements en plusieurs fois (Mes finances)", () => {
+    const J = "2026-10-26";
+    const ex = (plan: unknown, f: string, a: unknown) => executer(plan, f, a, "mes-finances", J);
+    it("crée un paiement en 4 fois, numérote les échéances et s'arrête", () => {
+      const r = ex(null, "abonnements.enregistrer", { abonnement: { libelle: "LBC", montantCents: 2086, periodicite: "mois", jour: "2026-10-21", echeances: 4 } });
+      const libelles = r.plan!.previsions.map((p) => `${p.jour} ${p.libelle}`);
+      expect(libelles).toEqual(["2026-10-21 LBC (1/4)", "2026-11-21 LBC (2/4)", "2026-12-21 LBC (3/4)", "2027-01-21 LBC (4/4)"]);
+    });
+    it("modifie un abonnement : seules les échéances futures changent", () => {
+      const r = ex(null, "abonnements.enregistrer", { abonnement: { libelle: "Box", montantCents: 3000, periodicite: "mois", jour: "2026-10-01" } });
+      const id = (r.valeur as { id: string }).id;
+      const m = ex(r.plan, "abonnements.enregistrer", { abonnement: { id, libelle: "Box", montantCents: 3500, periodicite: "mois", jour: "2026-10-01" } });
+      const oct = m.plan!.previsions.find((p) => p.jour === "2026-10-01")!;
+      const nov = m.plan!.previsions.find((p) => p.jour === "2026-11-01")!;
+      expect([oct.montantCents, nov.montantCents]).toEqual([-3000, -3500]);
+    });
+    it("modifie une échéance seule et refuse un montant nul", () => {
+      const r = ex(null, "abonnements.enregistrer", { abonnement: { libelle: "Box", montantCents: 3000, periodicite: "mois", jour: "2026-11-01" } });
+      const p = r.plan!.previsions[0]!;
+      const m = ex(r.plan, "previsions.modifier", { id: p.id, jour: "2026-11-05", montantCents: -2500 });
+      expect(m.plan!.previsions.find((x) => x.id === p.id)).toMatchObject({ jour: "2026-11-05", montantCents: -2500 });
+      expect(() => ex(r.plan, "previsions.modifier", { id: p.id, montantCents: 0 })).toThrow();
+    });
+  });
 });

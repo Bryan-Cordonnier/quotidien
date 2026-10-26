@@ -4,7 +4,7 @@
   // côté. Un bloc de travail montre le temps de travail du contrat, jamais la durée entre le début et la fin (la pause serait comptée).
   // Les flèches changent de jour ; un clic sur un événement saisi ici le modifie (ceux des autres plugins se modifient chez eux).
   import { ajouterJours, type Jour } from "@etabli/ui/civil";
-  import { occurrences } from "../../src/calculs";
+  import { occurrencesDuCarnet } from "../../src/calculs";
   import { journee, type Segment } from "../../src/journee";
   import type { Session } from "../../src/session.svelte";
   import { UTILISATEUR } from "../../src/types";
@@ -22,7 +22,7 @@
   /** L'événement d'un autre plugin dont la suppression attend une confirmation (deux clics, sans fenêtre : le plugin est isolé). */
   let aSupprimer = $state<string | null>(null);
 
-  const j = $derived(s.carnet ? journee(occurrences(s.carnet.evenements, jour, jour), occurrences(s.carnet.evenements, ajouterJours(jour, 1), ajouterJours(jour, 1)), s.reglages.journee) : null);
+  const j = $derived(s.carnet ? journee(occurrencesDuCarnet(s.carnet, jour, jour), occurrencesDuCarnet(s.carnet, ajouterJours(jour, 1), ajouterJours(jour, 1)), s.reglages.journee) : null);
   const hhmm = (min: number) => heure(((min % 1440) + 1440) % 1440);
   const duree = (min: number) => (min < 60 ? `${min} min` : `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")}`);
 

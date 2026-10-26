@@ -1,7 +1,7 @@
 {
   "id": "budget",
   "name": "Budget",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Ce qui est prévu : la courbe « combien j'aurai à telle date », les virements et abonnements, les plafonds par catégorie. L'argent réel reste dans Finances.",
@@ -39,6 +39,18 @@
         "acces": "ecriture"
       },
       "previsions.abandonner": {
+        "acces": "ecriture"
+      },
+      "previsions.modifier": {
+        "acces": "ecriture"
+      },
+      "abonnements.liste": {
+        "acces": "lecture"
+      },
+      "abonnements.enregistrer": {
+        "acces": "ecriture"
+      },
+      "abonnements.supprimer": {
         "acces": "ecriture"
       }
     }

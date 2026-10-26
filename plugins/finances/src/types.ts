@@ -8,8 +8,13 @@ export const SCHEMA = 1;
 /** Source des écritures saisies par l'utilisateur dans l'interface de Finances (le « @ » est interdit dans un identifiant de plugin). */
 export const UTILISATEUR = "@utilisateur";
 
-export type TypeCompte = "courant" | "epargne" | "especes" | "autre";
-export const TYPES_COMPTE: readonly TypeCompte[] = ["courant", "epargne", "especes", "autre"];
+export type TypeCompte = "courant" | "secondaire" | "epargne" | "livret-a" | "lep" | "pea" | "pro" | "especes" | "autre";
+export const TYPES_COMPTE: readonly TypeCompte[] = ["courant", "secondaire", "epargne", "livret-a", "lep", "pea", "pro", "especes", "autre"];
+export const NOMS_TYPES_COMPTE: Record<TypeCompte, string> = {
+  courant: "Compte courant", secondaire: "Compte secondaire", epargne: "Épargne", "livret-a": "Livret A", lep: "LEP", pea: "PEA", pro: "Compte pro", especes: "Espèces", autre: "Autre",
+};
+/** Les plugins qui sont l'écran de l'utilisateur pour Finances : ils peuvent corriger toute écriture et régler tout compte. */
+export const INTERFACES_UTILISATEUR: readonly string[] = ["mes-finances"];
 export type Sens = "entree" | "sortie" | "les-deux";
 export const SENS: readonly Sens[] = ["entree", "sortie", "les-deux"];
 

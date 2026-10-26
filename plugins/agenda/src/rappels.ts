@@ -4,7 +4,7 @@
 // Les rappels que l'Agenda calcule lui-même (« pars dans 5 min », « pars maintenant », « coucher ») viennent des événements avec trajet.
 import { ajouterJours, jourDeInstant, localVersInstant, type Jour } from "@etabli/ui/civil";
 import type { Reminder } from "@etabli/sdk";
-import { chronologie, occurrences } from "./calculs";
+import { chronologie, occurrencesDuCarnet } from "./calculs";
 import { CLES_GARDEES } from "./carnet";
 import { ErreurAgenda, RAPPELS_MAX_PAR_APPELANT, UTILISATEUR, type Carnet, type RappelStocke } from "./types";
 import { entier, liste, objet, texte, texteFacultatif } from "./validation";
@@ -88,7 +88,7 @@ export function rappelsHoraires(c: Carnet, maintenant: number): RappelStocke[] {
   const fin: Jour = ajouterJours(jourDeInstant(maintenant + HORIZON_MS), 1);
   const sortie: RappelStocke[] = [];
   const coucherFait = new Set<Jour>();
-  for (const o of occurrences(c.evenements, debut, fin)) {
+  for (const o of occurrencesDuCarnet(c, debut, fin)) {
     if (o.trajetMin === null) continue;
     const ch = chronologie(o.debutMin, o.trajetMin, c.reglages);
     const cle = `${o.evenementId}@${o.jour}`;
