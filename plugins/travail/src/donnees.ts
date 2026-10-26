@@ -35,12 +35,14 @@ function joursUniques(v: unknown, nom: string, max: number): Jour[] {
 export const RYTHMES: readonly RythmePaie[] = ["fin", "mois", "semaine"];
 
 export function lireAgence(brut: unknown, avecId: boolean): Omit<Agence, "id"> & { id?: string } {
-  const o = objet(brut, ["nom"], avecId ? ["id", "cotisationsBp", "rythme"] : ["cotisationsBp", "rythme"]);
+  const o = objet(brut, ["nom"], avecId ? ["id", "cotisationsBp", "rythme", "jourPaie"] : ["cotisationsBp", "rythme", "jourPaie"]);
   return {
     ...(avecId ? { id: String(o.id) } : {}),
     nom: texte(o.nom, "nom", 80),
     cotisationsBp: o.cotisationsBp === undefined || o.cotisationsBp === null ? null : entier(o.cotisationsBp, "cotisationsBp", 0, 6000),
     rythme: o.rythme === undefined ? "fin" : choix(o.rythme, "rythme", RYTHMES),
+    // Ajouté après coup : absent des agences plus anciennes.
+    jourPaie: o.jourPaie === undefined || o.jourPaie === null ? null : entier(o.jourPaie, "jourPaie", 1, 28),
   };
 }
 

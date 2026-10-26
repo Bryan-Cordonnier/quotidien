@@ -79,6 +79,8 @@ export interface Prevision {
   montantCents: number;
   compteId: string | null;
   libelle: string;
+  /** Plugin qui l'a prévue (« courses », « travail »…). */
+  source?: string;
 }
 
 export interface Reglages {

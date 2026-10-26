@@ -5,6 +5,12 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ## [Non publié]
 
+## [0.4.1] — 2026-10-26
+
+### Modifié
+
+- Semaine : plus de message « Repas en pause », cases plus hautes.
+
 ## [0.3.1] — 2026-10-16
 
 ### Modifié

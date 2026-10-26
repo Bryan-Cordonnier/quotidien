@@ -5,6 +5,13 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ## [Non publié]
 
+## [0.2.6] — 2026-10-26
+
+### Modifié
+
+- Trajets : le point de départ (un domicile ou la position GPS) se règle dans Paramètres → Trajets ; le bloc Trajet ne garde que les adresses des lieux et les prochains trajets.
+- Un trajet de plus de 4 h est ignoré (adresse sûrement mal trouvée) ; le calcul se refait toutes les 30 min pour aujourd'hui et demain.
+
 ## [0.2.5] — 2026-10-16
 
 ### Modifié

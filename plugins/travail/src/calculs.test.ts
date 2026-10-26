@@ -1,7 +1,7 @@
 // Vecteurs d'or de la paie. Les chiffres viennent de paie.rs (gestion-budget-perso) ou ont été recalculés à la main ; les taux sont ceux des
 // réglages par défaut (hypothèses à confirmer sur un bulletin, voir types.ts).
 import { describe, expect, it } from "vitest";
-import { avancement, datePaiement, detailMission, detailReserve, joursDeReserve, joursDeLaSemaine, joursDeMission, minutesDeLaSemaine, minutesDuJour, paiesContrat, paiesMission, reglagesDeMission, statutContrat, titreContrat } from "./calculs";
+import { avancement, datePaiement, detailMission, detailReserve, joursDeReserve, joursDeLaSemaine, joursDeMission, minutesDeLaSemaine, minutesDuJour, paiesContrat, paiesMission, reglagesDeMission, statutContrat, titreContrat, datePaiementAgence } from "./calculs";
 import { REGLAGES_DEFAUT, type Agence, type Contrat, type Mission, type PeriodeReserve } from "./types";
 
 const R = REGLAGES_DEFAUT;
@@ -144,8 +144,8 @@ describe("indemnités, agences et paies", () => {
 
   it("les cotisations de l'agence remplacent celles des paramètres ; sans agence ou sans taux propre, les paramètres s'appliquent", () => {
     const agences: Agence[] = [
-      { id: "a1", nom: "Interim Plus", cotisationsBp: 2000, rythme: "fin" },
-      { id: "a2", nom: "Atelier", cotisationsBp: null, rythme: "fin" },
+      { id: "a1", nom: "Interim Plus", cotisationsBp: 2000, rythme: "fin", jourPaie: null },
+      { id: "a2", nom: "Atelier", cotisationsBp: null, rythme: "fin", jourPaie: null },
     ];
     expect(reglagesDeMission({ agenceId: "a1" }, agences, R).cotisationsBp).toBe(2000);
     expect(reglagesDeMission({ agenceId: "a2" }, agences, R).cotisationsBp).toBe(2200);
@@ -205,5 +205,14 @@ describe("avancement et semaine", () => {
   it("« Poste — Entreprise » ; le poste seul sans entreprise", () => {
     expect(titreContrat({ libelle: "Cariste", entreprise: "Dupont Logistique" })).toBe("Cariste — Dupont Logistique");
     expect(titreContrat({ libelle: "Cariste", entreprise: "" })).toBe("Cariste");
+  });
+
+  it("paie le jour de paie de l'agence, le mois suivant, jamais un week-end", () => {
+    const r = { ...REGLAGES_DEFAUT, jourPaie: 12 };
+    expect(datePaiementAgence("2026-10-30", r)).toBe("2026-11-12");
+    expect(datePaiementAgence("2026-12-15", r)).toBe("2027-01-12");
+    // le 12 septembre 2026 est un samedi : lundi 14
+    expect(datePaiementAgence("2026-08-20", r)).toBe("2026-09-14");
+    expect(datePaiementAgence("2026-10-30", { ...REGLAGES_DEFAUT, jourPaie: null })).toBe(datePaiement("2026-10-30", REGLAGES_DEFAUT.delaiPaieJours));
   });
 });

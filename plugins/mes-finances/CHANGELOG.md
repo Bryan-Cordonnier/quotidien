@@ -4,6 +4,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.2.1] — 2026-10-26
+
+### Corrigé
+
+- Courses en pause : les prévisions « Budget courses » ne s'affichent plus.
+
 ## [0.1.2] — 2026-10-16
 
 ### Modifié

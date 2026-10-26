@@ -1,7 +1,7 @@
 // État du Calendrier : le carnet (enregistré par le moteur avec le plugin), les paramètres réglés dans Paramètres → Agenda, et l'heure. Règle de
 // sécurité : un carnet illisible n'est JAMAIS remplacé par un carnet vide : l'écran le dit et n'écrit rien. Les réglages du carnet (lus par le
 // service des rappels, sans écran) suivent les paramètres dès qu'ils changent.
-import { aCalculer, avecTrajet, JOURS_AVANCE } from "./lieux";
+import { aCalculer, avecTrajet, JOURS_AVANCE, TRAJET_MAX_MIN } from "./lieux";
 import { occurrencesDuCarnet } from "./calculs";
 import { connect } from "@etabli/sdk";
 import { ajouterJours, instantVersLocal, localVersInstant, type Jour } from "@etabli/ui/civil";
@@ -62,6 +62,10 @@ export class Session {
         if (!r.ok) {
           this.trajetsMessage = r.message;
           if (r.code === "non_configure") break;
+          continue;
+        }
+        if (r.minutes > TRAJET_MAX_MIN) {
+          this.trajetsMessage = `Trajet de ${Math.round(r.minutes / 60)} h trouvé vers « ${d.vers} » : l'adresse est sûrement mal trouvée. Précise-la dans les lieux (bouton + du bloc Trajet).`;
           continue;
         }
         this.trajetsMessage = "";

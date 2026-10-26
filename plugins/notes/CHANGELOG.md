@@ -4,6 +4,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.1.2] — 2026-10-26
+
+### Corrigé
+
+- Coins arrondis identiques pour la zone de texte, les champs et les boutons.
+
 ## [0.1.0] — 2026-10-24
 
 ### Ajouté
