@@ -4,8 +4,8 @@
   // côté. Un bloc de travail montre le temps de travail du contrat, jamais la durée entre le début et la fin (la pause serait comptée).
   // Les flèches changent de jour ; un clic sur un événement saisi ici le modifie (ceux des autres plugins se modifient chez eux).
   import { ajouterJours, type Jour } from "@etabli/ui/civil";
-  import { occurrencesDuCarnet } from "../../src/calculs";
-  import { journee, type Segment } from "../../src/journee";
+  import { occurrencesDuCarnet, trajetMajore } from "../../src/calculs";
+  import { departDe, journee, premierDuMatin, trier, type Segment } from "../../src/journee";
   import type { Session } from "../../src/session.svelte";
   import { UTILISATEUR } from "../../src/types";
   import { heure, libelleJour } from "../../src/vue";
@@ -24,6 +24,11 @@
 
   const j = $derived(s.carnet ? journee(occurrencesDuCarnet(s.carnet, jour, jour), occurrencesDuCarnet(s.carnet, ajouterJours(jour, 1), ajouterJours(jour, 1)), s.reglages.journee) : null);
   const hhmm = (min: number) => heure(((min % 1440) + 1440) % 1440);
+  /** Le premier départ du matin, celui qui commande le réveil, et son trajet (null : pas encore calculé). */
+  const occJour = $derived(s.carnet ? trier(occurrencesDuCarnet(s.carnet, jour, jour)) : []);
+  const matin = $derived(premierDuMatin(occJour));
+  /** Un événement du matin avec un lieu mais sans trajet (pas encore calculé, ou adresse mal trouvée) : le réveil ne compte pas la route. */
+  const sansTrajet = $derived(occJour.find((o) => o.debutMin > 0 && o.debutMin < 720 && !!o.lieu && o.trajetMin === null));
   const duree = (min: number) => (min < 60 ? `${min} min` : `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")}`);
 
   function detail(seg: Segment): string {
@@ -43,6 +48,21 @@
       <button class="btn" onclick={() => onjour(1)} aria-label="Jour suivant"><Icon name="chevron-right" size={18} /></button>
     </div>
     {#if j}
+      <p class="resume" aria-label="Résumé de la journée">
+        <span>⏰ Réveil <b class="num">{hhmm(j.leverMin)}</b></span>
+        {#if matin && matin.trajetMin !== null}
+          <span>🚗 Départ <b class="num">{hhmm(departDe(matin, s.reglages.journee))}</b></span>
+          <span>Trajet <b class="num">{duree(trajetMajore(matin.trajetMin, s.reglages.journee.majorationTrajetBp))}</b></span>
+        {/if}
+        <span>🛏 Coucher <b class="num">{hhmm(j.coucherMin)}</b></span>
+      </p>
+      {#if sansTrajet}
+        <p class="alerte">
+          ⚠ Trajet vers « {sansTrajet.lieu} » pas encore calculé : le réveil ne compte pas la route.
+          {s.trajetsMessage}
+          <button class="btn sm" onclick={() => void s.actualiserTrajets(true)}>Calculer</button>
+        </p>
+      {/if}
       <div class="frise">
         {#each j.segments as seg, i (i)}
           {@const modifiable = seg.genre === "evenement" && (seg.occurrence?.source === UTILISATEUR || seg.occurrence?.source === "cerveau")}
@@ -105,6 +125,19 @@
   }
   .nav h3::first-letter {
     text-transform: uppercase;
+  }
+  .resume {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 16px;
+    margin: 10px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .resume b {
+    color: var(--text);
+    font-size: 15px;
   }
   .frise {
     display: flex;

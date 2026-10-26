@@ -35,7 +35,7 @@
 </script>
 
 <div class="page-plugin">
-  <Entete titre="Calendrier">
+  <Entete titre="Agenda">
     {#snippet actions()}
       <button class="btn primary ajouter" onclick={() => (fenetre = {})}><Icon name="plus" size={18} /> Ajouter un événement</button>
     {/snippet}

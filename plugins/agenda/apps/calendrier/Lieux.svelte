@@ -13,6 +13,8 @@
   const c = $derived(s.carnet!);
   let lieu = $state<{ id?: string; nom: string; adresse: string; logement: boolean } | null>(null);
   const prochains = $derived(occurrencesDuCarnet(c, s.aujourdhui, ajouterJours(s.aujourdhui, JOURS_AVANCE)).filter((o) => o.lieu));
+  /** Les lieux des prochains événements qui n'ont pas encore d'adresse enregistrée. */
+  const sansAdresse = $derived([...new Set(prochains.map((o) => o.lieu!.trim()))].filter((n) => !c.lieux.some((l) => l.nom.trim().toLocaleLowerCase("fr") === n.toLocaleLowerCase("fr"))));
   const jourCourt = (j: string) => new Date(`${j}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" });
 
   function enregistrer(): void {
@@ -29,7 +31,10 @@
     <input type="checkbox" checked={c.trajetsAutoActifs} onchange={(e) => s.appliquer((x) => ({ ...x, trajetsAutoActifs: e.currentTarget.checked }))} />
     Calculer les trajets tout seul (avec les bouchons), pour chaque événement qui a un lieu
   </label>
-  <p class="petit">Le point de départ (chez maman, chez mamie, ou ta position GPS) se règle dans <b>Paramètres → Trajets</b>.</p>
+  <div class="depart">
+    <span><b>🏠 D'où tu pars</b><span class="petit">Tes domiciles (chez maman, chez mamie…) ou ta position GPS, avec la clé TomTom.</span></span>
+    <button class="btn primary sm" onclick={() => s.hote?.openSettings("trajets")}>Mes domiciles</button>
+  </div>
   {#if s.trajetsMessage}<p class="negatif petit">{s.trajetsMessage}</p>{/if}
 
   <p class="etiquette">Adresses des lieux</p>
@@ -45,6 +50,12 @@
       </li>
     {:else}
       <li class="petit">Aucune adresse : sans elle, le nom du lieu de l'événement est cherché tel quel.</li>
+    {/each}
+    {#each sansAdresse as n (n)}
+      <li>
+        <span><b>📍 {n}</b><span class="petit">sans adresse : cherché tel quel</span></span>
+        <button class="btn sm" onclick={() => (lieu = { nom: n, adresse: "", logement: false })}>Donner l'adresse</button>
+      </li>
     {/each}
   </ul>
   {#if lieu}
@@ -72,7 +83,7 @@
       <li class="petit">Aucun événement avec un lieu dans les prochains jours.</li>
     {/each}
   </ul>
-  <button class="btn sm" onclick={() => void s.actualiserTrajets()}>Recalculer maintenant</button>
+  <button class="btn sm" onclick={() => void s.actualiserTrajets(true)}>Recalculer maintenant</button>
   <p class="petit">Sur le téléphone, « Pars dans X min » et « Pars maintenant » suivent le dernier calcul. Il se refait quand l'appli est ouverte (toutes les 15 min le jour même). Un trajet de plus de 4 h est ignoré : c'est sûrement une adresse mal trouvée.</p>
 </div>
 
@@ -109,6 +120,20 @@
   .choix {
     display: flex;
     gap: 6px;
+  }
+  .depart {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    background: var(--surface-2);
+  }
+  .depart > span {
+    display: flex;
+    flex-direction: column;
   }
   .coche {
     display: flex;

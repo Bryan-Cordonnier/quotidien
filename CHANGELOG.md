@@ -6,6 +6,42 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.2.2] — 2026-10-26
+
+### Corrigé
+
+- **Trajets** : un lieu comme « Armar (Anglet) » était trouvé à 400 km, le trajet était donc ignoré et le réveil calculé sans la route. L'arrivée est maintenant cherchée près du point de départ (entreprises et adresses), et Paramètres → Trajets et domiciles montre les adresses trouvées aux deux bouts.
+
+### Ajouté
+
+- **Agenda** : en haut de la journée, « Réveil · Départ · Trajet · Coucher » ; une alerte si un trajet du matin manque, avec un bouton « Calculer ».
+- **Bloc Trajet (+)** : bouton « Mes domiciles » et la liste des lieux sans adresse, à compléter en un clic.
+- **Colonne** : clic droit → « Modifier la colonne » (renommer, ranger, supprimer, créer les groupes, choisir le groupe de chaque page) ou « Nouveau groupe ».
+
+### Modifié
+
+- **Calendrier devient Agenda.**
+- **Colonne** : la flèche des groupes est un vrai petit bouton ; le stylo disparaît.
+- **Paramètres** : « Trajets et domiciles » rejoint les réglages de l'application, domiciles en premier ; changer de domicile s'applique tout de suite. Une coche confirme chaque réglage enregistré ; « Rétablir les valeurs par défaut » demande confirmation. Agenda et Travail : réglages regroupés et mieux expliqués.
+
+## [0.2.2] — 2026-10-26
+
+### Corrigé
+
+- **Trajets** : un lieu comme « Armar (Anglet) » était trouvé à 400 km, le trajet était donc ignoré et le réveil calculé sans la route. L'arrivée est maintenant cherchée près du point de départ (entreprises et adresses), et Paramètres → Trajets et domiciles montre les adresses trouvées aux deux bouts.
+
+### Ajouté
+
+- **Agenda** : en haut de la journée, « Réveil · Départ · Trajet · Coucher » ; une alerte si un trajet du matin manque, avec un bouton « Calculer ».
+- **Bloc Trajet (+)** : bouton « Mes domiciles » et la liste des lieux sans adresse, à compléter en un clic.
+- **Colonne** : clic droit → « Modifier la colonne » (renommer, ranger, supprimer, créer les groupes, choisir le groupe de chaque page) ou « Nouveau groupe ».
+
+### Modifié
+
+- **Calendrier devient Agenda.**
+- **Colonne** : la flèche des groupes est un vrai petit bouton ; le stylo disparaît.
+- **Paramètres** : « Trajets et domiciles » rejoint les réglages de l'application, domiciles en premier ; changer de domicile s'applique tout de suite. Une coche confirme chaque réglage enregistré ; « Rétablir les valeurs par défaut » demande confirmation. Agenda et Travail : réglages regroupés et mieux expliqués.
+
 ## [0.2.1] — 2026-10-26
 
 ### Ajouté

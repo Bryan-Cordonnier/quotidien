@@ -4,6 +4,18 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.4.3] — 2026-10-26
+
+### Modifié
+
+- Paramètres : un groupe « Paie » (cotisations, délai avant la paie quand l'agence n'a pas de jour de paie).
+
+## [0.4.3] — 2026-10-26
+
+### Modifié
+
+- Paramètres : un groupe « Paie » (cotisations, délai avant la paie quand l'agence n'a pas de jour de paie).
+
 ## [0.4.2] — 2026-10-26
 
 ### Ajouté
