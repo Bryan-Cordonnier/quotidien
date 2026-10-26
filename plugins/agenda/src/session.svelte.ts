@@ -50,13 +50,14 @@ export class Session {
    * Calcule les trajets qui manquent ou ont vieilli (aujourd'hui et demain : toutes les 30 min, pour les bouchons), un par un, avec le
    * moteur (TomTom). Les rappels « pars maintenant » suivent le nouveau temps de trajet.
    */
-  async actualiserTrajets(): Promise<void> {
+  async actualiserTrajets(force = false): Promise<void> {
     const c = this.carnet;
     if (!c || !this.hote || this.#calculEnCours) return;
     this.#calculEnCours = true;
     this.#dernierCalcul = Date.now();
     try {
-      const demandes = aCalculer(c, occurrencesDuCarnet(c, this.aujourdhui, ajouterJours(this.aujourdhui, JOURS_AVANCE)), this.aujourdhui, Date.now());
+      // « Calculer » ou « Recalculer maintenant » : on oublie les calculs gardés pour tout refaire.
+      const demandes = aCalculer(force ? { ...c, trajetsAuto: {} } : c, occurrencesDuCarnet(c, this.aujourdhui, ajouterJours(this.aujourdhui, JOURS_AVANCE)), this.aujourdhui, Date.now());
       for (const d of demandes) {
         const r = await this.hote.trajets.calculer({ vers: d.vers, ...(d.depuis ? { depuis: d.depuis } : {}), arriveeAvant: localVersInstant(d.jour, d.arriveeMin) });
         if (!r.ok) {
@@ -65,7 +66,7 @@ export class Session {
           continue;
         }
         if (r.minutes > TRAJET_MAX_MIN) {
-          this.trajetsMessage = `Trajet de ${Math.round(r.minutes / 60)} h trouvé vers « ${d.vers} » : l'adresse est sûrement mal trouvée. Précise-la dans les lieux (bouton + du bloc Trajet).`;
+          this.trajetsMessage = `Trajet de ${Math.round(r.minutes / 60)} h trouvé vers « ${d.vers} » : l'adresse est sûrement mal trouvée. Donne son adresse complète dans le bouton + du bloc Trajet.`;
           continue;
         }
         this.trajetsMessage = "";

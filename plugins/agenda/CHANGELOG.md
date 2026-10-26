@@ -5,6 +5,32 @@ Chaque version a sa section ; elle devient les « Nouveautés » affichées dans
 
 ## [Non publié]
 
+## [0.2.7] — 2026-10-26
+
+### Ajouté
+
+- Journée : une ligne « Réveil · Départ · Trajet · Coucher » en haut, et une alerte quand un événement du matin a un lieu mais pas encore de trajet (le réveil ne compterait pas la route), avec un bouton « Calculer ».
+- Bloc Trajet (+) : bouton « Mes domiciles » qui ouvre Paramètres → Trajets et domiciles ; les lieux des prochains événements sans adresse sont listés avec « Donner l'adresse ».
+
+### Modifié
+
+- La page s'appelle « Agenda » (et plus « Calendrier »).
+- Paramètres rangés en « Le matin », « Trajets », « Sommeil », « Rappels », avec des explications plus claires.
+- « Recalculer maintenant » refait vraiment tous les trajets.
+
+## [0.2.7] — 2026-10-26
+
+### Ajouté
+
+- Journée : une ligne « Réveil · Départ · Trajet · Coucher » en haut, et une alerte quand un événement du matin a un lieu mais pas encore de trajet (le réveil ne compterait pas la route), avec un bouton « Calculer ».
+- Bloc Trajet (+) : bouton « Mes domiciles » qui ouvre Paramètres → Trajets et domiciles ; les lieux des prochains événements sans adresse sont listés avec « Donner l'adresse ».
+
+### Modifié
+
+- La page s'appelle « Agenda » (et plus « Calendrier »).
+- Paramètres rangés en « Le matin », « Trajets », « Sommeil », « Rappels », avec des explications plus claires.
+- « Recalculer maintenant » refait vraiment tous les trajets.
+
 ## [0.2.6] — 2026-10-26
 
 ### Modifié

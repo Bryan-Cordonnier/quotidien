@@ -1,7 +1,7 @@
 {
   "id": "agenda",
   "name": "Agenda",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Votre temps : calendrier, événements qui se répètent, heures de départ, réveil et coucher calculées à rebours, alertes de repos légal, rappels sur le téléphone, export .ics.",
@@ -48,7 +48,7 @@
   "apps": [
     {
       "id": "calendrier",
-      "name": "Calendrier",
+      "name": "Agenda",
       "entry": "apps/calendrier/index.html",
       "accepts": []
     },
@@ -68,7 +68,7 @@
   "pages": [
     {
       "id": "calendrier",
-      "title": "Calendrier",
+      "title": "Agenda",
       "icon": "calendrier",
       "category": "Temps",
       "layout": {
@@ -83,18 +83,18 @@
       "label": "Heure de lever par défaut",
       "type": "time",
       "default": "08:00",
-      "group": "Journée",
-      "hint": "Les jours sans événement tôt le matin."
+      "group": "Le matin",
+      "hint": "Les jours sans travail ni rendez-vous tôt le matin."
     },
     {
       "id": "preparation",
       "label": "Préparation",
       "type": "number",
       "default": 45,
-      "group": "Journée",
+      "group": "Le matin",
       "step": 5,
       "min": 0,
-      "hint": "douche, petit-déjeuner",
+      "hint": "Du réveil au départ : douche, habits, petit-déjeuner.",
       "unit": "min",
       "max": 480
     },
@@ -103,10 +103,10 @@
       "label": "Mise en route",
       "type": "number",
       "default": 10,
-      "group": "Journée",
+      "group": "Le matin",
       "step": 5,
       "min": 0,
-      "hint": "chaussures, clés, porte",
+      "hint": "Chaussures, clés, porte : juste avant de partir.",
       "unit": "min",
       "max": 240
     },
@@ -115,10 +115,10 @@
       "label": "Marge d'arrivée",
       "type": "number",
       "default": 10,
-      "group": "Journée",
+      "group": "Trajets",
       "step": 1,
       "min": 0,
-      "hint": "Arriver en avance.",
+      "hint": "Arriver en avance. D'où tu pars (tes domiciles, le GPS) se règle dans Paramètres → Trajets et domiciles.",
       "unit": "min",
       "max": 240
     },
@@ -127,19 +127,19 @@
       "label": "Majoration du trajet",
       "type": "number",
       "default": 0,
-      "group": "Journée",
+      "group": "Trajets",
       "step": 1,
       "min": 0,
-      "hint": "Pour les aléas de route.",
+      "hint": "Ajouté au temps de trajet calculé, pour les imprévus.",
       "unit": "%",
       "max": 200
     },
     {
       "id": "enchainer",
-      "label": "Enchaîner deux événements si l'écart est inférieur à",
+      "label": "Enchaîner deux événements séparés de moins de",
       "type": "number",
       "default": 90,
-      "group": "Journée",
+      "group": "Trajets",
       "step": 5,
       "min": 0,
       "hint": "Un seul trajet direct, pas de retour à la maison entre les deux.",
@@ -155,7 +155,8 @@
       "step": 0.5,
       "min": 0,
       "unit": "h",
-      "max": 16
+      "max": 16,
+      "hint": "Le coucher conseillé se calcule à rebours depuis le réveil du lendemain."
     },
     {
       "id": "endormissement",
@@ -166,7 +167,8 @@
       "step": 5,
       "min": 0,
       "unit": "min",
-      "max": 240
+      "max": 240,
+      "hint": "Entre le coucher et le sommeil."
     },
     {
       "id": "preAlerte",
@@ -177,7 +179,8 @@
       "step": 1,
       "min": 0,
       "unit": "min",
-      "max": 120
+      "max": 120,
+      "hint": "Sur le téléphone, en plus de « Pars maintenant »."
     },
     {
       "id": "rappelCoucher",

@@ -38,12 +38,12 @@
 {:else if !s.carnet}
   <div class="w"><p class="petit">Chargement…</p></div>
 {:else if id === "coucher"}
-  <button class="w lien" onclick={ouvrir} aria-label="Ouvrir le Calendrier">
+  <button class="w lien" onclick={ouvrir} aria-label="Ouvrir l'Agenda">
     <p class="etiquette">Coucher conseillé ce soir</p>
     <div class="grand num">{heure(coucher % 1440)}</div>
   </button>
 {:else}
-  <button class="w lien haut" onclick={ouvrir} aria-label="Ouvrir le Calendrier">
+  <button class="w lien haut" onclick={ouvrir} aria-label="Ouvrir l'Agenda">
     <p class="etiquette">Aujourd'hui</p>
     {#if utiles.length === 0}
       <p class="petit">Rien de prévu aujourd'hui.</p>
