@@ -6,6 +6,22 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.2.1] — 2026-10-26
+
+### Ajouté
+
+- **Mes domiciles** (Paramètres → Trajets) : chez maman, chez mamie… et d'où partent les trajets : un domicile ou ta position GPS au moment du calcul.
+- **Travail** : jour de paie de l'agence (par exemple le 12) ; la paie de tes missions apparaît dans Mes finances à cette date.
+- **Colonne** : un stylo pour modifier les groupes (créer, renommer, supprimer, ranger), cachés le reste du temps.
+
+### Corrigé
+
+- **Trajets** : les adresses sont cherchées en France, près du point de départ ; plus de trajets de 10 h ni de réveil à minuit.
+- **Mes finances** : les prévisions de Courses ne comptent plus quand Courses est en pause.
+- **Colonne repliée** : un trait entre les groupes, plus de barre de défilement qui décale les icônes ; le titre « Pages » disparaît.
+- Les champs des fenêtres (Mes comptes…) ne sont plus coupés quand on clique dedans.
+- **Repas** : plus de message « Repas en pause », semaine plus haute. **Notes** : coins arrondis alignés.
+
 ## [0.2.0] — 2026-10-26
 
 ### Ajouté

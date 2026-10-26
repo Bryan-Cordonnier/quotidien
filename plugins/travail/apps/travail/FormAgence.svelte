@@ -20,6 +20,7 @@
   let nom = $state(existante?.nom ?? "");
   let cotisations = $state(existante?.cotisationsBp != null ? String(existante.cotisationsBp / 100).replace(".", ",") : "");
   let rythme = $state<RythmePaie>(existante?.rythme ?? "fin");
+  let jourPaie = $state(existante?.jourPaie != null ? String(existante.jourPaie) : "");
   let erreur = $state("");
 
   function enregistrer(): void {
@@ -29,7 +30,12 @@
       erreur = "Les cotisations s'écrivent comme 22 ou 21,5 (entre 0 et 60 %), ou restent vides.";
       return;
     }
-    const brut = { nom, cotisationsBp: bp, rythme };
+    const jp = jourPaie.trim() === "" ? null : Number(jourPaie);
+    if (jp !== null && (!Number.isInteger(jp) || jp < 1 || jp > 28)) {
+      erreur = "Le jour de paie est un jour du mois entre 1 et 28 (ou vide).";
+      return;
+    }
+    const brut = { nom, cotisationsBp: bp, rythme, jourPaie: jp };
     if (s.appliquer((d) => (id ? modifierAgence(d, id, brut) : ajouterAgence(d, brut).donnees))) onclose();
     else erreur = s.message;
   }
@@ -55,6 +61,11 @@
       options={[{ value: "fin", label: "À la fin de la mission" }, { value: "mois", label: "Chaque mois" }, { value: "semaine", label: "Chaque semaine" }]}
       bind:value={rythme}
     />
+  </div>
+  <div class="groupe">
+    <label for="ag-jour">Jour de paie (du mois)</label>
+    <input id="ag-jour" class="saisie num" bind:value={jourPaie} placeholder="12 (vide : quelques jours après la fin)" inputmode="numeric" autocomplete="off" />
+    <span class="petit">Le jour où l'agence paie, le mois qui suit le travail. Règle-le à ta première paie.</span>
   </div>
   {#if erreur}<p class="negatif" role="alert">{erreur}</p>{/if}
   {#snippet pied()}

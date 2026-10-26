@@ -112,14 +112,15 @@ export function detailMission(m: Mission, r: Reglages): DetailMission {
     indemnitesCents,
     netCents: ajouter(apresPrelevement(brutTotalCents, r.cotisationsBp), indemnitesCents),
     dernierJour,
-    datePaiement: dernierJour ? datePaiement(dernierJour, r.delaiPaieJours) : null,
+    datePaiement: dernierJour ? datePaiementAgence(dernierJour, r) : null,
   };
 }
 
 /** Les réglages d'une mission : ceux des paramètres, avec les cotisations de son agence si elle en a. */
 export function reglagesDeMission(m: Pick<Mission, "agenceId">, agences: readonly Agence[], r: Reglages): Reglages {
   const agence = m.agenceId ? agences.find((a) => a.id === m.agenceId) : undefined;
-  return agence && agence.cotisationsBp !== null ? { ...r, cotisationsBp: agence.cotisationsBp } : r;
+  if (!agence) return r;
+  return { ...r, ...(agence.cotisationsBp !== null ? { cotisationsBp: agence.cotisationsBp } : {}), jourPaie: agence.jourPaie };
 }
 
 /** « Poste — Entreprise » (le poste seul si l'entreprise n'est pas renseignée). */
@@ -183,12 +184,23 @@ export function paiesMission(m: Mission, r: Reglages, rythme: RythmePaie): PaieM
   return liste.map((g, i) => {
     const part = i === liste.length - 1 ? reste : mulDiv(det.netCents, g.poids, total);
     reste -= part;
-    return { date: datePaiement(g.dernier, r.delaiPaieJours), netCents: part };
+    return { date: datePaiementAgence(g.dernier, r), netCents: part };
   }).filter((p) => p.netCents > 0);
 }
 
 /** Paiement : `delai` jours après `jour`, jamais un week-end ni un jour férié (report au jour ouvré suivant). */
 export const datePaiement = (jour: Jour, delai: number): Jour => prochainOuvre(ajouterJours(jour, delai), estFerieFrance);
+
+/**
+ * Paiement d'une agence : son jour de paie du mois suivant le dernier jour travaillé (le 12 : un dernier jour le 30 octobre est payé
+ * le 12 novembre), sinon le délai des paramètres. Jamais un week-end ni un jour férié.
+ */
+export function datePaiementAgence(dernierJour: Jour, r: Reglages): Jour {
+  if (!r.jourPaie) return datePaiement(dernierJour, r.delaiPaieJours);
+  const [a, m] = dernierJour.split("-").map(Number) as [number, number];
+  const suivant = m === 12 ? `${a + 1}-01` : `${a}-${String(m + 1).padStart(2, "0")}`;
+  return prochainOuvre(`${suivant}-${String(r.jourPaie).padStart(2, "0")}`, estFerieFrance);
+}
 
 // ——— Réserve ———
 

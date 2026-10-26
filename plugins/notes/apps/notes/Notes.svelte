@@ -67,6 +67,12 @@
     font-size: 16px;
     line-height: 1.4;
     field-sizing: content;
+    /* mêmes arrondis que le choix du rappel et le bouton, pour un bloc propre */
+    border-radius: var(--r-md);
+  }
+  .saisie-note .actions :global(.btn),
+  .saisie-note .actions input {
+    border-radius: var(--r-md);
   }
   .liste {
     list-style: none;

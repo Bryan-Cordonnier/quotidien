@@ -84,14 +84,16 @@ export class Session {
       this.#appeler("budget", "previsions.liste", { du: this.aujourdhui, au: fin, statut: "attendue" }),
       this.#appeler("budget", "previsions.liste", { du: ajouterJours(this.aujourdhui, -120), au: ajouterJours(this.aujourdhui, -1), statut: "attendue" }),
     ]);
-    this.aConfirmer = passees.ok ? ((passees.valeur as { previsions: Prevision[] }).previsions ?? []) : [];
+    // Un plugin désactivé (Courses en pause, par exemple) ne met plus à jour ce qu'il avait prévu : on ne le compte plus.
+    const actif = (p: Prevision) => p.source !== "courses" || this.#hote?.services.get("courses") != null;
+    this.aConfirmer = passees.ok ? ((passees.valeur as { previsions: Prevision[] }).previsions ?? []).filter(actif) : [];
     this.sansFinances = absent(comptes) ?? absent(soldes);
     if (comptes.ok && soldes.ok) {
       this.comptes = (comptes.valeur as Compte[]).filter((c) => !(c as Compte & { archive?: boolean }).archive);
       this.soldes = soldes.valeur as Record<string, number>;
     }
     this.sansBudget = absent(previsions);
-    this.previsions = previsions.ok ? ((previsions.valeur as { previsions: Prevision[] }).previsions ?? []) : [];
+    this.previsions = previsions.ok ? ((previsions.valeur as { previsions: Prevision[] }).previsions ?? []).filter(actif) : [];
     this.charge = true;
     await this.chargerDetails();
   }
@@ -112,7 +114,8 @@ export class Session {
       this.historique = toutes.filter((e) => !e.annule && !annulees.has(e.id)).reverse();
     }
     this.abonnements = abonnements.ok ? (abonnements.valeur as Abonnement[]) : [];
-    this.aVenir = aVenir.ok ? ((aVenir.valeur as { previsions: Prevision[] }).previsions ?? []) : [];
+    const coursesActif = this.#hote?.services.get("courses") != null;
+    this.aVenir = aVenir.ok ? ((aVenir.valeur as { previsions: Prevision[] }).previsions ?? []).filter((p) => p.source !== "courses" || coursesActif) : [];
   }
 
   async #faire(r: Promise<Reponse>, refus: string): Promise<boolean> {

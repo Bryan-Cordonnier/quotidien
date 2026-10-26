@@ -58,12 +58,6 @@
       <button class="btn sm" onclick={() => (reglagesOuverts = true)}>Heures des repas</button>
     </div>
 
-    {#if !reglages.actif}
-      <section class="bloc">
-        <p class="etiquette">Repas en pause</p>
-        <p>Tu ne gères pas tes repas en ce moment : pas d'alertes, rien dans l'Agenda. Tu peux quand même noter ce que tu manges ci-dessous, et tes recettes restent dans « Recettes ».</p>
-      </section>
-    {/if}
 
     {#each lesAlertes as a (a.texte)}
       <p class="alerte" class:urgent={a.niveau === "urgent"} role="status">{a.niveau === "urgent" ? "⚠️" : "ℹ️"} {a.texte}</p>
@@ -212,7 +206,7 @@
     display: flex;
     flex-direction: column;
     gap: 3px;
-    min-height: 58px;
+    min-height: 96px;
     padding: 6px 8px;
     border: 1px solid var(--border);
     border-radius: 10px;

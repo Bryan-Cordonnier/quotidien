@@ -4,6 +4,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+## [0.4.2] — 2026-10-26
+
+### Ajouté
+
+- Agence : « Jour de paie (du mois) ». La paie d'une mission tombe ce jour-là, le mois suivant (jour ouvré suivant si week-end ou férié).
+
 ## [0.4.1] — 2026-10-16
 
 ### Modifié

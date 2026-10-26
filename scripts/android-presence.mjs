@@ -30,7 +30,8 @@ const manifeste = join(principal, "AndroidManifest.xml");
 let xml = readFileSync(manifeste, "utf8");
 const internet = '<uses-permission android:name="android.permission.INTERNET" />';
 if (!xml.includes(internet) || !xml.includes("</application>")) echec("manifeste inattendu.");
-for (const p of ["ACTIVITY_RECOGNITION", "RECEIVE_BOOT_COMPLETED"]) {
+// Localisation : départ des trajets depuis la position GPS (Paramètres → Trajets).
+for (const p of ["ACTIVITY_RECOGNITION", "RECEIVE_BOOT_COMPLETED", "ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"]) {
   if (!xml.includes(`android.permission.${p}"`)) xml = xml.replace(internet, `${internet}\n    <uses-permission android:name="android.permission.${p}" />`);
 }
 // Statistiques d'utilisation (Bien-être numérique) : permission « protégée », accordée par Bryan dans les réglages.

@@ -83,7 +83,7 @@ describe("données", () => {
     let d = donneesVides();
     const a = ajouterAgence(d, { nom: "Interim Plus", cotisationsBp: 2100, rythme: "mois" });
     d = a.donnees;
-    expect(d.agences).toEqual([{ id: a.id, nom: "Interim Plus", cotisationsBp: 2100, rythme: "mois" }]);
+    expect(d.agences).toEqual([{ id: a.id, nom: "Interim Plus", cotisationsBp: 2100, rythme: "mois", jourPaie: null }]);
     expect(refus(() => ajouterAgence(d, { nom: "interim plus" })).code).toBe("argument_invalide");
     expect(refus(() => ajouterAgence(d, { nom: "X", taux: 13 })).code).toBe("argument_invalide");
     expect(ajouterAgence(d, { nom: "Autre" }).donnees.agences[1]).toMatchObject({ cotisationsBp: null, rythme: "fin" });

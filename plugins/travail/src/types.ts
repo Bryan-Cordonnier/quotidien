@@ -25,6 +25,8 @@ export interface Reglages {
   seuilSup1Min: number;
   /** Délai entre la fin d'une mission ou d'une période de réserve et le paiement, en jours (jamais un week-end ni un jour férié). */
   delaiPaieJours: number;
+  /** Jour de paie de l'agence de la mission (posé par `reglagesDeMission`), ou `null`. */
+  jourPaie?: number | null;
   /** Réserve : solde de CHAQUE jour (à la base ou hors base), imposable (brut, cotisations déduites ensuite). */
   tarifReserveCents: Centimes;
   /** Réserve : prime d'un jour HORS BASE, en plus du solde, NON imposable (pas de cotisations). */
@@ -68,6 +70,8 @@ export interface Agence {
   /** Cotisations salariales de l'agence ; `null` : celles des paramètres. */
   cotisationsBp: PointsDeBase | null;
   rythme: RythmePaie;
+  /** Jour du mois où l'agence paie (le 12…), ou `null` : quelques jours après la fin (délai des paramètres). */
+  jourPaie: number | null;
 }
 
 /** Un contrat signé n'a que trois états, qui suivent les dates. */
