@@ -16,6 +16,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         recettes: page("apps/recettes"),
+        semaine: page("apps/semaine"),
       },
     },
   },

@@ -1,12 +1,13 @@
 <script lang="ts">
-  // Mes finances : l'estimé de la vie courante, jusqu'à quand je tiens, la courbe, les prochains paiements, l'ajustement rapide,
-  // le recalage sur le solde réel et le rôle de chaque compte.
-  import { Entete, LineChart, Icon } from "@etabli/ui";
+  // Mes finances : l'estimé de la vie courante, jusqu'à quand je tiens, la courbe, les prochains paiements, l'ajout rapide, le recalage
+  // et mes comptes. Chaque bloc a un bouton « + » : sa grande fenêtre montre le détail et permet de TOUT régler et corriger après coup
+  // (comptes, écritures, recalages, paiements prévus, abonnements, paiements en plusieurs fois).
+  import { Bloc, Entete, Icon, LineChart, SelectField } from "@etabli/ui";
   import { ajouterJours, decomposer, differenceJours } from "@etabli/ui/civil";
   import { formatEuros, parseEuros } from "@etabli/ui/money";
-  import { roleDe } from "../../src/calculs";
+  import { courbe, roleDe, type Point } from "../../src/calculs";
   import { Session } from "../../src/session.svelte";
-  import type { Role } from "../../src/types";
+  import { nomType, TYPES_COMPTE, type Abonnement, type Ecriture, type Prevision, type Role } from "../../src/types";
 
   const s = new Session();
   void s.demarrer();
@@ -19,20 +20,25 @@
     return new Date(annee, mois - 1, jour).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
   };
   const euros = (c: number): string => `${c < 0 ? "− " : ""}${formatEuros(Math.abs(c))}`;
+  /** Montant sans symbole, pour remplir un champ (« 12,40 »). */
+  const enChamp = (c: number): string => formatEuros(Math.abs(c)).replace(/\s?€/, "").replace(/ | /g, "");
   const ROLES: { valeur: Role; nom: string }[] = [
     { valeur: "vie", nom: "Vie courante" },
     { valeur: "secours", nom: "Secours" },
     { valeur: "hors", nom: "Ignoré" },
   ];
+  const SOURCES: Record<string, string> = { "@utilisateur": "Saisie", "mes-finances": "Mes finances", courses: "Courses", travail: "Travail", budget: "Budget" };
+  const PERIODES: Record<Abonnement["periodicite"], string> = { semaine: "chaque semaine", mois: "chaque mois", an: "chaque année" };
 
   const roles = $derived(s.donnees?.roles ?? {});
   const jours = $derived(s.tient ? differenceJours(s.aujourdhui, s.tient) : null);
   const points = $derived(s.courbe.map((p) => ({ label: court(p.jour), value: p.soldeCents / 100 })));
+  const nomCompte = (id: string | null): string => s.tousComptes.find((c) => c.id === id)?.nom ?? "—";
 
-  /** Montant corrigé avant confirmation, par prévision (en euros, sans signe). */
+  // ——— À confirmer ———
   let montants = $state<Record<string, string>>({});
-  const montantDe = (p: { id: string; montantCents: number }): string => montants[p.id] ?? formatEuros(Math.abs(p.montantCents)).replace(/\s?€/, "").replace(/\u202f|\u00a0/g, "");
-  async function confirmer(p: { id: string; montantCents: number; jour: string; libelle: string; compteId: string | null }): Promise<void> {
+  const montantDe = (p: { id: string; montantCents: number }): string => montants[p.id] ?? enChamp(p.montantCents);
+  async function confirmer(p: Prevision): Promise<void> {
     const cents = parseEuros(montantDe(p));
     if (cents === null || cents <= 0) {
       s.message = "Le montant s'écrit comme 12,40.";
@@ -40,21 +46,11 @@
     }
     await s.confirmerPrevision(p, Math.sign(p.montantCents || 1) * cents);
   }
+
+  // ——— Ajout et recalage ———
   let ajustement = $state("");
   let libelle = $state("");
   let reel = $state("");
-  // Nouveau compte : nom, type et solde d'aujourd'hui.
-  let nouveau = $state<{ nom: string; type: "courant" | "epargne" | "especes" | "autre"; solde: string } | null>(null);
-  async function creer(): Promise<void> {
-    if (!nouveau) return;
-    const cents = nouveau.solde.trim() === "" ? 0 : parseEuros(nouveau.solde);
-    if (nouveau.nom.trim() === "" || cents === null) {
-      s.message = "Donnez un nom au compte ; le solde s'écrit comme 1 250,00.";
-      return;
-    }
-    if (await s.creerCompte(nouveau.nom, nouveau.type, cents)) nouveau = null;
-  }
-
   async function ajuster(signe: 1 | -1): Promise<void> {
     const cents = parseEuros(ajustement);
     if (cents === null || cents <= 0) {
@@ -66,7 +62,6 @@
       libelle = "";
     }
   }
-
   async function recaler(): Promise<void> {
     const cents = parseEuros(reel);
     if (cents === null) {
@@ -74,6 +69,115 @@
       return;
     }
     if (await s.recaler(cents)) reel = "";
+  }
+
+  // ——— Courbe en grand ———
+  let horizonGrand = $state(90);
+  const courbeGrande = $derived(courbe(s.estime.vie, s.aujourdhui, horizonGrand, s.aVenir, s.comptes, roles).map((p) => ({ label: court(p.jour), value: p.soldeCents / 100 })));
+
+  // ——— Comptes ———
+  let comptesOuverts = $state(false);
+  let courbesComptes = $state<Record<string, Point[]>>({});
+  $effect(() => {
+    if (!comptesOuverts) return;
+    for (const c of s.tousComptes) void s.serieCompte(c.id, 90).then((p) => (courbesComptes[c.id] = p));
+  });
+  let compteEdit = $state<{ id: string; nom: string; type: string; solde: string } | null>(null);
+  let nouveau = $state<{ nom: string; type: string; solde: string } | null>(null);
+  async function creer(): Promise<void> {
+    if (!nouveau) return;
+    const cents = nouveau.solde.trim() === "" ? 0 : parseEuros(nouveau.solde);
+    if (nouveau.nom.trim() === "" || cents === null) {
+      s.message = "Donnez un nom au compte ; le solde s'écrit comme 1 250,00.";
+      return;
+    }
+    if (await s.creerCompte(nouveau.nom, nouveau.type, cents)) nouveau = null;
+  }
+  async function enregistrerCompte(): Promise<void> {
+    if (!compteEdit) return;
+    const cents = parseEuros(compteEdit.solde);
+    if (!compteEdit.nom.trim() || cents === null) {
+      s.message = "Donnez un nom ; le solde de départ s'écrit comme 1 250,00.";
+      return;
+    }
+    if (await s.modifierCompte(compteEdit.id, { nom: compteEdit.nom.trim(), type: compteEdit.type, soldeInitialCents: cents })) compteEdit = null;
+  }
+
+  // ——— Historique des écritures ———
+  let filtre = $state("");
+  const historiqueFiltre = $derived(
+    s.historique.filter((e) => !filtre.trim() || `${e.libelle} ${nomCompte(e.compteId)}`.toLowerCase().includes(filtre.trim().toLowerCase())).slice(0, 200),
+  );
+  let ecritureEdit = $state<{ id: string; montant: string; sens: "1" | "-1"; libelle: string; jour: string; compteId: string } | null>(null);
+  const editerEcriture = (e: Ecriture) =>
+    (ecritureEdit = { id: e.id, montant: enChamp(e.montantCents), sens: e.montantCents < 0 ? "-1" : "1", libelle: e.libelle, jour: e.jour, compteId: e.compteId });
+  async function enregistrerEcriture(): Promise<void> {
+    if (!ecritureEdit) return;
+    const cents = parseEuros(ecritureEdit.montant);
+    if (cents === null || cents <= 0 || !ecritureEdit.libelle.trim()) {
+      s.message = "Le montant s'écrit comme 12,40 et le libellé ne peut pas être vide.";
+      return;
+    }
+    const ok = await s.corrigerEcriture(ecritureEdit.id, {
+      montantCents: Number(ecritureEdit.sens) * cents,
+      libelle: ecritureEdit.libelle.trim(),
+      quand: new Date(`${ecritureEdit.jour}T12:00:00`).getTime(),
+      compteId: ecritureEdit.compteId,
+    });
+    if (ok) ecritureEdit = null;
+  }
+
+  // ——— Paiements prévus et abonnements ———
+  let prevEdit = $state<{ id: string; jour: string; montant: string; sens: number } | null>(null);
+  async function enregistrerPrevision(): Promise<void> {
+    if (!prevEdit) return;
+    const cents = parseEuros(prevEdit.montant);
+    if (cents === null || cents <= 0) {
+      s.message = "Le montant s'écrit comme 12,40.";
+      return;
+    }
+    if (await s.modifierPrevision(prevEdit.id, { jour: prevEdit.jour, montantCents: prevEdit.sens * cents })) prevEdit = null;
+  }
+  interface FormAbo {
+    id?: string;
+    libelle: string;
+    montant: string;
+    periodicite: Abonnement["periodicite"];
+    jour: string;
+    compteId: string;
+    plusieurs: boolean;
+    echeances: string;
+  }
+  let abo = $state<FormAbo | null>(null);
+  const nouvelAbo = (plusieurs: boolean): FormAbo => ({ libelle: "", montant: "", periodicite: "mois", jour: s.aujourdhui, compteId: s.compteParDefaut?.id ?? "", plusieurs, echeances: plusieurs ? "4" : "" });
+  const editerAbo = (a: Abonnement): FormAbo => ({
+    id: a.id,
+    libelle: a.libelle,
+    montant: enChamp(a.montantCents),
+    periodicite: a.periodicite,
+    jour: a.jour,
+    compteId: a.compteId ?? "",
+    plusieurs: a.echeances !== null,
+    echeances: a.echeances === null ? "" : String(a.echeances),
+  });
+  async function enregistrerAbo(): Promise<void> {
+    if (!abo) return;
+    const cents = parseEuros(abo.montant);
+    const n = Number(abo.echeances);
+    if (!abo.libelle.trim() || cents === null || cents <= 0 || (abo.plusieurs && (!Number.isInteger(n) || n < 1))) {
+      s.message = "Il faut un nom, un montant (12,40) et, en plusieurs fois, le nombre d'échéances.";
+      return;
+    }
+    const ok = await s.enregistrerAbonnement({
+      ...(abo.id ? { id: abo.id } : {}),
+      libelle: abo.libelle.trim(),
+      montantCents: cents,
+      periodicite: abo.periodicite,
+      jour: abo.jour,
+      compteId: abo.compteId || null,
+      echeances: abo.plusieurs ? n : null,
+    });
+    if (ok) abo = null;
   }
 </script>
 
@@ -118,40 +222,72 @@
         </ul>
       </section>
     {/if}
+
     <div class="grille-2">
-      <section class="bloc">
-        <p class="etiquette">Estimé · vie courante</p>
+      <Bloc titre="Estimé · vie courante" titreGrand="Estimé par compte">
         <div class="grand num" class:negatif={s.estime.vie < 0}>{euros(s.estime.vie)}</div>
         {#if s.estime.secours !== 0}<p class="petit">Secours à part : {euros(s.estime.secours)}</p>{/if}
         <p class="petit">
           {#if s.precision === null}Pas encore de recalage : la précision se mesure dès le premier.{:else}Précision : à ± {formatEuros(s.precision)} près.{/if}
         </p>
-      </section>
+        {#snippet grand()}
+          <table class="table">
+            <thead><tr><th>Compte</th><th>Type</th><th>Rôle</th><th class="droite">Estimé</th></tr></thead>
+            <tbody>
+              {#each s.comptes as c (c.id)}
+                <tr><td>{c.nom}</td><td>{nomType(c.type)}</td><td>{ROLES.find((r) => r.valeur === roleDe(c, roles))?.nom}</td><td class="droite num">{euros(s.soldes[c.id] ?? 0)}</td></tr>
+              {/each}
+            </tbody>
+            <tfoot>
+              <tr><td colspan="3"><b>Vie courante</b></td><td class="droite num"><b>{euros(s.estime.vie)}</b></td></tr>
+              <tr><td colspan="3">Secours (épargne)</td><td class="droite num">{euros(s.estime.secours)}</td></tr>
+            </tfoot>
+          </table>
+          <p class="petit">« Vie courante » : l'argent que tu dépenses. « Secours » : mis de côté, compté à part. « Ignoré » : pas compté (un PEA, par exemple). Le rôle se règle dans « Mes comptes ».</p>
+        {/snippet}
+      </Bloc>
 
-      <section class="bloc">
-        <p class="etiquette">Jusqu'à quand je tiens</p>
+      <Bloc titre="Jusqu'à quand je tiens" titreGrand="Jusqu'à quand je tiens">
         {#if s.tient && jours !== null}
           <div class="grand num negatif">{jours === 0 ? "Aujourd'hui" : `${jours} jour${jours > 1 ? "s" : ""}`}</div>
           <p class="date">{jours === 0 ? "Sous le seuil dès" : "Jusqu'au"} <b>{dateLongue(jours === 0 ? s.tient : ajouterJours(s.tient, -1))}</b></p>
-          <p class="petit">Seuil réglé : {euros(s.reglages.seuilCents)}</p>
         {:else}
           <div class="grand num">Tout l'horizon</div>
           <p class="date">Au moins jusqu'au <b>{dateLongue(s.courbe.at(-1)?.jour ?? s.aujourdhui)}</b></p>
-          <p class="petit">Seuil réglé : {euros(s.reglages.seuilCents)}</p>
-        {/if}        {#if s.sansBudget}
-          <p class="petit">Budget n'est pas là : la courbe ne montre que l'état actuel, sans les paiements prévus.</p>
         {/if}
-      </section>
+        <p class="petit">Seuil réglé : {euros(s.reglages.seuilCents)}</p>
+        {#if s.finRevenus}<p class="petit avertissement">Plus aucune paie prévue après le {court(s.finRevenus)} : pense à ajouter ta prochaine mission.</p>{/if}
+        {#if s.sansBudget}<p class="petit">Budget n'est pas là : la courbe ne montre que l'état actuel, sans les paiements prévus.</p>{/if}
+        {#snippet grand()}
+          <p>Le compte à rebours s'arrête le jour où l'estimé de la vie courante passe sous le seuil, en tenant compte de tous les paiements et paies prévus.</p>
+          <p class="petit">Seuil actuel : <b>{euros(s.reglages.seuilCents)}</b> · calcul sur {s.reglages.horizon} jours.</p>
+          <button class="btn" onclick={() => s.ouvrirParametres()}>Régler le seuil et l'horizon</button>
+          <p class="etiquette espace">Ce qui fait baisser la courbe</p>
+          <ul class="liste">
+            {#each s.paiements.filter((p) => p.montantCents < 0) as p (p.id)}
+              <li><span>{court(p.jour)} · {p.libelle}</span><b class="num negatif">{euros(p.montantCents)}</b></li>
+            {:else}
+              <li class="petit">Aucune sortie prévue.</li>
+            {/each}
+          </ul>
+        {/snippet}
+      </Bloc>
     </div>
 
     <div class="grille-2-1">
-      <section class="bloc">
-        <p class="etiquette">Courbe des {s.reglages.horizon} prochains jours</p>
+      <Bloc titre={`Courbe des ${s.reglages.horizon} prochains jours`} titreGrand="Courbe de l'argent" largeur={1000}>
         <LineChart {points} title="Solde estimé de la vie courante" format={(v) => `${Math.round(v)} €`} />
-      </section>
+        {#snippet grand()}
+          <div class="choix-horizon" role="group" aria-label="Horizon">
+            {#each [30, 90, 180, 365] as h}
+              <button class="btn sm" class:primary={horizonGrand === h} onclick={() => (horizonGrand = h)}>{h === 365 ? "1 an" : `${h} jours`}</button>
+            {/each}
+          </div>
+          <LineChart points={courbeGrande} title="Solde estimé de la vie courante" format={(v) => `${Math.round(v)} €`} />
+        {/snippet}
+      </Bloc>
 
-      <section class="bloc">
-        <p class="etiquette">Prochains paiements</p>
+      <Bloc titre="Prochains paiements" titreGrand="Paiements prévus, abonnements et paiements en plusieurs fois" largeur={900}>
         {#if s.paiements.length === 0}
           <p class="petit">Rien de prévu{s.sansBudget ? " (Budget absent)" : ""}.</p>
         {:else}
@@ -161,64 +297,215 @@
             {/each}
           </ul>
         {/if}
-        {#if nouveau}
-          <div class="nouveau">
-            <input class="saisie" bind:value={nouveau.nom} placeholder="Nom (ex. : Compte courant)" aria-label="Nom du compte" autocomplete="off" />
-            <select class="saisie" bind:value={nouveau.type} aria-label="Type de compte">
-              <option value="courant">Courant</option><option value="epargne">Épargne</option><option value="especes">Espèces</option><option value="autre">Autre</option>
-            </select>
-            <input class="saisie num" bind:value={nouveau.solde} placeholder="Solde aujourd'hui (0,00 €)" aria-label="Solde d'aujourd'hui" inputmode="decimal" autocomplete="off" />
-            <div class="actions">
-              <button class="btn primary sm" onclick={creer}>Créer le compte</button>
-              <button class="btn sm" onclick={() => (nouveau = null)}>Annuler</button>
+        {#snippet grand()}
+          <p class="etiquette">Abonnements et paiements en plusieurs fois</p>
+          <ul class="liste lignes">
+            {#each s.abonnements as a (a.id)}
+              <li>
+                <span>
+                  <b>{a.libelle}</b>
+                  <span class="petit">
+                    {euros(-a.montantCents)} {PERIODES[a.periodicite]}{a.echeances === null ? "" : `, ${a.echeances} fois`} · depuis le {court(a.jour)} · {nomCompte(a.compteId)}
+                  </span>
+                </span>
+                <span class="choix">
+                  <button class="btn sm" onclick={() => (abo = editerAbo(a))}>Modifier</button>
+                  <button class="btn sm" onclick={() => void s.supprimerAbonnement(a.id)}>Arrêter</button>
+                </span>
+              </li>
+            {:else}
+              <li class="petit">Aucun abonnement.</li>
+            {/each}
+          </ul>
+          {#if abo}
+            <div class="formulaire">
+              <input class="saisie" bind:value={abo.libelle} placeholder="Nom (ex. : Google One, PayPal 4X)" aria-label="Nom" />
+              <input class="saisie num" bind:value={abo.montant} placeholder="Montant d'une échéance (0,00 €)" inputmode="decimal" aria-label="Montant" />
+              <SelectField compact label="Fréquence" bind:value={abo.periodicite} options={[{ value: "semaine", label: "Chaque semaine" }, { value: "mois", label: "Chaque mois" }, { value: "an", label: "Chaque année" }]} />
+              <label class="champ">Première échéance <input class="saisie" type="date" bind:value={abo.jour} /></label>
+              <SelectField compact label="Compte débité" bind:value={abo.compteId} options={[{ value: "", label: "Compte à choisir plus tard" }, ...s.comptes.map((c) => ({ value: c.id, label: c.nom }))]} />
+              <label class="coche"><input type="checkbox" bind:checked={abo.plusieurs} /> Paiement en plusieurs fois</label>
+              {#if abo.plusieurs}<input class="saisie num" bind:value={abo.echeances} placeholder="Nombre d'échéances" inputmode="numeric" aria-label="Nombre d'échéances" />{/if}
+              <div class="actions">
+                <button class="btn primary sm" onclick={enregistrerAbo}>{abo.id ? "Enregistrer" : "Ajouter"}</button>
+                <button class="btn sm" onclick={() => (abo = null)}>Annuler</button>
+              </div>
             </div>
-          </div>
-        {:else}
-          <button class="btn sm ajouter-compte" onclick={() => (nouveau = { nom: "", type: "courant", solde: "" })}>+ Compte</button>
-        {/if}
-      </section>
+          {:else}
+            <div class="actions">
+              <button class="btn sm" onclick={() => (abo = nouvelAbo(false))}>+ Abonnement</button>
+              <button class="btn sm" onclick={() => (abo = nouvelAbo(true))}>+ Paiement en plusieurs fois</button>
+            </div>
+          {/if}
+
+          <p class="etiquette espace">Les douze prochains mois</p>
+          <ul class="liste lignes">
+            {#each s.aVenir.slice(0, 60) as p (p.id)}
+              <li>
+                {#if prevEdit?.id === p.id}
+                  <input class="saisie" type="date" bind:value={prevEdit.jour} aria-label="Nouvelle date" />
+                  <input class="saisie num petite" bind:value={prevEdit.montant} inputmode="decimal" aria-label="Nouveau montant" />
+                  <span class="choix">
+                    <button class="btn primary sm" onclick={enregistrerPrevision}>OK</button>
+                    <button class="btn sm" onclick={() => (prevEdit = null)}>Annuler</button>
+                  </span>
+                {:else}
+                  <span>{court(p.jour)} · {p.libelle}</span>
+                  <span class="choix">
+                    <b class="num">{euros(p.montantCents)}</b>
+                    <button class="btn sm" onclick={() => (prevEdit = { id: p.id, jour: p.jour, montant: enChamp(p.montantCents), sens: Math.sign(p.montantCents) || -1 })}>Modifier</button>
+                    <button class="btn sm" onclick={() => void s.ecarterPrevision(p)} title="Ce paiement n'aura pas lieu">Retirer</button>
+                  </span>
+                {/if}
+              </li>
+            {:else}
+              <li class="petit">Rien de prévu.</li>
+            {/each}
+          </ul>
+          <p class="petit">Une paie d'intérim se règle dans Travail (taux horaire, paniers…) : elle se recalcule toute seule ici.</p>
+        {/snippet}
+      </Bloc>
     </div>
 
     <!-- Trois blocs de même forme : un titre, une ligne d'explication, puis le contenu. -->
     <div class="trois">
-      <section class="bloc">
-        <p class="etiquette">Ajout</p>
-        <p class="petit">{s.compteParDefaut ? `Sur ${s.compteParDefaut.nom}` : "Une dépense ou une rentrée oubliée"}</p>
+      <Bloc titre="Ajout" sousTitre={s.compteParDefaut ? `Sur ${s.compteParDefaut.nom}` : "Une dépense ou une rentrée oubliée"} titreGrand="Historique : ajouts, retraits et dépenses" largeur={900}>
         <div class="ajout">
           <input class="saisie num" bind:value={ajustement} placeholder="0,00 €" aria-label="Montant" inputmode="decimal" autocomplete="off" />
           <button class="carre plus" onclick={() => ajuster(1)} aria-label="Ajouter une rentrée" title="Rentrée"><Icon name="plus" size={15} /></button>
           <input class="saisie" bind:value={libelle} placeholder="Libellé" aria-label="Libellé" autocomplete="off" />
           <button class="carre moins" onclick={() => ajuster(-1)} aria-label="Ajouter une dépense" title="Dépense"><Icon name="minus" size={15} /></button>
         </div>
-      </section>
+        {#snippet grand()}
+          <input class="saisie" bind:value={filtre} placeholder="Chercher (libellé, compte)…" aria-label="Chercher dans l'historique" />
+          <ul class="liste lignes">
+            {#each historiqueFiltre as e (e.id)}
+              <li>
+                {#if ecritureEdit?.id === e.id}
+                  <div class="formulaire ligne-edit">
+                    <input class="saisie" bind:value={ecritureEdit.libelle} aria-label="Libellé" />
+                    <SelectField compact label="Sens" bind:value={ecritureEdit.sens} options={[{ value: "-1", label: "Dépense" }, { value: "1", label: "Rentrée" }]} />
+                    <input class="saisie num" bind:value={ecritureEdit.montant} inputmode="decimal" aria-label="Montant" />
+                    <input class="saisie" type="date" bind:value={ecritureEdit.jour} aria-label="Date" />
+                    <SelectField compact label="Compte" bind:value={ecritureEdit.compteId} options={s.comptes.map((c) => ({ value: c.id, label: c.nom }))} />
+                    <span class="choix">
+                      <button class="btn primary sm" onclick={enregistrerEcriture}>Enregistrer</button>
+                      <button class="btn sm" onclick={() => (ecritureEdit = null)}>Annuler</button>
+                    </span>
+                  </div>
+                {:else}
+                  <span>
+                    <b>{e.libelle}</b>
+                    <span class="petit">{court(e.jour)} · {nomCompte(e.compteId)} · {SOURCES[e.source] ?? e.source}</span>
+                  </span>
+                  <span class="choix">
+                    <b class="num" class:negatif={e.montantCents < 0}>{euros(e.montantCents)}</b>
+                    <button class="btn sm" onclick={() => editerEcriture(e)}>Modifier</button>
+                    <button class="btn sm" onclick={() => void s.supprimerEcriture(e.id)}>Supprimer</button>
+                  </span>
+                {/if}
+              </li>
+            {:else}
+              <li class="petit">Rien sur les 12 derniers mois.</li>
+            {/each}
+          </ul>
+          <p class="petit">Une écriture modifiée ou supprimée est annulée puis remplacée : les soldes se recalculent, et rien ne se perd.</p>
+        {/snippet}
+      </Bloc>
 
-      <section class="bloc">
-        <p class="etiquette">Recalage</p>
-        <p class="petit">Le solde réel de la vie courante</p>
+      <Bloc titre="Recalage" sousTitre="Le solde réel de la vie courante" titreGrand="Historique des recalages">
         <div class="recaler">
           <input class="saisie num" bind:value={reel} placeholder="0,00 €" aria-label="Solde réel" inputmode="decimal" autocomplete="off" onkeydown={(e) => e.key === "Enter" && recaler()} />
           <button class="btn primary" onclick={recaler}>Recaler</button>
         </div>
-      </section>
+        {#snippet grand()}
+          <ul class="liste lignes">
+            {#each [...(s.donnees?.recalages ?? [])].map((r, i) => ({ r, i })).reverse() as { r, i } (i)}
+              <li>
+                <span>{dateLongue(r.jour)}</span>
+                <span class="choix">
+                  <b class="num" class:negatif={r.ecartCents < 0}>{r.ecartCents === 0 ? "juste" : euros(r.ecartCents)}</b>
+                  <button class="btn sm" onclick={() => void s.supprimerRecalage(i)}>Supprimer</button>
+                </span>
+              </li>
+            {:else}
+              <li class="petit">Aucun recalage pour l'instant.</li>
+            {/each}
+          </ul>
+          <p class="petit">L'écart, c'est ce que tu avais vraiment moins ce que l'appli estimait. Supprimer un recalage annule sa correction.</p>
+        {/snippet}
+      </Bloc>
 
-      <section class="bloc">
-        <p class="etiquette">Mes comptes</p>
-        <p class="petit">Le rôle de chaque compte</p>
+      <Bloc titre="Mes comptes" sousTitre="Le rôle de chaque compte" titreGrand="Mes comptes" largeur={960} bind:ouvert={comptesOuverts}>
         {#if s.comptes.length === 0}
-          <p class="petit">Aucun compte pour l'instant.</p>
+          <p class="petit">Aucun compte pour l'instant : ouvre « + » pour en ajouter.</p>
         {:else}
           <ul class="liste">
             {#each s.comptes as c (c.id)}
               <li>
                 <span>{c.nom} <span class="petit num">{euros(s.soldes[c.id] ?? 0)}</span></span>
-                <select class="saisie role" value={roleDe(c, roles)} aria-label={`Rôle de ${c.nom}`} onchange={(e) => s.definirRole(c.id, e.currentTarget.value as Role)}>
-                  {#each ROLES as r (r.valeur)}<option value={r.valeur}>{r.nom}</option>{/each}
-                </select>
+                <SelectField compact label={`Rôle de ${c.nom}`} value={roleDe(c, roles)} onchange={(v) => s.definirRole(c.id, v as Role)} options={ROLES.map((r) => ({ value: r.valeur, label: r.nom }))} />
               </li>
             {/each}
           </ul>
         {/if}
-      </section>
+        {#snippet grand()}
+          <div class="cartes-comptes">
+            {#each s.tousComptes.filter((c) => !c.archive) as c (c.id)}
+              <article class="carte-compte">
+                {#if compteEdit?.id === c.id}
+                  <input class="saisie" bind:value={compteEdit.nom} aria-label="Nom du compte" />
+                  <SelectField compact label="Type de compte" bind:value={compteEdit.type} options={TYPES_COMPTE.map((t) => ({ value: t.valeur, label: t.nom }))} />
+                  <label class="champ">Solde de départ <input class="saisie num" bind:value={compteEdit.solde} inputmode="decimal" /></label>
+                  <div class="actions">
+                    <button class="btn primary sm" onclick={enregistrerCompte}>Enregistrer</button>
+                    <button class="btn sm" onclick={() => (compteEdit = null)}>Annuler</button>
+                  </div>
+                {:else}
+                  <header>
+                    <b>{c.nom}</b>
+                    <span class="petit">{nomType(c.type)}</span>
+                  </header>
+                  <div class="moyen num" class:negatif={(s.soldes[c.id] ?? 0) < 0}>{euros(s.soldes[c.id] ?? 0)}</div>
+                  {#if (courbesComptes[c.id]?.length ?? 0) > 1}
+                    <LineChart points={courbesComptes[c.id]!.map((p) => ({ label: court(p.jour), value: p.soldeCents / 100 }))} title={`Solde de ${c.nom} sur 90 jours`} format={(v) => `${Math.round(v)} €`} />
+                  {/if}
+                  <label class="champ">Rôle
+                    <SelectField compact label="Rôle" value={roleDe(c, roles)} onchange={(v) => s.definirRole(c.id, v as Role)} options={ROLES.map((r) => ({ value: r.valeur, label: r.nom }))} />
+                  </label>
+                  <div class="actions">
+                    <button class="btn sm" onclick={() => (compteEdit = { id: c.id, nom: c.nom, type: c.type, solde: enChamp(c.soldeInitialCents ?? 0) })}>Régler</button>
+                    <button class="btn sm" onclick={() => void s.modifierCompte(c.id, { archive: true })} title="Le compte disparaît des calculs ; son historique reste">Archiver</button>
+                  </div>
+                {/if}
+              </article>
+            {/each}
+          </div>
+          {#if s.tousComptes.some((c) => c.archive)}
+            <p class="etiquette espace">Comptes archivés</p>
+            <ul class="liste">
+              {#each s.tousComptes.filter((c) => c.archive) as c (c.id)}
+                <li><span>{c.nom} <span class="petit">{nomType(c.type)}</span></span><button class="btn sm" onclick={() => void s.modifierCompte(c.id, { archive: false })}>Réactiver</button></li>
+              {/each}
+            </ul>
+          {/if}
+          {#if nouveau}
+            <div class="formulaire">
+              <input class="saisie" bind:value={nouveau.nom} placeholder="Nom (ex. : Revolut perso)" aria-label="Nom du compte" autocomplete="off" />
+              <SelectField compact label="Type de compte" bind:value={nouveau.type} options={TYPES_COMPTE.map((t) => ({ value: t.valeur, label: t.nom }))} />
+              <input class="saisie num" bind:value={nouveau.solde} placeholder="Solde aujourd'hui (0,00 €)" aria-label="Solde d'aujourd'hui" inputmode="decimal" autocomplete="off" />
+              <div class="actions">
+                <button class="btn primary sm" onclick={creer}>Créer le compte</button>
+                <button class="btn sm" onclick={() => (nouveau = null)}>Annuler</button>
+              </div>
+            </div>
+          {:else}
+            <div class="actions espace">
+              <button class="btn primary sm" onclick={() => (nouveau = { nom: "", type: "courant", solde: "" })}>+ Ajouter un compte</button>
+            </div>
+          {/if}
+        {/snippet}
+      </Bloc>
     </div>
     {#if s.message}<p class="negatif" role="alert">{s.message}</p>{/if}
   {/if}
@@ -250,15 +537,21 @@
   .confirmer .saisie {
     width: 100px;
   }
-  .confirmer .choix {
+  .choix {
     display: flex;
     gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
   }
   .grand {
     margin-top: 6px;
     font-size: 34px;
     font-weight: 600;
     line-height: 1.1;
+  }
+  .moyen {
+    font-size: 24px;
+    font-weight: 600;
   }
   /* La date de fin, bien lisible sous le nombre de jours. */
   .date {
@@ -268,6 +561,9 @@
   }
   .date b {
     font-weight: 800;
+  }
+  .avertissement {
+    color: var(--warn, #d9a441);
   }
   .liste {
     list-style: none;
@@ -282,6 +578,16 @@
     justify-content: space-between;
     align-items: center;
     gap: 12px;
+  }
+  .liste.lignes li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .liste.lignes li > span:first-child {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
   }
   .trois {
     display: grid;
@@ -334,15 +640,83 @@
     height: 44px;
     padding: 0 22px;
   }
-  .nouveau {
+  .formulaire {
     display: grid;
     gap: 8px;
     margin-top: 10px;
   }
-  .ajouter-compte {
-    margin-top: 10px;
+  .ligne-edit {
+    width: 100%;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    align-items: center;
   }
-  .role {
-    width: auto;
+  @media (max-width: 760px) {
+    .ligne-edit {
+      grid-template-columns: 1fr;
+    }
+  }
+  .actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .espace {
+    margin-top: 18px;
+  }
+  .petite {
+    width: 110px;
+  }
+  .champ {
+    display: grid;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .coche {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .choix-horizon {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .table th,
+  .table td {
+    padding: 7px 6px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  .table th {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .droite {
+    text-align: right !important;
+  }
+  .cartes-comptes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+  .carte-compte {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-2);
+  }
+  .carte-compte header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
   }
 </style>

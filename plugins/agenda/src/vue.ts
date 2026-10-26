@@ -1,6 +1,6 @@
 // Ce que montre l'écran Calendrier, calculé sans navigateur : la grille du mois, le contenu d'un jour, sa chronologie et les alertes de repos.
 import { ajouterJours, decomposer, differenceJours, lundiDe, premierDuMois, type Jour } from "@etabli/ui/civil";
-import { alertesRepos, chronologie, occurrences, type AlerteDatee, type Chronologie } from "./calculs";
+import { alertesRepos, chronologie, occurrencesDuCarnet, type AlerteDatee, type Chronologie } from "./calculs";
 import type { Carnet, Occurrence, TypeEvenement } from "./types";
 
 export const LIBELLES_TYPE: Record<TypeEvenement, string> = { travail: "Travail", retux: "Retux", rdv: "Rendez-vous", autre: "Autre" };
@@ -44,7 +44,7 @@ export function vueMois(carnet: Carnet, reference: Jour): VueMois {
   const fin = ajouterJours(debut, 41);
   const mois = decomposer(reference).mois;
   // Les alertes de repos regardent une semaine avant et après : une journée du 1er peut dépendre de la veille.
-  const large = occurrences(carnet.evenements, ajouterJours(debut, -8), ajouterJours(fin, 8));
+  const large = occurrencesDuCarnet(carnet, ajouterJours(debut, -8), ajouterJours(fin, 8));
   const dansGrille = large.filter((o) => differenceJours(debut, o.jour) >= 0 && differenceJours(o.jour, fin) >= 0);
   const cases: CaseJour[] = Array.from({ length: 42 }, (_, i) => {
     const jour = ajouterJours(debut, i);
@@ -62,7 +62,7 @@ export interface LigneJour {
 
 /** Le contenu d'un jour. La chronologie à rebours n'est calculée que pour le premier événement avec trajet (le réveil dépend du premier départ). */
 export function vueJour(carnet: Carnet, jour: Jour): LigneJour[] {
-  const occ = occurrences(carnet.evenements, jour, jour);
+  const occ = occurrencesDuCarnet(carnet, jour, jour);
   let premier = true;
   return occ.map((occurrence) => {
     const aTrajet = occurrence.trajetMin !== null;

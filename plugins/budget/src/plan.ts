@@ -1,6 +1,6 @@
 // Lecture du plan enregistré dans les réglages du plugin. Règle de sécurité (cahier de bord, point 6) : « rien d'enregistré » donne un
 // plan vide, mais des données PRÉSENTES et illisibles sont une erreur, jamais un plan vide : l'appelant écraserait les vraies données.
-import { ajouterJours, comparerJours, type Jour } from "@etabli/ui/civil";
+import { ajouterJours, ajouterMois, comparerJours, type Jour } from "@etabli/ui/civil";
 import { HORIZON_JOURS, RETARD_JOURS, echeances } from "./calculs";
 import {
   ErreurBudget,
@@ -8,6 +8,7 @@ import {
   SCHEMA,
   STATUTS,
   type Abonnement,
+  type Periodicite,
   type Enveloppe,
   type Plan,
   type Prevision,
@@ -86,8 +87,13 @@ export function lireVirement(brut: unknown, avecId: boolean): Omit<Virement, "id
 }
 
 export function lireAbonnement(brut: unknown, avecId: boolean): Omit<Abonnement, "id"> & { id?: string } {
-  const o = objet(brut, ["libelle", "montantCents", "periodicite", "jour"], avecId ? ["id", "compteId", "categorieId", "aResilier"] : ["compteId", "categorieId", "aResilier"]);
+  const o = objet(brut, ["libelle", "montantCents", "periodicite", "jour"], avecId ? ["id", "compteId", "categorieId", "aResilier", "echeances"] : ["compteId", "categorieId", "aResilier", "echeances"]);
   if (o.aResilier !== undefined && typeof o.aResilier !== "boolean") throw new ErreurBudget("argument_invalide", "« aResilier » doit être vrai ou faux.");
+  // Ajouté après coup : absent des plans plus anciens (sans fin).
+  const n = o.echeances;
+  if (n !== undefined && n !== null && (typeof n !== "number" || !Number.isSafeInteger(n) || n < 1 || n > 600)) {
+    throw new ErreurBudget("argument_invalide", "« echeances » : un nombre d'échéances entre 1 et 600, ou rien pour un abonnement sans fin.");
+  }
   return {
     ...(avecId ? { id: String(o.id) } : {}),
     libelle: texte(o.libelle, "libelle", 120),
@@ -97,6 +103,7 @@ export function lireAbonnement(brut: unknown, avecId: boolean): Omit<Abonnement,
     periodicite: choix(o.periodicite, "periodicite", PERIODICITES),
     jour: jourValide(o.jour, "jour"),
     aResilier: o.aResilier === true,
+    echeances: typeof n === "number" ? n : null,
   };
 }
 
@@ -176,7 +183,23 @@ export function synchroniser(plan: Plan, aujourdhui: Jour): Plan {
     }
   }
   for (const a of plan.abonnements) {
-    for (const jour of echeances(a.jour, a.periodicite, null, du, au)) ajouterPrevision(`abonnement:${a.id}`, jour, -a.montantCents, a.compteId, a.categorieId, a.libelle);
+    const fin = a.echeances === null ? null : derniereEcheance(a.jour, a.periodicite, a.echeances);
+    for (const jour of echeances(a.jour, a.periodicite, fin, du, au)) {
+      // Paiement en plusieurs fois : « (2/4) » pour savoir où on en est.
+      const rang = a.echeances === null ? "" : ` (${rangEcheance(a.jour, a.periodicite, jour)}/${a.echeances})`;
+      ajouterPrevision(`abonnement:${a.id}`, jour, -a.montantCents, a.compteId, a.categorieId, `${a.libelle}${rang}`);
+    }
   }
   return nouvelles.length === 0 ? plan : { ...plan, suivant, previsions: [...plan.previsions, ...nouvelles] };
+}
+
+/** Jour de la n-ième échéance (la première est `origine`). */
+export function derniereEcheance(origine: Jour, periodicite: Periodicite, n: number): Jour {
+  return periodicite === "semaine" ? ajouterJours(origine, 7 * (n - 1)) : ajouterMois(origine, periodicite === "mois" ? n - 1 : 12 * (n - 1));
+}
+
+/** Rang (1, 2…) d'une échéance tombant ce jour-là. */
+export function rangEcheance(origine: Jour, periodicite: Periodicite, jour: Jour): number {
+  for (let k = 0; k < 601; k++) if (derniereEcheance(origine, periodicite, k + 1) === jour) return k + 1;
+  return 0;
 }

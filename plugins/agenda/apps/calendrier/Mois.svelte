@@ -3,7 +3,7 @@
   // Le mois : le nom entre deux flèches, au centre ; chaque jour est un rond avec son chiffre, une bordure sur aujourd'hui et la couleur
   // du contrat du jour. La légende ne montre que les contrats que vous avez.
   import { ajouterJours, decomposer, dernierDuMois, differenceJours, lundiDe, premierDuMois, type Jour } from "@etabli/ui/civil";
-  import { occurrences } from "../../src/calculs";
+  import { occurrencesDuCarnet } from "../../src/calculs";
   import type { Session } from "../../src/session.svelte";
   import { CONTRATS, type Contrat, type Occurrence } from "../../src/types";
   import { JOURS_COURTS, libelleMois } from "../../src/vue";
@@ -25,7 +25,7 @@
     const nb = Math.ceil((differenceJours(debut, dernierDuMois(reference)) + 1) / 7) * 7;
     return Array.from({ length: nb }, (_, i) => ajouterJours(debut, i));
   });
-  const occ = $derived(s.carnet ? occurrences(s.carnet.evenements, jours[0]!, jours[jours.length - 1]!) : []);
+  const occ = $derived(s.carnet ? occurrencesDuCarnet(s.carnet, jours[0]!, jours[jours.length - 1]!) : []);
   /** Le contrat d'un jour : celui de son événement de travail (un ancien événement « travail » sans contrat compte comme de l'intérim). */
   const contratDuJour = (j: Jour): Contrat | null => {
     const o = occ.find((x: Occurrence) => x.jour === j && (x.contrat !== null || x.type === "travail" || x.type === "retux"));

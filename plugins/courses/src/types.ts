@@ -83,4 +83,6 @@ export interface Reglages {
   report: boolean;
   /** Faux : les courses ne comptent pas dans l'estimation (rien n'est annoncé à Budget) ; le reste de Courses marche pareil. */
   estimation: boolean;
+  /** Courses en pause : je ne fais pas mes courses moi-même pour l'instant (ni budget, ni alertes). */
+  pause: boolean;
 }

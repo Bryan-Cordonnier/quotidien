@@ -13,7 +13,8 @@ export function reglagesDepuis(p: Record<string, number | string | boolean> | nu
 }
 
 /** Rôle d'un compte : celui qu'on a choisi, sinon « secours » pour l'épargne et « vie » pour le reste. */
-export const roleDe = (c: Compte, roles: Donnees["roles"]): Role => roles[c.id] ?? (c.type === "epargne" ? "secours" : "vie");
+export const roleDe = (c: Compte, roles: Donnees["roles"]): Role =>
+  roles[c.id] ?? (["epargne", "livret-a", "lep"].includes(c.type) ? "secours" : c.type === "pea" ? "hors" : "vie");
 
 export interface Estime {
   vie: number;

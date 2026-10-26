@@ -21,7 +21,11 @@
   let poids = $state("");
   // Ce que je mange en moyenne par portion, publié par Repas (s'il est installé) : sert aux conseils.
   let mange = $state<Mange | null>(null);
+  // Suivi des calories : coupé tant que je ne décide pas de mes repas (Paramètres → Santé).
+  let suiviCalories = $state(true);
   void connect().then((h) => {
+    suiviCalories = h.parameters.values.suiviCalories !== false;
+    h.parameters.onChange((v) => (suiviCalories = v.suiviCalories !== false));
     const lire = () => {
       const d = h.services.get("repas")?.data as { moyenne?: Mange | null } | null | undefined;
       mange = d?.moyenne ?? null;
@@ -99,7 +103,9 @@
 
     <section class="bloc besoin">
       <p class="bloc-titre">Besoin du jour</p>
-      {#if macros.length}
+      {#if !suiviCalories}
+        <p class="petit">Suivi des calories en pause : tu ne choisis pas tes repas en ce moment. À rallumer dans <button class="lien" onclick={parametres}>Paramètres → Santé</button>.</p>
+      {:else if macros.length}
         <DonutChart parts={macros} format={(v) => `${v} kcal`} title="Répartition des calories" centre="kcal / jour" />
         <p class="petit">{calories.toLocaleString("fr-FR")} kcal ({o.caloriesJour ? "ton objectif" : "calculé"}) · {proteines} g de protéines</p>
       {:else}

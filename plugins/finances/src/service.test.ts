@@ -407,4 +407,30 @@ describe("scénario : un mois d'argent réel", () => {
     expect(b.appeler("serie.parJour", { du: "2026-10-01", au: "2026-10-05" }).at(-1).soldeCents).toBe(total);
     expect(total).toBe(225568);
   });
+
+  describe("régler un compte et corriger une écriture (Mes finances)", () => {
+    const T = Date.UTC(2026, 9, 26, 12);
+    const ex = (reg: unknown, f: string, a: unknown, qui = "mes-finances") => executer(reg, f, a, qui, T);
+    function base() {
+      let reg: unknown = null;
+      const c = ex(reg, "comptes.creer", { nom: "Courant", type: "courant", soldeInitialCents: 1000, cle: "c" }, "@utilisateur");
+      reg = c.registre;
+      const e = ex(reg, "ecritures.ajouter", { compteId: "c1", montantCents: -500, quand: T - 3600_000, libelle: "Pain", cle: "e" }, "courses");
+      return { reg: e.registre, ecriture: (e.valeur as { id: string }).id };
+    }
+    it("Mes finances règle un compte créé par l'utilisateur ; un autre plugin non", () => {
+      const { reg } = base();
+      const r = ex(reg, "comptes.modifier", { id: "c1", nom: "Revolut perso", type: "livret-a", soldeInitialCents: 2000 });
+      const comptes = ex(r.registre, "comptes.liste", {}).valeur as { nom: string; type: string; soldeInitialCents: number }[];
+      expect(comptes[0]).toMatchObject({ nom: "Revolut perso", type: "livret-a", soldeInitialCents: 2000 });
+      expect(() => ex(reg, "comptes.modifier", { id: "c1", nom: "X" }, "courses")).toThrow();
+    });
+    it("corrige une écriture d'un autre plugin : annulée puis remplacée, le solde suit", () => {
+      const { reg, ecriture } = base();
+      const r = ex(reg, "ecritures.corriger", { id: ecriture, montantCents: -800, libelle: "Pain et lait", cle: "k" });
+      const soldes = ex(r.registre, "soldes.aLaDate", { jour: "2026-10-26" }).valeur as Record<string, number>;
+      expect(soldes.c1).toBe(1000 - 800);
+      expect(ex(r.registre, "ecritures.corriger", { id: ecriture, montantCents: -800, libelle: "Pain et lait", cle: "k" }).registre).toBeNull();
+    });
+  });
 });

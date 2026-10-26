@@ -4,8 +4,8 @@
 import { connect } from "@etabli/sdk";
 import { ajouterJours, jourDeInstant, type Jour } from "@etabli/ui/civil";
 import { courbe, ecartDeRecalage, estime, precision, premierJourSousSeuil, prochainsPaiements, reglagesDepuis, roleDe, type Point, finDesRevenus } from "./calculs";
-import { avecCompteWidget, avecRecalage, avecRole, lireDonnees } from "./donnees";
-import { ErreurMesFinances, type Compte, type Donnees, type Prevision, type Role } from "./types";
+import { avecCompteWidget, avecRecalage, avecRole, lireDonnees, sansRecalage } from "./donnees";
+import { ErreurMesFinances, type Abonnement, type Compte, type Donnees, type Ecriture, type Prevision, type Role } from "./types";
 
 type Hote = Awaited<ReturnType<typeof connect<unknown>>>;
 type Reponse = { ok: true; valeur: unknown } | { ok: false; code: string; message: string };
@@ -29,6 +29,11 @@ export class Session {
   sansFinances = $state<string | null>(null);
   sansBudget = $state<string | null>(null);
   charge = $state(false);
+  /** Pour les grandes fenêtres : tous les comptes (archivés compris), l'historique des écritures, les abonnements, l'année à venir. */
+  tousComptes = $state<Compte[]>([]);
+  historique = $state<Ecriture[]>([]);
+  abonnements = $state<Abonnement[]>([]);
+  aVenir = $state<Prevision[]>([]);
   #hote: Hote | undefined;
 
   estime = $derived(estime(this.comptes, this.soldes, this.donnees?.roles ?? {}));
@@ -88,10 +93,89 @@ export class Session {
     this.sansBudget = absent(previsions);
     this.previsions = previsions.ok ? ((previsions.valeur as { previsions: Prevision[] }).previsions ?? []) : [];
     this.charge = true;
+    await this.chargerDetails();
+  }
+
+  /** Ce que montrent les grandes fenêtres (« + ») : écritures des 365 derniers jours, abonnements, paiements de l'année. */
+  async chargerDetails(): Promise<void> {
+    const [comptes, ecritures, abonnements, aVenir] = await Promise.all([
+      this.#appeler("finances", "comptes.liste", {}),
+      this.#appeler("finances", "ecritures.liste", { du: ajouterJours(this.aujourdhui, -365), au: this.aujourdhui }),
+      this.#appeler("budget", "abonnements.liste", {}),
+      this.#appeler("budget", "previsions.liste", { du: this.aujourdhui, au: ajouterJours(this.aujourdhui, 365), statut: "attendue" }),
+    ]);
+    if (comptes.ok) this.tousComptes = comptes.valeur as Compte[];
+    if (ecritures.ok) {
+      const toutes = ((ecritures.valeur as { ecritures: Ecriture[] }).ecritures ?? []) as Ecriture[];
+      // On cache les annulations et ce qu'elles annulent : l'historique montre ce qui compte vraiment.
+      const annulees = new Set(toutes.filter((e) => e.annule).map((e) => e.annule));
+      this.historique = toutes.filter((e) => !e.annule && !annulees.has(e.id)).reverse();
+    }
+    this.abonnements = abonnements.ok ? (abonnements.valeur as Abonnement[]) : [];
+    this.aVenir = aVenir.ok ? ((aVenir.valeur as { previsions: Prevision[] }).previsions ?? []) : [];
+  }
+
+  async #faire(r: Promise<Reponse>, refus: string): Promise<boolean> {
+    this.message = "";
+    const x = await r;
+    if (!x.ok) {
+      this.message = `${refus} : ${x.message}`;
+      return false;
+    }
+    await this.actualiser();
+    return true;
+  }
+
+  /** Règle un compte : nom, type, archivé, solde de départ. */
+  modifierCompte(id: string, champs: { nom?: string; type?: string; archive?: boolean; soldeInitialCents?: number }): Promise<boolean> {
+    return this.#faire(this.#appeler("finances", "comptes.modifier", { id, ...champs }), "Finances a refusé");
+  }
+
+  /** Corrige une écriture (montant, libellé, date, compte) : Finances garde l'historique. */
+  corrigerEcriture(id: string, champs: { montantCents?: number; libelle?: string; quand?: number; compteId?: string }): Promise<boolean> {
+    return this.#faire(this.#appeler("finances", "ecritures.corriger", { id, ...champs, cle: `mf-corr-${id}-${Date.now()}` }), "Finances a refusé");
+  }
+
+  /** Supprime une écriture (elle est annulée : les soldes redeviennent ceux d'avant). */
+  supprimerEcriture(id: string): Promise<boolean> {
+    return this.#faire(this.#appeler("finances", "ecritures.annuler", { id, motif: "Supprimée depuis Mes finances", cle: `mf-annule-${id}` }), "Finances a refusé");
+  }
+
+  /** Supprime un recalage : son écriture est annulée, il sort de l'historique de précision. */
+  async supprimerRecalage(index: number): Promise<boolean> {
+    if (!this.donnees || !this.#hote) return false;
+    const r = this.donnees.recalages[index];
+    if (!r) return false;
+    if (r.ecritureId && !(await this.supprimerEcriture(r.ecritureId))) return false;
+    const suivant = sansRecalage(this.donnees, index);
+    this.#hote.settings.update(suivant);
+    this.donnees = suivant;
+    return true;
+  }
+
+  /** Crée ou modifie un abonnement (avec `echeances` : un paiement en plusieurs fois). */
+  enregistrerAbonnement(a: Omit<Abonnement, "id" | "aResilier"> & { id?: string; aResilier?: boolean }): Promise<boolean> {
+    const { id, ...champs } = a;
+    return this.#faire(this.#appeler("budget", "abonnements.enregistrer", { abonnement: { ...(id ? { id } : {}), ...champs } }), "Budget a refusé");
+  }
+
+  supprimerAbonnement(id: string): Promise<boolean> {
+    return this.#faire(this.#appeler("budget", "abonnements.supprimer", { id }), "Budget a refusé");
+  }
+
+  /** Décale ou corrige une échéance seule. */
+  modifierPrevision(id: string, champs: { jour?: string; montantCents?: number; libelle?: string }): Promise<boolean> {
+    return this.#faire(this.#appeler("budget", "previsions.modifier", { id, ...champs }), "Budget a refusé");
+  }
+
+  /** Solde jour par jour d'un compte sur les `jours` derniers jours (pour sa petite courbe). */
+  async serieCompte(id: string, jours: number): Promise<Point[]> {
+    const r = await this.#appeler("finances", "serie.parJour", { du: ajouterJours(this.aujourdhui, -jours), au: this.aujourdhui, comptes: [id] });
+    return r.ok ? (r.valeur as Point[]) : [];
   }
 
   /** Crée un compte chez Finances (Finances n'a plus d'écran à lui) ; son solde de départ est le solde d'aujourd'hui. */
-  async creerCompte(nom: string, type: "courant" | "epargne" | "especes" | "autre", soldeInitialCents: number): Promise<boolean> {
+  async creerCompte(nom: string, type: string, soldeInitialCents: number): Promise<boolean> {
     this.message = "";
     const r = await this.#appeler("finances", "comptes.creer", { nom: nom.trim(), type, soldeInitialCents, cle: `compte-${Date.now()}` });
     if (!r.ok) {
@@ -155,7 +239,7 @@ export class Session {
     await this.actualiser();
   }
 
-  async #ecrire(montantCents: number, libelle: string): Promise<boolean> {
+  async #ecrire(montantCents: number, libelle: string): Promise<string | false> {
     const compte = this.compteParDefaut;
     if (!compte) {
       this.message = "Aucun compte de la vie courante : choisissez-en un dans « Mes comptes ».";
@@ -172,7 +256,7 @@ export class Session {
       this.message = `Finances a refusé : ${r.message}`;
       return false;
     }
-    return true;
+    return String((r.valeur as { id?: unknown } | null)?.id ?? "");
   }
 
   /** Ajustement rapide : une dépense ou une rentrée oubliée, sur le compte par défaut. */
@@ -182,7 +266,7 @@ export class Session {
       this.message = "Saisissez un montant non nul.";
       return false;
     }
-    if (!(await this.#ecrire(montantCents, libelle.trim() || "Ajustement"))) return false;
+    if ((await this.#ecrire(montantCents, libelle.trim() || "Ajustement")) === false) return false;
     await this.actualiser();
     return true;
   }
@@ -192,8 +276,9 @@ export class Session {
     this.message = "";
     if (!this.donnees || !this.#hote) return false;
     const ecart = ecartDeRecalage(reelCents, this.estime.vie);
-    if (ecart !== 0 && !(await this.#ecrire(ecart, "Recalage sur le solde réel"))) return false;
-    const suivant = avecRecalage(this.donnees, { jour: this.aujourdhui, ecartCents: ecart });
+    const ecritureId = ecart === 0 ? "" : await this.#ecrire(ecart, "Recalage sur le solde réel");
+    if (ecritureId === false) return false;
+    const suivant = avecRecalage(this.donnees, { jour: this.aujourdhui, ecartCents: ecart, ...(ecritureId ? { ecritureId } : {}) });
     this.#hote.settings.update(suivant);
     this.donnees = suivant;
     await this.actualiser();

@@ -1,7 +1,7 @@
 <script lang="ts">
   // Un événement quelconque (un café, un rendez-vous) : nom, adresse, jour, heures, trajet et répétition. Les contrats (intérim, réserve, CDD,
   // CDI) se saisissent dans Travail : ici, rien de tel. Un événement saisi ici se modifie et se supprime ; ceux des autres plugins, chez eux.
-  import { Modal } from "@etabli/ui";
+  import { Modal, SelectField } from "@etabli/ui";
   import { ajouterMois, parseHeure, type Jour } from "@etabli/ui/civil";
   import { lireBrouillon } from "../../src/carnet";
   import { ajouter, modifier, supprimer, type Contexte } from "../../src/operations";
@@ -105,12 +105,7 @@
     <div class="groupe"><label for="e-tr">Trajet aller (min)</label><input id="e-tr" class="saisie num" bind:value={trajet} inputmode="numeric" placeholder="vide : pas de trajet" autocomplete="off" /></div>
     <div class="groupe">
       <label for="e-rep">Répéter</label>
-      <select id="e-rep" class="saisie" bind:value={repetition}>
-        <option value="aucune">Jamais</option>
-        <option value="jour">Chaque jour</option>
-        <option value="semaine">Chaque semaine</option>
-        <option value="mois">Chaque mois</option>
-      </select>
+      <SelectField compact label="Répétition" bind:value={repetition} options={[{ value: "aucune", label: "Jamais" }, { value: "jour", label: "Chaque jour" }, { value: "semaine", label: "Chaque semaine" }, { value: "mois", label: "Chaque mois" }]} />
     </div>
     <div class="groupe"><label for="e-ju">Jusqu'au</label><input id="e-ju" class="saisie" type="date" bind:value={jusquau} disabled={repetition === "aucune"} /></div>
   </div>

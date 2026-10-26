@@ -9,7 +9,7 @@
   import { LIMITE_OCTETS, lireRegistre } from "../../src/registre";
   import { executer } from "../../src/service";
   import { argumentsDeSaisie, jourCourt, pourcentageUtilise, vueTableau, type Saisie } from "../../src/tableau";
-  import { ErreurFinances, TYPES_COMPTE, UTILISATEUR, type Registre, type TypeCompte } from "../../src/types";
+  import { ErreurFinances, TYPES_COMPTE, UTILISATEUR, type Registre, type TypeCompte, NOMS_TYPES_COMPTE } from "../../src/types";
 
   let registre = $state<Registre | null>(null);
   let illisible = $state("");
@@ -65,7 +65,7 @@
   let nomCompte = $state("");
   let typeCompte = $state<TypeCompte>("courant");
   let soldeCompte = $state("0");
-  const TYPES: Record<TypeCompte, string> = { courant: "Compte courant", epargne: "Épargne", especes: "Espèces", autre: "Autre" };
+  const TYPES: Record<TypeCompte, string> = NOMS_TYPES_COMPTE;
 
   function creerCompte() {
     const cents = parseEuros(soldeCompte);

@@ -1,7 +1,7 @@
 <script lang="ts">
   // Le sommeil : la grille des nuits (du rouge au vert selon la cible), la moyenne en gros et « Je vais dormir maintenant » qui note le coucher.
   import { ajouterJours } from "@etabli/ui/civil";
-  import { occurrences } from "../../src/calculs";
+  import { occurrencesDuCarnet } from "../../src/calculs";
   import { coucherDe as coucherConseille, leverDe } from "../../src/journee";
   import type { Session } from "../../src/session.svelte";
   import { dureeNuit, grilleNuits, noterCoucher, sommeilMoyen } from "../../src/sommeil";
@@ -15,12 +15,12 @@
   const ECART = 4;
   const SEMAINES = $derived(Math.max(4, Math.min(52, Math.floor((largeur + ECART) / (CARRE + ECART)) || 17)));
   const duree = (min: number) => `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")}`;
-  const levers = (jour: string) => (s.carnet ? leverDe(occurrences(s.carnet.evenements, jour, jour), s.reglages.journee) : 0);
+  const levers = (jour: string) => (s.carnet ? leverDe(occurrencesDuCarnet(s.carnet, jour, jour), s.reglages.journee) : 0);
   const cible = $derived(s.reglages.journee.sommeilMin);
   const grille = $derived(s.carnet ? grilleNuits(s.carnet, s.aujourdhui, SEMAINES, cible, levers) : []);
   const moyenne = $derived(s.carnet ? sommeilMoyen(s.carnet, s.aujourdhui, 30, levers) : null);
   const ce_soir = $derived(
-    s.carnet ? coucherConseille(occurrences(s.carnet.evenements, ajouterJours(s.aujourdhui, 1), ajouterJours(s.aujourdhui, 1)), s.reglages.journee) : 0,
+    s.carnet ? coucherConseille(occurrencesDuCarnet(s.carnet, ajouterJours(s.aujourdhui, 1), ajouterJours(s.aujourdhui, 1)), s.reglages.journee) : 0,
   );
   const dejaNote = $derived(s.carnet ? s.carnet.sommeil[s.aujourdhui] !== undefined : false);
   let info = $state("");

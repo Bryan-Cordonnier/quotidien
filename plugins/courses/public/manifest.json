@@ -1,7 +1,7 @@
 {
   "id": "courses",
   "name": "Courses",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Un budget par semaine pour les courses : les tickets, ce qu'il reste à dépenser, la moyenne par semaine et par mois, et vos listes de courses à régler.",
@@ -85,6 +85,14 @@
     }
   ],
   "parameters": [
+    {
+      "id": "pause",
+      "label": "Courses en pause",
+      "type": "boolean",
+      "default": false,
+      "group": "Utilisation",
+      "hint": "Je ne fais pas mes courses moi-même pour l'instant : elles ne comptent ni dans les finances ni dans les alertes."
+    },
     {
       "id": "estimation",
       "label": "Compter les courses dans mes finances",

@@ -6,6 +6,26 @@ Les changements propres à un plugin sont dans `plugins/<id>/CHANGELOG.md`.
 
 ## [Non publié]
 
+## [0.2.0] — 2026-10-26
+
+### Ajouté
+
+- **Bouton « + » sur les blocs** : chaque bloc de Mes finances s'ouvre en grand pour tout voir et tout régler.
+- **Mes comptes** : types de compte (courant, secondaire, pro, Livret A, LEP, PEA, épargne, espèces), réglage du nom, du type et du solde de départ, archivage, et une petite courbe de 90 jours par compte.
+- **Tout se corrige après coup** : l'historique des ajouts, retraits et dépenses (12 mois) se modifie et se supprime ; un recalage se supprime ; les soldes se recalculent.
+- **Paiements prévus** : abonnements et paiements en plusieurs fois (par exemple PayPal 4X, numérotés 1/4, 2/4…), modifiables ; une échéance seule se décale ou change de montant.
+- **Trajets automatiques** : tes lieux (chez maman, chez mamie, le travail), « où je dors » par période, et le trajet de chaque événement avec un lieu calculé tout seul avec les bouchons (TomTom) ; les rappels « Pars maintenant » suivent. Dans le Calendrier, bouton « + » du bloc Trajet.
+- **Repas** : nouvelle page avec la semaine qui défile (aujourd'hui au milieu), petit-déjeuner, midi et soir, l'heure où commencer à cuisiner (ajoutée à l'Agenda), les alertes (rien de prévu, pas de liste de courses) et les repas favoris. En pause par défaut tant que tu ne gères pas tes repas.
+- **Recettes** : page à part, avec photo, description et note en étoiles.
+- **Colonne** : crée tes propres groupes avec un titre, renomme-les, supprime-les, et glisse les pages dedans.
+
+### Modifié
+
+- **Travail** : une mission reste entièrement modifiable, y compris les jours sans travail et les heures supplémentaires notées.
+- **Courses en pause** (Paramètres → Courses) : les courses ne comptent plus nulle part tant que tu ne les fais pas toi-même.
+- **Santé** : le suivi des calories peut se mettre en pause (Paramètres → Santé).
+- Toutes les listes de choix ont le style de Quotidien (plus de liste Android d'origine).
+
 ## [0.1.54] — 2026-10-24
 
 ### Modifié

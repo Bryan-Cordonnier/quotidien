@@ -1,7 +1,7 @@
 {
   "id": "repas",
   "name": "Repas",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Vos recettes (favoris, recherche, valeurs nutritionnelles), à ajouter aux courses d'un geste ; Concocter crée les repas de la semaine dans votre budget avec l'IA.",
@@ -11,17 +11,26 @@
     "appelle:courses:lecture",
     "appelle:courses:ecriture",
     "reglages",
-    "ia"
+    "ia",
+    "appelle:agenda:ecriture"
   ],
   "services": {
     "courses": "^1",
-    "sante": "^1"
+    "sante": "^1",
+    "agenda": "^1"
   },
   "optionalDependencies": {
     "courses": "^1",
-    "sante": "^1"
+    "sante": "^1",
+    "agenda": "^0.2"
   },
   "apps": [
+    {
+      "id": "semaine",
+      "name": "Repas",
+      "entry": "apps/semaine/index.html",
+      "accepts": []
+    },
     {
       "id": "recettes",
       "name": "Repas",
@@ -31,8 +40,18 @@
   ],
   "pages": [
     {
-      "id": "recettes",
+      "id": "semaine",
       "title": "Repas",
+      "icon": "repas",
+      "category": "Maison",
+      "layout": {
+        "type": "app",
+        "app": "semaine"
+      }
+    },
+    {
+      "id": "recettes",
+      "title": "Recettes",
       "icon": "recettes",
       "category": "Maison",
       "layout": {

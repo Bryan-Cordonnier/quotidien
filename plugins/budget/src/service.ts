@@ -3,7 +3,8 @@
 // Un fournisseur ne peut pas appeler un autre service (profondeur 1) : ces fonctions ne touchent qu'au plan de Budget.
 import { differenceJours } from "@etabli/ui/civil";
 import { FENETRE_MAX_JOURS } from "./calculs";
-import { abandonner, PREVISIONS_PAR_APPEL_MAX, realiser, realiserPrevisions, remplacerPrevisions, supprimerPrevisions } from "./operations";
+import { abandonner, creerAbonnement, modifierAbonnement, modifierPrevision, PREVISIONS_PAR_APPEL_MAX, realiser, realiserPrevisions, remplacerPrevisions, supprimerAbonnement, supprimerPrevisions } from "./operations";
+import { jourDeInstant, type Jour } from "@etabli/ui/civil";
 import { lireBrouillonPrevision, lirePlan } from "./plan";
 import { ErreurBudget, STATUTS, type Plan, type Prevision } from "./types";
 import { choix, cle, identifiant, jourValide, liste, objet, reference, texte } from "./validation";
@@ -16,6 +17,10 @@ export const FONCTIONS: Record<string, "lecture" | "ecriture"> = {
   "previsions.realiser": "ecriture",
   "previsions.confirmer": "ecriture",
   "previsions.abandonner": "ecriture",
+  "previsions.modifier": "ecriture",
+  "abonnements.liste": "lecture",
+  "abonnements.enregistrer": "ecriture",
+  "abonnements.supprimer": "ecriture",
 };
 
 /** Prévisions rendues par page. */
@@ -31,7 +36,7 @@ export interface Execution {
 const visible = (p: Prevision) => ({ id: p.id, jour: p.jour, montantCents: p.montantCents, compteId: p.compteId, categorieId: p.categorieId, libelle: p.libelle, source: p.source.plugin, ref: p.source.ref, statut: p.statut, ecritureId: p.ecritureId });
 const numero = (p: Prevision): number => Number(p.id.slice(1));
 
-export function executer(enregistre: unknown, fonction: string, args: unknown, appelant: string): Execution {
+export function executer(enregistre: unknown, fonction: string, args: unknown, appelant: string, aujourdhui: Jour = jourDeInstant(Date.now())): Execution {
   if (!Object.hasOwn(FONCTIONS, fonction)) throw new ErreurBudget("introuvable", `Fonction inconnue : « ${fonction} ».`);
   const plan = lirePlan(enregistre);
   const qui = { plugin: appelant };
@@ -83,6 +88,34 @@ export function executer(enregistre: unknown, fonction: string, args: unknown, a
       const a = objet(args, ["id"], ["ecritureId"]);
       const suivant = realiser(plan, identifiant(a.id, "id"), a.ecritureId === undefined ? null : identifiant(a.ecritureId, "ecritureId"));
       return { valeur: { confirmee: true }, plan: suivant };
+    }
+    // L'écran de l'utilisateur (Mes finances) règle les paiements prévus : une échéance seule, ou un abonnement entier.
+    case "previsions.modifier": {
+      const a = objet(args, ["id"], ["jour", "montantCents", "libelle"]);
+      const champs = {
+        ...(a.jour === undefined ? {} : { jour: jourValide(a.jour, "jour") }),
+        ...(a.montantCents === undefined ? {} : { montantCents: a.montantCents as number }),
+        ...(a.libelle === undefined ? {} : { libelle: texte(a.libelle, "libelle", 200) }),
+      };
+      return { valeur: { modifiee: true }, plan: modifierPrevision(plan, identifiant(a.id, "id"), champs) };
+    }
+    case "abonnements.liste":
+      objet(args ?? {}, []);
+      return { valeur: plan.abonnements, plan: null };
+    case "abonnements.enregistrer": {
+      const a = objet(args, ["abonnement"]);
+      const brut = objet(a.abonnement, [], ["id", "libelle", "montantCents", "periodicite", "jour", "compteId", "categorieId", "aResilier", "echeances"]);
+      const { id, ...champs } = brut;
+      if (id === undefined) {
+        const r = creerAbonnement(plan, champs, aujourdhui);
+        return { valeur: { id: r.id }, plan: r.plan };
+      }
+      const ident = identifiant(id, "id");
+      return { valeur: { id: ident }, plan: modifierAbonnement(plan, ident, champs, aujourdhui) };
+    }
+    case "abonnements.supprimer": {
+      const a = objet(args, ["id"]);
+      return { valeur: { supprime: true }, plan: supprimerAbonnement(plan, identifiant(a.id, "id")) };
     }
     case "previsions.abandonner": {
       const a = objet(args, ["id"]);

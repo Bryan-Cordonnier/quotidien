@@ -125,6 +125,37 @@ export interface Carnet {
   sommeil: Record<Jour, number>;
   /** Les trajets du jour notés (« je suis parti », « je suis arrivé »), par jour puis par numéro de trajet dans la journée. */
   trajets: Record<Jour, Record<string, TrajetNote>>;
+  /** Adresses enregistrées : les logements (chez maman, chez mamie) et les lieux qui reviennent (le travail). */
+  lieux: Lieu[];
+  /** Où l'on dort selon la période (sinon : le logement par défaut). */
+  sejours: Sejour[];
+  /** Calculer seul le temps de trajet (avec les bouchons) de chaque événement qui a un lieu. */
+  trajetsAutoActifs: boolean;
+  /** Trajets calculés, par « événement|jour ». */
+  trajetsAuto: Record<string, TrajetAuto>;
+}
+
+export interface Lieu {
+  id: string;
+  nom: string;
+  adresse: string;
+  /** Logement par défaut (un seul) : là où l'on dort hors séjour. */
+  logement: boolean;
+}
+
+export interface Sejour {
+  lieuId: string;
+  du: Jour;
+  /** `null` : jusqu'à nouvel ordre. */
+  au: Jour | null;
+}
+
+export interface TrajetAuto {
+  min: number;
+  depuis: string;
+  vers: string;
+  /** Instant du calcul (ms UTC). */
+  calculeLe: number;
 }
 
 /** Heures réelles d'un trajet, en minutes depuis minuit : le départ en voiture et l'arrivée (absente tant qu'on est en route). */

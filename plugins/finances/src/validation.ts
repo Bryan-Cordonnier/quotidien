@@ -69,3 +69,8 @@ export function liste<T>(v: unknown, nom: string, element: (x: unknown) => T, ma
   if (v.length > max) return refus(`« ${nom} » : ${max} éléments au plus.`);
   return v.map(element);
 }
+
+export function booleen(v: unknown, champ: string): boolean {
+  if (typeof v !== "boolean") throw new ErreurFinances("argument_invalide", `« ${champ} » doit être vrai ou faux.`);
+  return v;
+}

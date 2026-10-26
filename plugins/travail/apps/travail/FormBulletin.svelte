@@ -1,7 +1,7 @@
 <script lang="ts">
   // Le bulletin reçu : le net réellement versé. Il retire l'attendu de Budget, ajoute le net dans Finances (si un compte est choisi) et
   // alimente la précision moyenne des estimations, que le recalage de Mes finances réutilise.
-  import { Modal } from "@etabli/ui";
+  import { Modal, SelectField } from "@etabli/ui";
   import { jourDeInstant } from "@etabli/ui/civil";
   import { formatEuros, parseEuros } from "@etabli/ui/money";
   import { jourPrevuPaie, lignes } from "../../src/vue";
@@ -65,10 +65,7 @@
       <div class="groupe"><label for="b-jour">Jour où il est arrivé</label><input id="b-jour" class="saisie" type="date" bind:value={jour} /></div>
       <div class="groupe">
         <label for="b-compte">Compte (Finances)</label>
-        <select id="b-compte" class="saisie" bind:value={compteId}>
-          <option value="">Ne pas l'ajouter dans Finances</option>
-          {#each s.comptes as c (c.id)}<option value={c.id}>{c.nom}</option>{/each}
-        </select>
+        <SelectField compact label="Compte" bind:value={compteId} options={[{ value: "", label: "Ne pas l'ajouter dans Finances" }, ...s.comptes.map((c) => ({ value: c.id, label: c.nom }))]} />
       </div>
     </div>
     {#if ecart !== null && ligne.netCents}

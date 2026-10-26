@@ -9,6 +9,7 @@ import { jourDeInstant, type Jour } from "@etabli/ui/civil";
 import { MAX_CATEGORIES, MAX_COMPTES, verifierTaille } from "./registre";
 import { soldeCompte } from "./calculs";
 import { ErreurFinances, SENS, TYPES_COMPTE, type Categorie, type Compte, type Ecriture, type Registre } from "./types";
+import { booleen } from "./validation";
 import { choix, cle, identifiant, instant, jourValide, montant, objet, texte, texteFacultatif } from "./validation";
 
 export interface Contexte {
@@ -179,3 +180,61 @@ export function annulerEcriture(reg: Registre, brut: unknown, ctx: Contexte): Re
   return { registre: enregistrer({ ...reg, suivant, ecritures: [...reg.ecritures, inverse] }), valeur: { id: nid, rejoue: false } };
 }
 
+
+/**
+ * Règle un compte : nom, type, archivé, solde de départ, date d'ouverture. Changer le solde de départ décale tous les soldes : c'est voulu
+ * (l'utilisateur corrige une erreur de saisie). Seul l'écran de l'utilisateur ou le plugin qui a créé le compte peut le régler.
+ */
+export function modifierCompte(reg: Registre, brut: unknown, ctx: Contexte): Resultat<{ id: string }> {
+  const a = objet(brut, ["id"], ["nom", "type", "archive", "soldeInitialCents", "ouvertLe"]);
+  const id = identifiant(a.id, "id");
+  const compte = reg.comptes.find((c) => c.id === id);
+  if (!compte) throw new ErreurFinances("introuvable", `Compte « ${id} » introuvable.`);
+  if (!ctx.proprietaire && compte.source !== ctx.appelant) throw new ErreurFinances("permission_refusee", "Un plugin ne règle que les comptes qu'il a créés lui-même.");
+  const suivant: Compte = { ...compte };
+  if (a.nom !== undefined) {
+    const nom = texte(a.nom, "nom", 80);
+    if (reg.comptes.some((c) => c.id !== id && c.nom.toLocaleLowerCase("fr") === nom.toLocaleLowerCase("fr"))) throw new ErreurFinances("argument_invalide", `Un compte « ${nom} » existe déjà.`);
+    suivant.nom = nom;
+  }
+  if (a.type !== undefined) suivant.type = choix(a.type, "type", TYPES_COMPTE);
+  if (a.archive !== undefined) suivant.archive = booleen(a.archive, "archive");
+  if (a.soldeInitialCents !== undefined) suivant.soldeInitialCents = montant(a.soldeInitialCents, "soldeInitialCents");
+  if (a.ouvertLe !== undefined) {
+    const ouvertLe = jourValide(a.ouvertLe, "ouvertLe");
+    if (ouvertLe < JOUR_MIN) throw new ErreurFinances("argument_invalide", "« ouvertLe » : pas avant le 1er janvier 2000.");
+    const avant = reg.ecritures.find((e) => e.compteId === id && e.jour < ouvertLe);
+    if (avant) throw new ErreurFinances("argument_invalide", `Une écriture du ${avant.jour} existe avant cette date d'ouverture.`);
+    suivant.ouvertLe = ouvertLe;
+  }
+  return { registre: enregistrer({ ...reg, comptes: reg.comptes.map((c) => (c.id === id ? suivant : c)) }), valeur: { id } };
+}
+
+/**
+ * Corrige une écriture (montant, libellé, date, compte) : l'original est annulé et une écriture corrigée la remplace. L'historique garde
+ * les deux ; les soldes sont ceux de la version corrigée. Rend l'identifiant de l'écriture corrigée.
+ */
+export function corrigerEcriture(reg: Registre, brut: unknown, ctx: Contexte): Resultat<Rejoue> {
+  const a = objet(brut, ["id", "cle"], ["montantCents", "libelle", "quand", "compteId"]);
+  const id = identifiant(a.id, "id");
+  const k = cle(a.cle);
+  const rejouee = reg.ecritures.find((e) => e.source === ctx.appelant && e.cle === `${k}:nouvelle`);
+  if (rejouee) return { registre: reg, valeur: { id: rejouee.id, rejoue: true } };
+  const original = reg.ecritures.find((e) => e.id === id);
+  if (!original) throw new ErreurFinances("introuvable", `Écriture « ${id} » introuvable.`);
+  const apresAnnulation = annulerEcriture(reg, { id, motif: "Correction", cle: `${k}:annule` }, ctx);
+  const ajout = ajouterEcriture(
+    apresAnnulation.registre,
+    {
+      compteId: a.compteId === undefined ? original.compteId : a.compteId,
+      montantCents: a.montantCents === undefined ? original.montantCents : a.montantCents,
+      quand: a.quand === undefined ? original.quand : a.quand,
+      libelle: a.libelle === undefined ? original.libelle : a.libelle,
+      ...(original.categorieId ? { categorieId: original.categorieId } : {}),
+      ...(original.ref ? { ref: original.ref } : {}),
+      cle: `${k}:nouvelle`,
+    },
+    ctx,
+  );
+  return ajout;
+}

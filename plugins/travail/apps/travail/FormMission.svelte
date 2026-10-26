@@ -1,6 +1,6 @@
 <script lang="ts">
   // Une mission d'intérim signée (nouvelle ou à modifier). Le net s'estime en direct, avec les cotisations de l'agence choisie.
-  import { Modal } from "@etabli/ui";
+  import { Modal, SelectField } from "@etabli/ui";
   import { ajouterJours, jourDeInstant, parseHeure } from "@etabli/ui/civil";
   import { formatEuros, parseEuros } from "@etabli/ui/money";
   import { detailMission, paiesMission, reglagesDeMission } from "../../src/calculs";
@@ -38,6 +38,14 @@
   let a = $state(existante ? hhmm(existante.finMin) : "16:00");
   let pause = $state(String(existante?.pauseMin ?? 30));
   let erreurEnregistrement = $state("");
+  // Jours sans travail dans la période (absence, jour annulé) et heures sup déjà notées : modifiables après coup.
+  let exclusions = $state<string[]>([...(existante?.exclusions ?? [])]);
+  let supplementaires = $state<{ jour: string; minutes: number }[]>([...(existante?.supplementaires ?? [])]);
+  let jourExclu = $state("");
+  const ajouterExclusion = () => {
+    if (jourExclu && !exclusions.includes(jourExclu)) exclusions = [...exclusions, jourExclu].sort();
+    jourExclu = "";
+  };
 
   const LETTRES = ["L", "M", "M", "J", "V", "S", "D"];
 
@@ -63,7 +71,7 @@
           debut,
           fin,
           joursSemaine: jours.flatMap((o, i) => (o ? [i + 1] : [])),
-          exclusions: existante?.exclusions ?? [],
+          exclusions: exclusions.filter((j) => j >= debut && j <= fin),
           debutMin,
           finMin,
           pauseMin: Number(pause) || 0,
@@ -71,7 +79,7 @@
           tauxHoraireCents: t,
           panierCents: pan,
           deplacementCents: dep,
-          supplementaires: existante?.supplementaires ?? [],
+          supplementaires: supplementaires.filter((x) => x.jour >= debut && x.jour <= fin),
         },
         false,
       );
@@ -111,10 +119,7 @@
   <div class="deux">
     <div class="groupe">
       <label for="m-ag">Agence</label>
-      <select id="m-ag" class="saisie" bind:value={agenceId}>
-        <option value="">Aucune</option>
-        {#each s.donnees?.agences ?? [] as ag (ag.id)}<option value={ag.id}>{ag.nom}</option>{/each}
-      </select>
+      <SelectField compact label="Agence" bind:value={agenceId} options={[{ value: "", label: "Aucune" }, ...(s.donnees?.agences ?? []).map((ag) => ({ value: ag.id, label: ag.nom }))]} />
     </div>
     <div class="groupe"><label for="m-taux">Taux horaire brut (€)</label><input id="m-taux" class="saisie num" bind:value={taux} placeholder="13,20" inputmode="decimal" autocomplete="off" /></div>
   </div>
@@ -135,6 +140,27 @@
       {/each}
     </div>
   </div>
+  <div class="groupe">
+    <span class="petit">Jours sans travail dans la période (absence, jour annulé)</span>
+    <div class="puces">
+      {#each exclusions as j (j)}
+        <span class="puce-jour">{jourLong(j)} <button class="retirer" aria-label="Retirer le {j}" onclick={() => (exclusions = exclusions.filter((x) => x !== j))}>✕</button></span>
+      {/each}
+      <input class="saisie date-courte" type="date" bind:value={jourExclu} min={debut} max={fin} aria-label="Jour sans travail" />
+      <button class="btn sm" onclick={ajouterExclusion} disabled={!jourExclu}>+ Ajouter</button>
+    </div>
+  </div>
+  {#if supplementaires.length}
+    <div class="groupe">
+      <span class="petit">Heures supplémentaires notées</span>
+      <div class="puces">
+        {#each supplementaires as x (x.jour)}
+          <span class="puce-jour">{jourLong(x.jour)} : +{Math.floor(x.minutes / 60)} h {String(x.minutes % 60).padStart(2, "0")}
+            <button class="retirer" aria-label="Retirer les heures sup du {x.jour}" onclick={() => (supplementaires = supplementaires.filter((y) => y.jour !== x.jour))}>✕</button></span>
+        {/each}
+      </div>
+    </div>
+  {/if}
   <div class="trois">
     <div class="groupe"><label for="m-de">De</label><input id="m-de" class="saisie" type="time" bind:value={de} /></div>
     <div class="groupe"><label for="m-a">À</label><input id="m-a" class="saisie" type="time" bind:value={a} /></div>
@@ -164,6 +190,32 @@
 </Modal>
 
 <style>
+  .puces {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .puce-jour {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 4px 3px 10px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    font-size: 12.5px;
+  }
+  .retirer {
+    border: 0;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0 4px;
+  }
+  .date-courte {
+    width: auto;
+  }
   .jours {
     display: flex;
     flex-wrap: wrap;

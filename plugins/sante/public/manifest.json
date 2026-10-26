@@ -1,7 +1,7 @@
 {
   "id": "sante",
   "name": "Santé",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "apiVersion": "^3",
   "author": "Bryan Cordonnier",
   "description": "Votre poids, votre IMC et vos objectifs pour l'alimentation (calories, protéines, régime, allergies, goûts), pris en compte par Repas. Le profil se règle dans Paramètres.",
@@ -34,6 +34,14 @@
     }
   ],
   "parameters": [
+    {
+      "id": "suiviCalories",
+      "label": "Suivre mes calories",
+      "type": "boolean",
+      "default": true,
+      "group": "Suivi",
+      "hint": "À couper tant que tu ne décides pas de tes repas : le besoin du jour et les conseils de calories se mettent en pause."
+    },
     {
       "id": "sexe",
       "label": "Sexe",

@@ -61,6 +61,10 @@
     {#snippet actions()}<button class="btn primary" onclick={() => (repas = true)}><Icon name="plus" size={16} /> Proposer des repas (IA)</button>{/snippet}
   </Entete>
 
+  {#if s.reglages.pause}
+    <section class="bloc"><p class="etiquette">Courses en pause</p><p class="petit">Tu ne fais pas tes courses toi-même en ce moment : elles ne comptent ni dans tes finances ni dans les alertes. À rallumer dans Paramètres → Courses.</p></section>
+  {/if}
+
   {#if s.illisible}
     <section class="bloc">
       <p class="etiquette">Données illisibles</p>

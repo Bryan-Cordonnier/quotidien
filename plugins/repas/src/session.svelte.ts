@@ -1,6 +1,8 @@
 // État des pages de Repas et recettes : les données du plugin (enregistrées par le moteur), les paramètres, et les échanges : Courses (budget,
 // prix des tickets, envoi d'une liste), Santé (objectifs, s'il est installé) et l'IA (le cerveau de l'utilisateur ou Gemini, au choix du moteur).
 // Règle de sécurité : des données illisibles ne sont JAMAIS remplacées par des données vides.
+import { cuisines, prevoir, reglerRepas } from "./semaine";
+import type { RepasPrevu, ReglagesRepas } from "./types";
 import { connect } from "@etabli/sdk";
 import { jourDeInstant, type Jour } from "@etabli/ui/civil";
 import { construireConsigne, construireConsigneListe, lireListeIa, lirePlanIa, SCHEMA_LISTE, SCHEMA_PLAN, type Choix, type PropositionPlan, type Questionnaire } from "./concocter";
@@ -44,6 +46,26 @@ export class Session {
   get ustensiles(): string[] {
     const p = typeof this.parametres.ustensiles === "string" ? this.parametres.ustensiles.split(/[,\n]/).map((u) => u.trim()).filter((u) => u !== "") : [];
     return p.length ? p : (this.donnees?.ustensiles ?? []);
+  }
+
+  /** Prévoit un repas, puis met à jour les « commencer à cuisiner » de l'Agenda. */
+  prevoirRepas(r: RepasPrevu): boolean {
+    const ok = this.appliquer((d) => prevoir(d, r));
+    if (ok) void this.poserCuisines();
+    return ok;
+  }
+
+  reglerRepas(r: Partial<ReglagesRepas>): boolean {
+    const ok = this.appliquer((d) => reglerRepas(d, r));
+    if (ok) void this.poserCuisines();
+    return ok;
+  }
+
+  /** Les moments de cuisine des sept prochains jours, dans l'Agenda (remplacés à chaque fois ; vides si le système de repas est coupé). */
+  async poserCuisines(): Promise<void> {
+    if (!this.#hote || !this.donnees) return;
+    const evenements = cuisines(this.donnees, this.aujourdhui).map((c) => ({ type: "autre", titre: c.titre, jour: c.jour, debutMin: c.debutMin, finMin: c.finMin }));
+    await this.#hote.services.call("agenda", "evenements.remplacer", { ref: "cuisine", evenements, cle: `cuisine-${Date.now()}` }, { timeoutMs: 8000 });
   }
 
   ouvrirParametres(): void {

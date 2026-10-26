@@ -2,9 +2,9 @@
 // service (service/main.ts) n'y ajoute que la lecture et l'écriture des réglages ; tout le reste se teste ici sans navigateur.
 import { differenceJours, type Jour } from "@etabli/ui/civil";
 import { FENETRE_MAX_JOURS, PAGE_MAX, parOrdre, serieParJour, soldesALaDate, totauxParCategorie } from "./calculs";
-import { ajouterEcriture, annulerEcriture, creerCategorie, creerCompte, type Contexte, type Resultat } from "./operations";
+import { ajouterEcriture, annulerEcriture, corrigerEcriture, creerCategorie, creerCompte, modifierCompte, type Contexte, type Resultat } from "./operations";
 import { lireRegistre } from "./registre";
-import { ErreurFinances, type Categorie, type Compte, type Ecriture, type Registre } from "./types";
+import { ErreurFinances, INTERFACES_UTILISATEUR, type Categorie, type Compte, type Ecriture, type Registre } from "./types";
 import { choix, identifiant, jourValide, liste, objet, texte } from "./validation";
 
 /** Niveau d'accès de chaque fonction : copie du manifeste, vérifiée par un test (le moteur, lui, lit le manifeste). */
@@ -19,6 +19,8 @@ export const FONCTIONS: Record<string, "lecture" | "ecriture"> = {
   "categories.creer": "ecriture",
   "ecritures.ajouter": "ecriture",
   "ecritures.annuler": "ecriture",
+  "comptes.modifier": "ecriture",
+  "ecritures.corriger": "ecriture",
 };
 
 export interface Execution {
@@ -58,7 +60,8 @@ function ecrire<T>(r: Resultat<T>, avant: Registre): Execution {
 export function executer(enregistre: unknown, fonction: string, args: unknown, appelant: string, maintenant: number, proprietaire = false): Execution {
   if (!Object.hasOwn(FONCTIONS, fonction)) throw new ErreurFinances("introuvable", `Fonction inconnue : « ${fonction} ».`);
   const reg = lireRegistre(enregistre);
-  const ctx: Contexte = { appelant, maintenant, proprietaire };
+  // Mes finances est l'écran de Finances : il agit pour l'utilisateur (corriger toute écriture, régler tout compte).
+  const ctx: Contexte = { appelant, maintenant, proprietaire: proprietaire || INTERFACES_UTILISATEUR.includes(appelant) };
   const lire = (valeur: unknown): Execution => ({ valeur, registre: null });
 
   switch (fonction) {
@@ -114,6 +117,10 @@ export function executer(enregistre: unknown, fonction: string, args: unknown, a
       return ecrire(ajouterEcriture(reg, args, ctx), reg);
     case "ecritures.annuler":
       return ecrire(annulerEcriture(reg, args, ctx), reg);
+    case "comptes.modifier":
+      return ecrire(modifierCompte(reg, args, ctx), reg);
+    case "ecritures.corriger":
+      return ecrire(corrigerEcriture(reg, args, ctx), reg);
     default:
       throw new ErreurFinances("introuvable", `Fonction inconnue : « ${fonction} ».`);
   }
