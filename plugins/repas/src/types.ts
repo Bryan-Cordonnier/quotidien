@@ -74,6 +74,16 @@ export interface Recette {
   note: number;
   /** Photo réduite (JPEG en « data: »), ou vide. */
   photo: string;
+  /** Jour où je l'ai faite et notée (« Testée »), ou `null` tant que je ne l'ai pas faite. */
+  teste: Jour | null;
+}
+
+/** Une recette mise dans une liste de courses : une fois la liste réglée et le repas passé, on demande si je l'ai faite. */
+export interface ATester {
+  recetteId: string;
+  /** La liste de Courses où elle a été mise. */
+  listeId: string;
+  depuis: Jour;
 }
 
 /** Un repas prévu à la main dans la semaine (gagne sur le plan concocté). */
@@ -168,6 +178,7 @@ export interface Donnees {
   /** Les repas prévus à la main, jour par jour. */
   semaine: RepasPrevu[];
   reglages: ReglagesRepas;
+  aTester: ATester[];
 }
 
 export type CodeErreur = "argument_invalide" | "introuvable" | "limite_atteinte" | "illisible";

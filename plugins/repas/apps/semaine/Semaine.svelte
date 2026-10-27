@@ -7,6 +7,7 @@
   import { alertes, caseDe, grille, type Case } from "../../src/semaine";
   import { Session } from "../../src/session.svelte";
   import { LIBELLES_MOMENTS, MOMENTS, type Moment } from "../../src/types";
+  import ATester from "../../src/ui/ATester.svelte";
 
   const s = new Session();
   void s.demarrer();
@@ -50,6 +51,7 @@
   {#if s.illisible}
     <section class="bloc"><p class="negatif">{s.illisible}</p></section>
   {:else if s.donnees && reglages}
+    <ATester {s} />
     <div class="barre">
       <label class="interrupteur">
         <input type="checkbox" checked={reglages.actif} onchange={(e) => s.reglerRepas({ actif: e.currentTarget.checked })} />

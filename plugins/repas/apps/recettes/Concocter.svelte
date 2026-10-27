@@ -23,6 +23,7 @@
   } from "../../src/concocter";
   import { ajouterPlan, ajouterRecette, marquerEnvoye, supprimerPlan } from "../../src/donnees";
   import { chiffrer, type Chiffrage } from "../../src/prix";
+  import { mettreATester } from "../../src/teste";
   import type { Session } from "../../src/session.svelte";
   import { LIBELLES_MOMENTS, MOMENTS, type Moment, type Plan } from "../../src/types";
   import ListeChiffree from "../../src/ui/ListeChiffree.svelte";
@@ -152,6 +153,9 @@
     const r = await s.envoyerACourses(`Repas du ${libelleJour(du)}`, articles);
     info = r.message;
     if (r.ok && id) s.appliquer((d) => marquerEnvoye(d, id));
+    // les recettes du plan : une fois la liste réglée et chaque repas passé, on demandera si je les ai faites
+    const recettes = new Set((s.donnees?.plans.find((p) => p.id === id)?.repas ?? []).flatMap((x) => (x.recetteId ? [x.recetteId] : [])));
+    if (r.ok && r.id) s.appliquer((d) => [...recettes].reduce((x, rid) => mettreATester(x, rid, r.id!, s.aujourdhui), d));
   }
 
   function ouvrir(p: Plan): void {
