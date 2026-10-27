@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { budget, casesParDefaut, invites, PREFERENCES_DEFAUT, construireConsigne, debutConseille, lireListeIa, lirePlanIa, repasVoulus, type Questionnaire } from "./concocter";
 import { ajouterPlan, ajouterPrix, ajouterRecette, basculerFavori, definirNutrition, definirUstensiles, donneesVides, lireDonnees, modifierRecette, supprimerRecette } from "./donnees";
 import { lireFusionIa } from "./fusion";
+import { prevoir } from "./semaine";
+import { aDemander, mettreATester, repondre } from "./teste";
 import { lireNutritionIa, moyenneMangee } from "./nutrition";
 import { basePrix, chiffrer, jetons, prixParMagasin } from "./prix";
 import { ErreurRepas, type Recette } from "./types";
@@ -232,3 +234,31 @@ describe("favoris, valeurs nutritionnelles et fusion avec la liste de courses", 
     expect(typeof lireFusionIa("pas du json", [])).toBe("string");
   });
 });
+
+describe("testée", () => {
+  const base = () => {
+    let d = ajouterRecette(donneesVides(), carbo).donnees;
+    d = mettreATester(d, "r1", "l3", "2026-10-26");
+    return d;
+  };
+  it("attend que la liste soit réglée, puis l'heure du repas prévu", () => {
+    let d = base();
+    expect(aDemander(d, ["l3"], "2026-10-28", 0)).toEqual([]);
+    d = prevoir(d, { jour: "2026-10-28", moment: "soir", plat: "", recetteId: "r1", heureMin: 19 * 60 });
+    expect(aDemander(d, [], "2026-10-28", 18 * 60)).toEqual([]);
+    expect(aDemander(d, [], "2026-10-28", 20 * 60).map((r) => r.id)).toEqual(["r1"]);
+  });
+  it("sans repas prévu, demande dès le lendemain ; la réponse marque « testée » et ne redemande plus", () => {
+    let d = base();
+    expect(aDemander(d, [], "2026-10-26", 0)).toEqual([]);
+    expect(aDemander(d, [], "2026-10-27", 0)).toHaveLength(1);
+    d = repondre(d, "r1", 4, "2026-10-27");
+    expect(d.recettes[0]).toMatchObject({ note: 4, teste: "2026-10-27" });
+    expect(d.aTester).toEqual([]);
+    d = modifierRecette(d, "r1", { ...carbo, portions: 3 });
+    expect(d.recettes[0]?.teste).toBe("2026-10-27");
+    expect(lireDonnees(JSON.parse(JSON.stringify(d)))).toEqual(d);
+    expect(repondre(base(), "r1", null, "2026-10-27").recettes[0]?.teste).toBeNull();
+  });
+});
+

@@ -10,6 +10,7 @@ import { definirNutrition, lireDonnees } from "./donnees";
 import { consigneFusion, lireFusionIa, SCHEMA_FUSION } from "./fusion";
 import { consigneNutrition, lireNutritionIa, moyenneMangee, SCHEMA_NUTRITION } from "./nutrition";
 import { basePrix, type PrixConnu } from "./prix";
+import { aDemander, mettreATester, repondre } from "./teste";
 import { ErreurRepas, type Donnees, type Recette } from "./types";
 
 type Hote = Awaited<ReturnType<typeof connect<unknown>>>;
@@ -191,11 +192,23 @@ export class Session {
     return typeof lu === "string" ? lu : { listeId: liste?.id ?? null, nomListe: liste?.nom ?? recette.nom, ...lu };
   }
 
-  async ecrireFusion(listeId: string | null, nom: string, articles: string[]): Promise<{ ok: boolean; message: string }> {
+  /** Enregistre la fusion dans Courses ; la recette est retenue pour demander, une fois la liste réglée, si je l'ai faite. */
+  async ecrireFusion(listeId: string | null, nom: string, articles: string[], recetteId: string): Promise<{ ok: boolean; message: string }> {
     if (!this.#hote) return { ok: false, message: "Pas encore prêt." };
-    if (listeId === null) return this.envoyerACourses(nom, articles);
-    const r = await this.#hote.services.call("courses", "listes.remplacer", { id: listeId, articles }, { timeoutMs: 8000 });
-    return r.ok ? { ok: true, message: `Liste « ${nom} » mise à jour dans Courses.` } : { ok: false, message: r.message };
+    const r = listeId === null ? await this.envoyerACourses(nom, articles) : await this.#hote.services.call("courses", "listes.remplacer", { id: listeId, articles }, { timeoutMs: 8000 });
+    if (!r.ok) return { ok: false, message: r.message };
+    const id = listeId ?? ("id" in r ? r.id : null);
+    if (id) this.appliquer((d) => mettreATester(d, recetteId, id, this.aujourdhui));
+    return { ok: true, message: listeId === null ? (r as { message: string }).message : `Liste « ${nom} » mise à jour dans Courses.` };
+  }
+
+  /** Les recettes dont on attend la note (rien tant que Courses ne répond pas : on ne saurait pas quelles listes sont réglées). */
+  aDemander(maintenantMin: number): Recette[] {
+    return this.donnees && this.courses.disponible ? aDemander(this.donnees, this.courses.listes.map((l) => l.id), this.aujourdhui, maintenantMin) : [];
+  }
+
+  repondreTeste(recetteId: string, note: number | null): boolean {
+    return this.appliquer((d) => repondre(d, recetteId, note, this.aujourdhui));
   }
 
   /** Estime à l'IA les valeurs nutritionnelles des recettes qui n'en ont pas (par paquets de 15). Rend un message. */
@@ -211,10 +224,13 @@ export class Session {
   }
 
   /** Envoie une liste à Courses (rejouer la même liste ne crée pas de doublon). Rend un message pour l'utilisateur. */
-  async envoyerACourses(nom: string, articles: string[]): Promise<{ ok: boolean; message: string }> {
+  async envoyerACourses(nom: string, articles: string[]): Promise<{ ok: boolean; message: string; id?: string }> {
     if (!this.#hote) return { ok: false, message: "Pas encore prêt." };
     const r = await this.#hote.services.call("courses", "listes.ajouter", { nom, articles }, { timeoutMs: 8000 });
-    if (r.ok) return { ok: true, message: `Liste « ${nom} » ajoutée dans Courses.` };
+    if (r.ok) {
+      const id = (r.valeur as { id?: unknown } | null)?.id;
+      return { ok: true, message: `Liste « ${nom} » ajoutée dans Courses.`, ...(typeof id === "string" ? { id } : {}) };
+    }
     return { ok: false, message: r.code === "service_absent" ? "Courses n'est pas installé : la liste n'a pas pu être envoyée." : r.message };
   }
 }

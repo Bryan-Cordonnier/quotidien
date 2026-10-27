@@ -13,6 +13,7 @@
   import Assiette from "./Assiette.svelte";
   import Concocter from "./Concocter.svelte";
   import FormRecette from "./FormRecette.svelte";
+  import ATester from "../../src/ui/ATester.svelte";
 
   const s = new Session();
   void s.demarrer();
@@ -78,7 +79,7 @@
 
   async function valider(): Promise<void> {
     if (!fusion) return;
-    const r = await s.ecrireFusion(fusion.listeId, fusion.nomListe, fusion.articles);
+    const r = await s.ecrireFusion(fusion.listeId, fusion.nomListe, fusion.articles, fiche!.id);
     if (r.ok) {
       info = r.message;
       fusion = null;
@@ -109,7 +110,7 @@
       {#if r.photo}<img class="vignette" src={r.photo} alt="" />{/if}
       <b>{r.nom}</b>
       {#if r.description}<span class="petit description">{r.description}</span>{/if}
-      <span class="petit">{r.note ? `${"★".repeat(r.note)} · ` : ""}{r.portions} pers.{r.tempsMin ? ` · ${r.tempsMin} min` : ""}{r.nutrition ? ` · ${r.nutrition.kcal} kcal` : ""}</span>
+      <span class="petit">{#if r.teste}<b class="testee">✓ Testée</b> {/if}{r.note ? `${"★".repeat(r.note)} · ` : ""}{r.portions} pers.{r.tempsMin ? ` · ${r.tempsMin} min` : ""}{r.nutrition ? ` · ${r.nutrition.kcal} kcal` : ""}</span>
     </button>
     <button class="etoile" class:allumee={r.favori} onclick={() => s.appliquer((d) => basculerFavori(d, r.id))} aria-pressed={r.favori} aria-label={r.favori ? `Retirer ${r.nom} des favoris` : `Mettre ${r.nom} en favori`}>{r.favori ? "★" : "☆"}</button>
   </div>
@@ -131,6 +132,7 @@
     <button class="btn retour" onclick={() => (concocter = false)}>← Retour aux recettes</button>
     <Concocter {s} />
   {:else if s.donnees}
+    <ATester {s} />
     <button class="concocter" onclick={() => (concocter = true)}>
       <span class="icone" aria-hidden="true">✨</span>
       <span class="texte"><b>Concocter mes repas</b><span>Quelques questions (jours, invités, temps, budget, envies), et l'IA crée les recettes et la liste de courses.</span></span>
@@ -208,9 +210,10 @@
 
 {#if fiche}
   <Modal open titre={fiche.nom} onclose={() => (ficheId = null)} largeur={620}>
-    {#if fiche.photo}<img class="photo-fiche" src={fiche.photo} alt="Photo de {fiche.nom}" />{/if}
+    {#if fiche.photo}<img class="photo-fiche" src={fiche.photo} alt="Photo de {fiche.nom}" />
+    {:else}<button class="btn sm" onclick={() => fiche && ((formulaire = { id: fiche.id }), (ficheId = null))}>📷 Ajouter une photo</button>{/if}
     {#if fiche.description}<p class="description-fiche">{fiche.description}</p>{/if}
-    {#if fiche.note}<p class="note-fiche" aria-label="Note : {fiche.note} sur 5">{"★".repeat(fiche.note)}{"☆".repeat(5 - fiche.note)}</p>{/if}
+    {#if fiche.note}<p class="note-fiche" aria-label="Note : {fiche.note} sur 5">{"★".repeat(fiche.note)}{"☆".repeat(5 - fiche.note)}{#if fiche.teste}<span class="petit"> · Testée le {fiche.teste.split("-").reverse().join("/")}</span>{/if}</p>{/if}
     <p class="petit">
       {fiche.categorie} · {fiche.portions} personne{fiche.portions > 1 ? "s" : ""}{fiche.tempsMin ? ` · ${fiche.tempsMin} min` : ""}
       {#if fiche.nutrition}· par portion : {fiche.nutrition.kcal} kcal, {fiche.nutrition.proteines} g de protéines, {fiche.nutrition.glucides} g de glucides, {fiche.nutrition.lipides} g de lipides{/if}
@@ -239,7 +242,9 @@
     <p class="etiquette">Ingrédients</p>
     <ul>{#each fiche.ingredients as i (i.nom + i.quantite)}<li>{i.quantite ? `${i.quantite} ` : ""}{i.nom}</li>{/each}</ul>
     {#if fiche.ustensiles.length}<p class="etiquette">Ustensiles</p><p>{fiche.ustensiles.join(", ")}</p>{/if}
-    {#if fiche.etapes.length}<p class="etiquette">Préparation</p><ol>{#each fiche.etapes as e, n (n)}<li>{e}</li>{/each}</ol>{/if}
+    <p class="etiquette">Préparation</p>
+    {#if fiche.etapes.length}<ol class="etapes">{#each fiche.etapes as e, n (n)}<li>{e}</li>{/each}</ol>
+    {:else}<p class="petit">Pas encore d'étapes : « Modifier » pour les écrire.</p>{/if}
     {#if fiche.notes}<p class="etiquette">Notes</p><p>{fiche.notes}</p>{/if}
     {#snippet pied()}
       <button class="btn" onclick={() => fiche && s.appliquer((d) => basculerFavori(d, fiche.id))}>{fiche?.favori ? "★ Favori" : "☆ Favori"}</button>
@@ -348,6 +353,13 @@
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+  .testee {
+    color: var(--ok, #2e9e5b);
+  }
+  .etapes li {
+    margin-bottom: 6px;
+    line-height: 1.45;
   }
   .photo-fiche {
     width: 100%;

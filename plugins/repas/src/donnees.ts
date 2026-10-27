@@ -1,6 +1,6 @@
 // Données de Repas et recettes : lecture stricte, saisies validées, opérations. Règle de sécurité : « rien d'enregistré » donne des données
 // vides, mais des données PRÉSENTES et illisibles sont une erreur, jamais des données vides : on écraserait la bibliothèque de recettes.
-import { CATEGORIES, ErreurRepas, MOMENTS, SCHEMA, SOURCES, type Donnees, type Ingredient, type LigneCourse, type Nutrition, type Plan, type PrixReleve, type Recette, type RepasPlan, type TotalMagasin, type RepasPrevu, type ReglagesRepas } from "./types";
+import { CATEGORIES, ErreurRepas, MOMENTS, SCHEMA, SOURCES, type ATester, type Donnees, type Ingredient, type LigneCourse, type Nutrition, type Plan, type PrixReleve, type Recette, type RepasPlan, type TotalMagasin, type RepasPrevu, type ReglagesRepas } from "./types";
 import { REGLAGES_REPAS_DEFAUT } from "./semaine";
 import { choix, entier, jourValide, liste, montant, objet, texte, texteFacultatif } from "./validation";
 
@@ -10,7 +10,7 @@ export const PLANS_MAX = 20;
 export const USTENSILES_MAX = 150;
 export const LIMITE_OCTETS = 3_500_000;
 
-export const donneesVides = (): Donnees => ({ schema: SCHEMA, suivant: 1, recettes: [], ustensiles: [], prix: [], plans: [], semaine: [], reglages: { ...REGLAGES_REPAS_DEFAUT, heures: { ...REGLAGES_REPAS_DEFAUT.heures } } });
+export const donneesVides = (): Donnees => ({ schema: SCHEMA, suivant: 1, recettes: [], ustensiles: [], prix: [], plans: [], semaine: [], reglages: { ...REGLAGES_REPAS_DEFAUT, heures: { ...REGLAGES_REPAS_DEFAUT.heures } }, aTester: [] });
 
 function verifier(d: Donnees): Donnees {
   if (JSON.stringify(d).length > LIMITE_OCTETS) throw new ErreurRepas("limite_atteinte", "Les données de Repas sont pleines (3,5 Mo) : supprimez de vieilles recettes ou de vieux relevés de prix.");
@@ -32,7 +32,7 @@ export function lireNutrition(brut: unknown): Nutrition | null {
 
 /** Une recette telle qu'on la saisit (sans identifiant) ou telle qu'elle est enregistrée (avec). */
 export function lireRecette(brut: unknown, avecId: boolean): Omit<Recette, "id"> & { id?: string } {
-  const o = objet(brut, ["nom", "categorie", "ingredients"], [...(avecId ? ["id"] : []), "portions", "tempsMin", "etapes", "ustensiles", "notes", "source", "favori", "nutrition", "description", "note", "photo"]);
+  const o = objet(brut, ["nom", "categorie", "ingredients"], [...(avecId ? ["id"] : []), "portions", "tempsMin", "etapes", "ustensiles", "notes", "source", "favori", "nutrition", "description", "note", "photo", "teste"]);
   if (o.photo !== undefined && o.photo !== "" && (typeof o.photo !== "string" || !o.photo.startsWith("data:image/") || o.photo.length > 400_000)) {
     throw new ErreurRepas("argument_invalide", "La photo est trop grande ou illisible.");
   }
@@ -54,6 +54,7 @@ export function lireRecette(brut: unknown, avecId: boolean): Omit<Recette, "id">
     description: texteFacultatif(o.description, "description", 300),
     note: o.note === undefined ? 0 : entier(o.note, "note", 0, 5),
     photo: typeof o.photo === "string" ? o.photo : "",
+    teste: o.teste === undefined || o.teste === null ? null : jourValide(o.teste, "teste"),
   };
 }
 
@@ -66,6 +67,11 @@ function lireRepasPrevu(brut: unknown): RepasPrevu {
     recetteId: o.recetteId === undefined || o.recetteId === null ? null : texte(o.recetteId, "recetteId", 20),
     heureMin: o.heureMin === undefined || o.heureMin === null ? null : entier(o.heureMin, "heureMin", 0, 1439),
   };
+}
+
+function lireATester(brut: unknown): ATester {
+  const o = objet(brut, ["recetteId", "listeId", "depuis"]);
+  return { recetteId: texte(o.recetteId, "recetteId", 20), listeId: texte(o.listeId, "listeId", 40), depuis: jourValide(o.depuis, "depuis") };
 }
 
 function lireReglagesRepas(brut: unknown): ReglagesRepas {
@@ -142,7 +148,7 @@ export function lirePlan(brut: unknown): Plan {
 export function lireDonnees(enregistre: unknown): Donnees {
   if (enregistre === null || enregistre === undefined) return donneesVides();
   try {
-    const o = objet(enregistre, ["schema", "suivant", "recettes"], ["ustensiles", "prix", "plans", "semaine", "reglages"]);
+    const o = objet(enregistre, ["schema", "suivant", "recettes"], ["ustensiles", "prix", "plans", "semaine", "reglages", "aTester"]);
     if (o.schema !== SCHEMA) throw new ErreurRepas("illisible", `Version des données inconnue : ${String(o.schema)}.`);
     const suivant = entier(o.suivant, "suivant", 1, 2_000_000_000);
     const recettes = liste(o.recettes, "recettes", (r) => lireRecette(r, true) as Recette, RECETTES_MAX);
@@ -157,6 +163,7 @@ export function lireDonnees(enregistre: unknown): Donnees {
       // Ajoutés après coup : absents des données plus anciennes.
       semaine: liste(o.semaine ?? [], "semaine", lireRepasPrevu, 400),
       reglages: lireReglagesRepas(o.reglages),
+      aTester: liste(o.aTester ?? [], "aTester", lireATester, 200),
     };
   } catch (e) {
     if (e instanceof ErreurRepas && e.code === "illisible") throw e;
@@ -174,8 +181,8 @@ export function modifierRecette(d: Donnees, id: string, brut: unknown): Donnees 
   if (!d.recettes.some((r) => r.id === id)) throw new ErreurRepas("introuvable", `Recette « ${id} » introuvable.`);
   const lue = lireRecette(brut, false);
   const o = typeof brut === "object" && brut !== null ? brut : {};
-  // le formulaire ne connaît ni le favori ni les valeurs nutritionnelles : ce qu'il ne donne pas est gardé
-  return verifier({ ...d, recettes: d.recettes.map((r) => (r.id === id ? ({ id, ...lue, favori: "favori" in o ? lue.favori : r.favori, nutrition: "nutrition" in o ? lue.nutrition : r.nutrition } as Recette) : r)) });
+  // le formulaire ne connaît ni le favori, ni les valeurs nutritionnelles, ni « testée » : ce qu'il ne donne pas est gardé
+  return verifier({ ...d, recettes: d.recettes.map((r) => (r.id === id ? ({ id, ...lue, favori: "favori" in o ? lue.favori : r.favori, nutrition: "nutrition" in o ? lue.nutrition : r.nutrition, teste: "teste" in o ? lue.teste : r.teste } as Recette) : r)) });
 }
 
 export function basculerFavori(d: Donnees, id: string): Donnees {
